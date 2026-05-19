@@ -9,8 +9,8 @@ return new class extends Migration {
     {
         Schema::create('pages', function (Blueprint $table) {
             $table->id();
-            $table->string('tenant_id')->constrained('tenants')->cascadeOnDelete();
-            $table->foreignId('parent_id')->nullable()->constrained('pages')->onDelete('cascade');
+            $table->string('tenant_id');
+            $table->foreignId('parent_id')->nullable()->constrained('pages')->nullOnDelete();
             $table->string('title');
             $table->string('slug')->unique();
             $table->longText('content')->nullable();
@@ -19,8 +19,8 @@ return new class extends Migration {
             $table->boolean('show_in_menu')->default(false);
             $table->integer('order_no')->default(0);
             $table->enum('status', ['draft', 'published'])->default('draft');
+            $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
-             $table->foreign('tenant_id')->references('id')->on('tenants')->onUpdate('cascade')->onDelete('cascade');
         });
     }
 

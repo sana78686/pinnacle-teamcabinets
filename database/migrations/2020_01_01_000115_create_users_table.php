@@ -15,8 +15,9 @@ return new class extends Migration
           if (!Schema::hasTable('users')){
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('tenant_id')->nullable()->constrained('tenants')->cascadeOnDelete();
-            $table->foreignUuid('parent_id')->nullable()->constrained('users')->cascadeOnDelete();
+            $table->string('tenant_id')->nullable();
+            $table->foreignId('parent_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
             $table->string('company_name')->nullable();
             $table->string('username')->nullable();
             $table->string('name');

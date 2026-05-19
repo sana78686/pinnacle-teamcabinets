@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('home_settings', function (Blueprint $table) {
             $table->id();
-              $table->foreignUuid('tenant_id')->constrained('tenants')->cascadeOnDelete();
+            $table->string('tenant_id');
+            $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
             $table->string('banner_image')->nullable();
             $table->string('benner_title')->nullable();
             $table->text('benner_description')->nullable();

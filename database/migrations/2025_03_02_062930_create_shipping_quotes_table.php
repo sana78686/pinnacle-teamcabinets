@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('shipping_quotes', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('tenant_id')->constrained('tenants')->cascadeOnDelete();
+            $table->string('tenant_id');
+            $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
             $table->string('job_name');
             $table->json('rooms'); // Stores rooms with products under them
             $table->text('comment')->nullable();

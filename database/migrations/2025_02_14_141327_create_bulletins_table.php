@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('bulletins', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('tenant_id')->nullable()->constrained('tenants')->cascadeOnDelete();
+            $table->string('tenant_id')->nullable();
+            $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
             $table->string('user_option');
             $table->string('bulletin_title');
             $table->string('bulletin_description');

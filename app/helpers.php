@@ -2,8 +2,29 @@
 
 use Illuminate\Support\Facades\Request;
 
+if (! function_exists('central_domain')) {
+    /** Central Pinnacle admin host from CENTRAL_DOMAIN (.env). */
+    function central_domain(): string
+    {
+        return (string) config('app.central_domain', 'localhost');
+    }
+}
+
+if (! function_exists('central_url')) {
+    /** Base URL for the central app (scheme/host from APP_URL). */
+    function central_url(string $path = ''): string
+    {
+        $base = rtrim((string) config('app.url', 'http://localhost'), '/');
+        if ($path === '') {
+            return $base;
+        }
+
+        return $base.'/'.ltrim($path, '/');
+    }
+}
+
 if (! function_exists('tenant_base_domain')) {
-    /** Tenant subdomain base from APP_DOMAIN (.env), default localhost in config/app.php */
+    /** Tenant wildcard base from TENANT_DOMAIN (.env), e.g. apimstec.com */
     function tenant_base_domain(): string
     {
         return (string) config('app.domain', 'localhost');

@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('tax_values', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('tenant_id')->nullable()->constrained('tenants')->cascadeOnDelete();
+            $table->string('tenant_id')->nullable();
+            $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
             $table->string('option_key')->nullable();
             $table->string('option_value')->nullable();
             $table->string('field_label')->nullable();

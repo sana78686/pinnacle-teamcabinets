@@ -3,10 +3,16 @@
 return [
 
     /*
-    | Base domain for tenant subdomains (e.g. acme.{domain}).
-    | Set APP_DOMAIN in .env; falls back to localhost when unset.
+    | Central (Pinnacle) admin host — e.g. pinnacle.apimstec.com
+    | Set CENTRAL_DOMAIN in .env.
     */
-    'domain' => env('APP_DOMAIN', 'localhost'),
+    'central_domain' => env('CENTRAL_DOMAIN', 'localhost'),
+
+    /*
+    | Tenant subdomain base — tenants use {tenant-id}.{domain} (*.apimstec.com).
+    | Set TENANT_DOMAIN in .env (APP_DOMAIN is a legacy alias).
+    */
+    'domain' => env('TENANT_DOMAIN', env('APP_DOMAIN', 'localhost')),
 
     /*
     | Share pinnacle config once per request in local (faster Blade renders).

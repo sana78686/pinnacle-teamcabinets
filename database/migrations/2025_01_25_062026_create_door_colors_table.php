@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('door_colors', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('tenant_id')->nullable()->constrained('tenants')->cascadeOnDelete();
+            $table->string('tenant_id')->nullable();
+            $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
             $table->foreignId('product_catalog_id')->nullable()->constrained('product_catalogs')->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('product_label')->nullable();
             $table->string('image')->nullable();

@@ -23,7 +23,10 @@ return [
     //     // 'protegeoffice.com',
     //     // 'localhost',
     // ],
-    'central_domains' => explode(',', env('APP_DOMAIN', 'localhost')),
+    'central_domains' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env('CENTRAL_DOMAINS', env('CENTRAL_DOMAIN', 'localhost')))
+    ))),
 
 
     /**

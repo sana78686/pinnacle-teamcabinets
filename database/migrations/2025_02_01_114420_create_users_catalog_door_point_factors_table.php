@@ -11,18 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('users_catalog_door_point_factors')){
-        Schema::create('users_catalog_door_point_factors', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_catalog_visibility_id')->nullable();
-            $table->foreignId('catalog_id')->constrained()->onDelete('cascade'); // Foreign key for catalog_id
-            $table->string('door_style'); // Door style
-            $table->decimal('factor', 8, 2)->nullable(); // Factor value (nullable)
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
-            $table->softDeletes();
-            $table->timestamps();
-        });
-    }
+        if (! Schema::hasTable('users_catalog_door_point_factors')) {
+            Schema::create('users_catalog_door_point_factors', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_catalog_visibility_id')->nullable()
+                    ->constrained('users_catalog_visibilities')->nullOnDelete();
+                $table->foreignId('catalog_id')->constrained('product_catalogs')->cascadeOnDelete();
+                $table->string('door_style');
+                $table->decimal('factor', 8, 2)->nullable();
+                $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
+                $table->softDeletes();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

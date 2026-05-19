@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('users_catalog_visibilities', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Assuming you have a users table with foreign key
-            $table->unsignedBigInteger('catalog_id'); // The catalog_id (Artstar = 4, TEAM_CABINETS = 6, etc.)
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('catalog_id')->constrained('product_catalogs')->cascadeOnDelete();
             $table->softDeletes();
             $table->timestamps();
 

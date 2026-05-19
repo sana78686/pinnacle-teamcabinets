@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_catalog_visibility_id')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
-            $table->unsignedBigInteger('catalog_id')->nullable(); // Foreign key for catalog_id
+            $table->foreignId('catalog_id')->nullable()->constrained('product_catalogs')->nullOnDelete();
             $table->string('door_style'); // Door style
             $table->decimal('factor', 8, 2)->nullable(); // Factor value (nullable)
             $table->softDeletes();

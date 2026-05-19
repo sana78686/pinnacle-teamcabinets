@@ -13,7 +13,7 @@ class UsersCatalogDoorPointFactor extends Model
     // A door point factor belongs to a catalog
     public function catalog()
     {
-        return $this->belongsTo(ProductCatalog::class);
+        return $this->belongsTo(ProductCatalog::class, 'catalog_id');
     }
 
     // If needed, you could associate this with a user

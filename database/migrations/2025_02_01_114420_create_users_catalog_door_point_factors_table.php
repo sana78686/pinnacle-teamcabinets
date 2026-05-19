@@ -14,8 +14,9 @@ return new class extends Migration
         if (! Schema::hasTable('users_catalog_door_point_factors')) {
             Schema::create('users_catalog_door_point_factors', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('user_catalog_visibility_id')->nullable()
-                    ->constrained('users_catalog_visibilities')->nullOnDelete();
+                $table->unsignedBigInteger('user_catalog_visibility_id')->nullable();
+                $table->foreign('user_catalog_visibility_id', 'ucdpf_ucv_fk')
+                    ->references('id')->on('users_catalog_visibilities')->nullOnDelete();
                 $table->foreignId('catalog_id')->constrained('product_catalogs')->cascadeOnDelete();
                 $table->string('door_style');
                 $table->decimal('factor', 8, 2)->nullable();

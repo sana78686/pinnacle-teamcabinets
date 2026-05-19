@@ -1,0 +1,114 @@
+Catalog,Cabinet_section,Cabinet_label,SKU,Cabinet_color,Weight,Cost,Details,Manufacture_date,Image,Quantity,Assemble_cost
+ARTSTAR,"Base Cabinets","Base Cabinet 9"" W",A-BT9,"Shaker White",38,395,"W9"" D24"" H34 1/2""",,BT9.PNG,3,20
+ARTSTAR,"Base Cabinets","Base Cabinet 12"" W",A-B12,"Shaker White",51,530,"W12"" D24"" H34 1/2""",,B12.PNG,10,25
+ARTSTAR,"Base Cabinets","Base Cabinet 15"" W",A-B15,"Shaker White",57,570,"W15"" D24"" H34 1/2""",,B15.PNG,0,25
+ARTSTAR,"Base Cabinets","Base Cabinet 18"" W",A-B18,"Shaker White",62,620,"W18"" D24"" H34 1/2""",,B18.PNG,0,25
+ARTSTAR,"Base Cabinets","Base Cabinet 21"" W",A-B21,"Shaker White",66,665,"W21"" D24"" H34 1/2""",,B21.PNG,0,25
+ARTSTAR,"Base Cabinets","Base Cabinet 24"" W",A-B24,"Shaker White",72,740,"W24"" D24"" H34 1/2""",,B24.PNG,0,25
+ARTSTAR,"Base Cabinets","Base Cabinet 27"" W",A-B27,"Shaker White",78,795,"W27"" D24"" H34 1/2""",,B27.PNG,0,25
+ARTSTAR,"Base Cabinets","Base Cabinet 30"" W",A-B30,"Shaker White",89,998,"W30"" D24"" H34 1/2""",2024-04-23,B30.PNG,14,25
+ARTSTAR,"Base Cabinets","Base Cabinet 33"" W",A-B33,"Shaker White",94,1060,"W33"" D24"" H34 1/2""",,B33.PNG,0,25
+ARTSTAR,"Base Cabinets","Base Cabinet 36"" W",A-B36,"Shaker White",100,1145,"W36"" D24"" H34 1/2""",,B36.PNG,11,25
+ARTSTAR,"Base Cabinets","Sink Base 33"" W",A-SB33,"Shaker White",72,760,"W33"" D24"" H34 1/2""",,SB33.PNG,14,25
+ARTSTAR,"Base Cabinets","Sink Base 36"" W",A-SB36,"Shaker White",76,785,"W36"" D24"" H34 1/2""",,SB36.PNG,2,25
+ARTSTAR,"Base Cabinets","Drawer Base 36"" W",A-CSB36,"Shaker White",132,1360,"W36"" D24"" H34 1/2""",,Corner_Sink_Base_36_and_42.PNG,2,25
+ARTSTAR,"Base Cabinets","Drawer Base 12"" W",A-DB12-3,"Shaker White",75,882,"W12"" D24"" H34 1/2""",,3DB12.PNG,17,20
+ARTSTAR,"Base Cabinets","Drawer Base 15"" W",A-DB15-3,"Shaker White",82,950,"W15"" D24"" H34 1/2""",,3DB15.PNG,8,25
+ARTSTAR,"Base Cabinets","Drawer Base 18"" W",A-DB18-3,"Shaker White",89,980,"W18"" D24"" H34 1/2""",,3DB18.PNG,1,25
+ARTSTAR,"Base Cabinets","Drawer Base 24"" W",A-DB24-3,"Shaker White",102,1074,"W24"" D24"" H34 1/2""",,3DB24.PNG,13,25
+ARTSTAR,"Base Cabinets","Drawer Base 30"" 3 DEEP DRAWERS",A-DB30-3,"Shaker White",117,1200,"W30"" D24"" H34 1/2""",,3DB30.PNG,14,25
+ARTSTAR,"Base Cabinets","Base Corner Cabinet 27"" W",A-BBC36,"Shaker White",70,734,"W27"" D24"" H34 1/2""",,BBC36.PNG,0,25
+ARTSTAR,"Base Cabinets","Base Corner Cabinet 39"" W",A-BBC42,"Shaker White",87,945,"W39"" D24"" H34 1/2""",,BBC42.PNG,1,25
+ARTSTAR,"Base Cabinets","Base Lazy Susan 33"" W",A-BLS33,"Shaker White",89,933,"W33"" D24"" H34 1/2""",,LSB33.PNG,9,30
+ARTSTAR,"Base Cabinets","Base Lazy Susan 36"" W",A-BLS36,"Shaker White",99,1520,"W36"" D24"" H34 1/2""",,LSB36.PNG,12,30
+ARTSTAR,"Base Cabinets","Base End Cabinet",A-BEC24,"Shaker White",76,702,"W24"" D24"" H34 1/2""",,BEC24.PNG,10,20
+ARTSTAR,"Base Cabinets","Base Waste Basket",A-BWB18,"Shaker White",78,1060,"W18"" D24"" H34 1/2""",,BWB18.PNG,9,25
+ARTSTAR,"Base Cabinets","Base Microwave Cabinet",A-MB33,"Shaker White",92,892,"W33"" D24"" H34 1/2""",,Base_Microwave.PNG,0,25
+ARTSTAR,"Base Cabinets","Base End Shelf",A-BES12,"Shaker White",42,483,"W12"" D24"" H34 1/2""",,BES12.PNG,10,25
+ARTSTAR,"Wall Cabinets","Wall Cabinet 30"" W x 12"" H",A-W3012,"Shaker White",30,342,"W30"" D12"" H12""",,W3012.PNG,0,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet 36"" W x 12"" H",A-W3612,"Shaker White",34,378,"W36"" D12"" H12""",,W3612.PNG,21,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet 30"" W x 15"" H",A-W3015,"Shaker White",34,423,"W30"" D12"" H15""",,W3015.PNG,0,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet 36"" W x 15"" H",A-W3615,"Shaker White",38,446,"W36"" D12"" H15""",,W3615.PNG,13,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet 9"" W",A-W0930,"Shaker White",28,275,"W9"" D12"" H30""",,W0930.PNG,15,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet 12"" W",A-W1230,"Shaker White",31,310,"W12"" D12"" H30""",,W1230.PNG,16,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet 15"" W",A-W1530,"Shaker White",36,355,"W15"" D12"" H30""",,W1530.PNG,9,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet 18"" W",A-W1830,"Shaker White",41,396,"W18"" D12"" H30""",,W1830.PNG,32,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet 21"" W",A-W2130,"Shaker White",45,440,"W21"" D12"" H30""",,W2130.PNG,1,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet 24"" W",A-W2430,"Shaker White",52,510,"W24"" D12"" H30""",,W2430.PNG,11,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet 27"" W",A-W2730,"Shaker White",56,560,"W28"" D12"" H30""",,W2730.PNG,12,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet 30"" W",A-W3030,"Shaker White",60,603,"W30"" D12"" H30""",,W3030.PNG,2,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet 33"" W",A-W3330,"Shaker White",65,660,"W33"" D12"" H30""",,W3330.PNG,24,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet 36"" W",A-W3630,"Shaker White",69,695,"W36"" D12"" H30""",,W3630.PNG,14,20
+ARTSTAR,"Wall Cabinets","Wall End",A-WES630,"Shaker White",21,222,"W6"" D12"" H30""",,WES630.PNG,4,20
+ARTSTAR,"Wall Cabinets","Wall Microwave (2 Doors)",A-MO3030,"Shaker White",70,805,"W30"" D12"" H30""",,MO3030,3,20
+ARTSTAR,"Wall Cabinets","Wall Corner Cabinet 24"" W",A-WCC2430,"Shaker White",40,666,"W24"" D12"" H30""",,DCW2430.PNG,32,20
+ARTSTAR,"Wall Cabinets","Wall Blind Cabinet 27"" W",A-WBC2730,"Shaker White",53,538,"W27"" D12"" H30""",,WBC2730.PNG,8,20
+ARTSTAR,"Wall Cabinets","Wall Blind Cabinet 36"" W",A-WBC3630,"Shaker White",58,538,"W36"" D12"" H30""",,WBC3630.PNG,9,20
+ARTSTAR,Moldings,A-BAM,A-BAM,"Shaker White",1,60,"BAM MOLDING ROUND 2 SIDES 3/4"" x 3/16 THICK",,no_image.jpg,24,0
+ARTSTAR,Moldings,A-SM8,A-SM8,"Shaker White",2,97,"SCRIBE MOLDING 8FT",,no_image.jpg,56,0
+ARTSTAR,Fillers,"Filler 3"" W x 42"" H",A-WF342,"Shaker White",3,48,"W3"" H42""",,F342.PNG,12,0
+ARTSTAR,Fillers,"Filler 6"" W x 42"" H",A-WF642,"Shaker White",6,87,"W6"" H42""",,F642.PNG,20,0
+ARTSTAR,Fillers,"Filler 3"" W x 96"" H",A-PF396,"Shaker White",6,143,"W3"" H96""",,F396.PNG,49,0
+ARTSTAR,Fillers,"Filler 6"" W x 96"" H",A-F696,"Shaker White",12,228,"W6"" H96""",,F696.PNG,5,0
+ARTSTAR,"Samples Doors","Sample Shaker White Door",Sample,"Shaker White",7,58,"W12"" H14""",,Sample.PNG,24,0
+ARTSTAR,Panels,A-DWR3,A-DWR3,"Shaker White",30,176,"DISHWASHER END PANEL 3"" FACE 24""D X 34.5H X 3""",,no_image.jpg,19,0
+ARTSTAR,Panels,Panel,A-FPV4296,"Shaker White",47,306,"Panel 42x96x1/4 - Only finished on 1 side. ",,FPV42961.PNG,10,0
+ARTSTAR,Panels,Panel,A-S2496,"Shaker White",99,299,"Finished 3 sides",2024-05-07,S2496.PNG,12,0
+ARTSTAR,Moldings,"FBM FURNITURE BASE",FBM,"Shaker White",11,213,"5/8"" X 4.5""",,FBM.PNG,46,0
+ARTSTAR,"Wall Cabinets","Wall Cabinet",W361824,"Shaker White",53,605,"36""W 18 H 12""D",,W361824.PNG,3,0
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W362424,"Shaker White",73,782,"36""W 24 H 12""D",,W362424.PNG,18,20
+ARTSTAR,"Base Cabinets","Farm Sink Base 36",A-FSB36,"Shaker White",75,840,"W36"" D24"" H34 1/2""",,FSB36.PNG,24,20
+ARTSTAR,"Wall Cabinets","Angled Wall Cabinet",A-AW1236,"Shaker White",36,400,"W12"" D24"" H34 1/2""",,AW1236,8,25
+ARTSTAR,"Wall Cabinets","Angled Wall Cabinet",A-AW1242,"Shaker White",41,434,"W12"" D24"" H34 1/2""",,AW1242,24,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet 36""W 24""H 12""D",A-W3624,"Shaker White",56,644,"W36"" D12"" H24""",,W3624.PNG,9,20
+ARTSTAR,"Wall Cabinets","Wall Corner Cabinet 24"" W",A-WCC2436,"Shaker White",77,823,"W24"" D12"" H36""",,DCW2436.PNG,7,20
+ARTSTAR,"Wall Cabinets","Wall Corner Cabinet 24"" W",A-WCC2442,"Shaker White",92,950,"W24"" D12"" H42""",,DCW2442.PNG,18,20
+ARTSTAR,Panels,"Ref Panel",A-REP3096,"Shaker White",50,329,"1.5""W x 96"" H x 30""D",,REP3096,18,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W0936,"Shaker White",32,340,"9""W 36 H 12""D",,W0936,25,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W1236,"Shaker White",36,382,"12""W 36 H 12""D",,W1236.PNG,8,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W1536,"Shaker White",41,442,"15""W 36 H 12""D",,W1536.PNG,11,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W1836,"Shaker White",46,496,"18""W 36 H 12""D",,W1836.PNG,15,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W2136,"Shaker White",51,573,"21""W 36 H 12""D",,W2136.PNG,9,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W2436,"Shaker White",59,662,"24""W 36 H 12""D",,W2436.PNG,2,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W2736,"Shaker White",64,716,"27""W 36 H 12""D",,W2736.PNG,6,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W3036,"Shaker White",68,773,"30""W 36 H 12""D",,W3036.PNG,14,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W3336,"Shaker White",73,836,"33""W 36 H 12""D",,W3336.PNG,15,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W3636,"Shaker White",78,810,"36""W 36 H 12""D",,W3636.PNG,27,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W0942,"Shaker White",37,380,"9""W 42 H 12""D",,W0942.PNG,0,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W1242,"Shaker White",41,435,"12""W 42 H 12""D",,W1242.PNG,24,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W1542,"Shaker White",48,513,"15""W 42 H 12""D",,W1542.PNG,5,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W1842,"Shaker White",54,584,"18""W 42 H 12""D",,W1842.PNG,2,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W2142,"Shaker White",60,615,"21""W 42 H 12""D",,W2142.PNG,6,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W2442,"Shaker White",68,766,"24""W 42 H 12""D",,W2442.PNG,19,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W2742,"Shaker White",74,785,"27""W 42 H 12""D",,W2742.PNG,21,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W3042,"Shaker White",80,883,"30""W 42 H 12""D",,W3042.PNG,9,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W3342,"Shaker White",85,952,"33""W 42 H 12""D",,W3342.PNG,10,20
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W3642,"Shaker White",91,1026,"36""W 42 H 12""D",,W3642.PNG,1,20
+ARTSTAR,"Base Cabinets","Base Cabinet 6"" W",A-BSP6,"Shaker White",55,653,"W6"" D24"" H34 1/2""",,BSP6,6,20
+ARTSTAR,"Base Cabinets","Base Cabinet 9"" W",A-BSP9,"Shaker White",62,684,"W9"" D24"" H34 1/2""",,BSP9,4,20
+ARTSTAR,"Wall Cabinets",W3024,A-W3024,"Shaker White",49,476,"WALL CABINET 30""W x 24""H x 12""D",,W3024.PNG,12,20
+ARTSTAR,"Wall Cabinets",OES636,A-OE636,"Shaker White",19,182,"OPEN END SHELF",,OES636.PNG,4,20
+ARTSTAR,"Base Cabinets","Drawer Base 30"" 2 DEEP DRAWERS",A-DB36-3,"Shaker White",130,1352,"W36"" D24"" H34 1/2""",,3DB36.PNG,18,30
+ARTSTAR,"Wall Cabinets","Wall Cabinet",A-W3018,"Shaker White",40,405,"Wall cabinet 30"" W x 18"" H ",,W3018.PNG,16,20
+ARTSTAR,Moldings,SHM,SHM,"Shaker White",2,70.8,"3/4"" SHOE MOLDING",,SHM.PNG,60,0
+ARTSTAR,"Tall Cabinets",A-U248424,A-U248424,"Shaker White",170,2197,"U248424 PANTRY UTILITY CABINET",,U248424.PNG,0,20
+ARTSTAR,"Wall Cabinets",A-WDEP30,A-WDEP30,"Shaker White",12,166,"ARTSTAR WALL DECORATIVE END PANEL 29"" H 11.5 W",,WDEP30.PNG,19,0
+ARTSTAR,"Base Cabinets",BDEP,BDEP,"Shaker White",20,335,"BASE DOOR END PANEL 29.5H 23.5"" W",,BDEP.PNG,20,0
+ARTSTAR,Moldings,"LIGHT RAIL",A-LRM,"Shaker White",5,143,"LIGHT RAIL",,LRM.PNG,50,0
+ARTSTAR,"Tall Cabinets",U249024,A-U249024,"Shaker White",325,1820,"PANTRY CABINET 24W X 90H X 24D",,U249024.JPG,1,35
+ARTSTAR,Accessories,"TUK TOUCH UP KIT",A-TUK,"Shaker White",1,30,"ARTSTAR WHITE SHAKER TOUCH UP KIT",,no_image.jpg,20,0
+ARTSTAR,"Base Cabinets","BASE CORNER SINK 42 BOX",A-CSB42BX,"Shaker White",100,970,"W42"" D24"" H34 1/2""",,Corner_Sink_Base_36_and_421.PNG,10,25
+ARTSTAR,"Base Cabinets","BASE CORNER SINK 42 DOOR/FACE",A-CSB42DF,"Shaker White",87,595,"W42"" D24"" H34 1/2""",,A-CSB42,10,25
+ARTSTAR,"Base Cabinets","Drawer Base 3"" 2 DRAWERS",A-DB30-2,"Shaker White",115,1100,"W30"" D24"" H34 1/2""",,3DB2.PNG,9,25
+ARTSTAR,"Tall Cabinets",U189024,A-U189024,"Shaker White",260,1740,"PANTRY CABINET 18W X 90H X 24D",,U189024.JPG,1,35
+ARTSTAR,"Tall Cabinets",A-OC339024,A-OC339024,"Shaker White",240,2800,"OVEN CABINET W33"" D24"" H90""",,OC332490.PNG,5,40
+ARTSTAR,"Tall Cabinets",U-2496,A-U2496,"Shaker White",180,2435,"PANTRY 24W 96H 24D",,U249624.PNG,0,30
+ARTSTAR,"Wall Cabinets",A-WDEP36,A-WDEP36,"Shaker White",14,198,"ARTSTAR WALL DECORATIVE END PANEL 35"" H 11.5 W",,WDEP36.PNG,20,0
+ARTSTAR,"Wall Cabinets",A-WDEP42,A-WDEP42,"Shaker White",16,235,"ARTSTAR WALL DECORATIVE END PANEL 41"" H 11.5 W",,WDEP42.PNG,20,0
+ARTSTAR,Accessories,A-RS18,A-RS18,"Shaker White",12,221,"ROLL OUT SHELF 18",,RS18.PNG,20,10
+ARTSTAR,Accessories,A-RS24,A-RS24,"Shaker White",14,246,"ROLL OUT SHELF 24",,RS24.PNG,14,10
+ARTSTAR,Accessories,A-RS30,A-RS30,"Shaker White",16,270,"ROLL OUT SHELF 30",,RS30.PNG,20,10
+ARTSTAR,Accessories,"A-1.5 FRONT FOR REP30",A-1.5.96,"Shaker White",3,80,"FACE FOR REP",,F1.5,20,0
+ARTSTAR,Accessories,TK8,TK8,"Shaker White",2,100,"TOE KICK",,no_image.jpg,16,0
+ARTSTAR,Moldings,CM8,CM8,"Shaker White",4,155,"CROWN MOLDING 8 FT.",,no_image.jpg,33,0
+ARTSTAR,Moldings,OCM8,OCM8,"Shaker White",2,97,"Outside Corner Molding 8ft.",,no_image.jpg,19,0

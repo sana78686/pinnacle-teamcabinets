@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Poco admin is super flexible, powerful, clean &amp; modern responsive bootstrap 4 admin template with unlimited possibilities.">
+    <meta name="keywords"
+        content="admin template, Poco admin template, dashboard template, flat admin template, responsive admin template, web app">
+    <meta name="author" content="pixelstrap">
+<link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5-premium-features/46.0.0/ckeditor5-premium-features.css" />
+<link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5-premium-features/46.0.0/ckeditor5-premium-features.css" />
+     <!-- CKEditor Core Content Styles -->
+    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/46.0.0/ckeditor5.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="icon" href="{{ dynamic_url('assets/logo/pinnacle-favicon.png') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ dynamic_url('assets/logo/pinnacle-favicon.png') }}" type="image/x-icon">
+    <title>{{ config('app.name', 'Laravel') }} - @yield('title')</title>
+    @include('layouts.tenant.css')
+    <style>
+        .table-sm th,
+        .table-sm td {
+            padding: .75rem;
+            font-size: 90%;
+        }
+
+        body {
+            font-family: ;
+        }
+    </style>
+    @yield('style')
+    @yield('head')
+</head>
+
+<body>
+    <!-- Loader starts-->
+    <div class="loader-wrapper">
+        <div class="typewriter">
+            <h1>Pinnacle Admin Tenant Dashboard Loading..</h1>
+        </div>
+    </div>
+    <!-- Loader ends-->
+    <!-- page-wrapper Start-->
+    <div class="page-wrapper vertical tc-panel-shell">
+        <div class="tc-chrome tc-compact-chrome tc-sticky-top">
+            <div class="page-main-header">
+                <div class="main-header-right">
+                    <div class="main-header-left text-left">
+                        <div class="tc-brand">
+                            @php
+                                $tcLogoUrl = $tcSiteLogo ?? \App\Models\SiteSetting::first()?->logo;
+                            @endphp
+                            @if (!empty($tcLogoUrl))
+                                <div class="logo-wrapper">
+                                    @include('layouts.tenant.partials.tenant-logo')
+                                </div>
+                            @endif
+                            <p class="mb-0 f-w-600 f-14">
+                                {{ tenant('company_name') ?? tenant('name') ?? config('app.name') }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mobile-sidebar d-none">
+                        <div class="text-right media-body switch-sm">
+                            <label class="ml-3 switch"><i class="font-primary" id="sidebar-toggle" data-feather="align-center"></i></label>
+                        </div>
+                    </div>
+                    <div class="vertical-mobile-sidebar"><i class="fa fa-bars sidebar-bar"></i></div>
+                    @auth
+                        <div class="nav-right col pull-right right-menu">
+                            @include('layouts.tenant.partials.header-actions')
+                        </div>
+                    @endauth
+                    <div class="d-lg-none mobile-toggle pull-right"><i data-feather="more-horizontal"></i></div>
+                </div>
+            </div>
+            @include('layouts.tenant.admin_sidebar')
+        </div>
+        <!-- Page Body Start-->
+        <div class="page-body-wrapper">
+            <!-- Right sidebar Start-->
+            @include('layouts.tenant.chat_sidebar')
+            <!-- Right sidebar Ends-->
+            <div class="page-body tc-form-page">
+                <div class="container-fluid">
+                    @hasSection('breadcrumb-title')
+                        <div class="page-header tc-page-header-row pb-0">
+                            <div class="row align-items-center">
+                                <div class="col-lg-6 main-header">
+                                    @yield('breadcrumb-title')
+                                    @hasSection('breadcrumb-subtitle')
+                                        <h6 class="mb-0 txt-muted">@yield('breadcrumb-subtitle')</h6>
+                                    @endif
+                                </div>
+                                @hasSection('breadcrumb-items')
+                                    <div class="col-lg-6 breadcrumb-right">
+                                        <ol class="breadcrumb justify-content-lg-end mb-0">
+                                            <li class="breadcrumb-item"><a href="{{ route('tenant_dashboard') }}"><i class="pe-7s-home"></i></a></li>
+                                            @yield('breadcrumb-items')
+                                        </ol>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+                </div>
+                <!-- Container-fluid starts-->
+                @yield('content')
+                <!-- Container-fluid Ends-->
+            </div>
+        </div>
+    </div>
+    @include('layouts.tenant.script')
+</body>
+
+</html>

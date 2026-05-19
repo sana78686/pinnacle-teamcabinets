@@ -1,0 +1,167 @@
+/* Super-admin listing pages — shared table & toolbar */
+
+.admin-list-page {
+    padding: 0 0 1.5rem;
+}
+
+.admin-list-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.admin-list-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #0c2340;
+    letter-spacing: -0.02em;
+}
+
+.admin-list-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-btn-create {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #fff !important;
+    background: linear-gradient(135deg, #0c2340 0%, #1a4a7a 100%);
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.25);
+    text-decoration: none !important;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.admin-btn-create:hover {
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(12, 35, 64, 0.35);
+}
+
+.admin-list-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+}
+
+.admin-list-card-body {
+    padding: 1.25rem 1.5rem !important;
+}
+
+.admin-list-alert {
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.admin-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.admin-table {
+    width: 100%;
+    margin-bottom: 0;
+    font-size: 0.875rem;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.admin-table thead th {
+    background: #0c2340;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.75rem 1rem;
+    border: none;
+    white-space: nowrap;
+}
+
+.admin-table thead th:first-child {
+    border-radius: 8px 0 0 0;
+}
+
+.admin-table thead th:last-child {
+    border-radius: 0 8px 0 0;
+}
+
+.admin-table tbody td {
+    padding: 0.7rem 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #e2e8f0;
+    color: #334155;
+}
+
+.admin-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-table tbody tr:hover td {
+    background: #f8fafc;
+}
+
+.admin-table tbody tr:nth-child(even) td {
+    background: #fafbfc;
+}
+
+.admin-table tbody tr:nth-child(even):hover td {
+    background: #f1f5f9;
+}
+
+.admin-table .btn-sm {
+    padding: 0.25rem 0.55rem;
+    font-size: 0.75rem;
+    margin: 0.1rem;
+}
+
+.admin-table-empty td {
+    text-align: center;
+    color: #64748b;
+    padding: 2rem 1rem !important;
+}
+
+/* Tenant subscription status */
+.tenant-status-dot {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.tenant-status-dot--green { background: #22c55e; box-shadow: 0 0 0 2px #bbf7d0; }
+.tenant-status-dot--blue { background: #3b82f6; box-shadow: 0 0 0 2px #bfdbfe; }
+.tenant-status-dot--yellow { background: #eab308; box-shadow: 0 0 0 2px #fef08a; }
+.tenant-status-dot--orange { background: #f97316; box-shadow: 0 0 0 2px #fed7aa; }
+.tenant-status-dot--grey { background: #94a3b8; box-shadow: 0 0 0 2px #e2e8f0; }
+
+.tenant-status-legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8125rem;
+    color: #64748b;
+}
+
+.admin-tenant-sub-row td {
+    background: #f1f5f9 !important;
+}
+
+.admin-tenant-sub-form {
+    padding: 1rem 0.5rem;
+}

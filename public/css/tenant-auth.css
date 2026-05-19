@@ -1,0 +1,295 @@
+/* Tenant subdomain auth — distinct from Pinnacle super-admin (cream/navy) theme */
+
+:root {
+    --tc-navy: #0c2340;
+    --tc-navy-dark: #071628;
+    --tc-blue: #1a4a7a;
+    --tc-gold: #c5a028;
+    --tc-white: #ffffff;
+    --tc-text: #334155;
+    --tc-muted: #64748b;
+    --tc-border: #e2e8f0;
+    --tc-input-bg: #f1f5f9;
+    --tc-gradient: linear-gradient(135deg, #4c1d95 0%, #7c3aed 38%, #db2777 100%);
+    --tc-radius: 16px;
+    --tc-shadow: 0 24px 60px rgba(12, 35, 64, 0.22);
+    --tc-font-text: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --tc-font-heading: Georgia, 'Times New Roman', serif;
+    --tc-font-size-body: 16px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+.tc-auth-body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--tc-font-text);
+    font-size: var(--tc-font-size-body);
+    line-height: 1.5;
+    color: var(--tc-text);
+    background: var(--tc-gradient);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Body copy — one family, 16px */
+.tc-auth-body p,
+.tc-auth-body span,
+.tc-auth-body li,
+.tc-auth-body label,
+.tc-auth-body a,
+.tc-auth-body .tc-alert,
+.tc-auth-body .tc-auth-links,
+.tc-auth-body .tc-btn-link {
+    font-family: var(--tc-font-text);
+    font-size: var(--tc-font-size-body);
+    line-height: 1.5;
+}
+
+/* Headings — keep serif display typography */
+.tc-auth-title,
+.tc-auth-brand__name,
+.tc-auth-body h1,
+.tc-auth-body h2,
+.tc-auth-body h3 {
+    font-family: var(--tc-font-heading);
+}
+
+.tc-auth-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.25rem 1rem;
+}
+
+.tc-auth-card {
+    width: 100%;
+    max-width: 920px;
+    background: var(--tc-white);
+    border-radius: var(--tc-radius);
+    box-shadow: var(--tc-shadow);
+    overflow: hidden;
+}
+
+.tc-auth-card--wide { max-width: 1040px; }
+
+.tc-auth-card__inner {
+    display: grid;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+    .tc-auth-card__inner {
+        grid-template-columns: 2fr 3fr;
+        min-height: 420px;
+    }
+    .tc-auth-card--wide .tc-auth-card__inner {
+        grid-template-columns: 1fr 1.6fr;
+    }
+}
+
+.tc-auth-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    background: linear-gradient(160deg, #f8fafc 0%, #eef2ff 100%);
+    border-bottom: 1px solid var(--tc-border);
+}
+
+@media (min-width: 768px) {
+    .tc-auth-brand {
+        border-bottom: none;
+        border-right: 1px solid var(--tc-border);
+    }
+}
+
+.tc-auth-brand img {
+    max-width: 200px;
+    width: 100%;
+    height: auto;
+}
+
+.tc-auth-brand__name {
+    margin: 1rem 0 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--tc-navy);
+    text-align: center;
+    /* heading font from rule above; not 16px body size */
+}
+
+.tc-auth-form-wrap {
+    padding: 2rem 1.75rem;
+}
+
+@media (min-width: 576px) {
+    .tc-auth-form-wrap { padding: 2.25rem 2.5rem; }
+}
+
+.tc-auth-title {
+    margin: 0 0 1.25rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--tc-navy-dark);
+    text-align: center;
+}
+
+.tc-alert {
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.tc-alert--success {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.tc-alert--error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.tc-field {
+    margin-bottom: 1rem;
+}
+
+.tc-field label {
+    display: block;
+    margin-bottom: 0.35rem;
+    /* Typography controlled by tenant-forms.css (.tc-form-page) */
+}
+
+.tc-input-wrap {
+    position: relative;
+}
+
+.tc-input-wrap .tc-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--tc-muted);
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+.tc-input {
+    width: 100%;
+    padding: 0.85rem 1rem 0.85rem 2.75rem;
+    font-family: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.tc-input:focus {
+    outline: none;
+    border-color: var(--tc-blue);
+    box-shadow: 0 0 0 3px rgba(26, 74, 122, 0.12);
+    background: var(--tc-white);
+}
+
+.tc-input--plain { padding-left: 1rem; }
+
+.tc-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.75rem 0 1.25rem;
+}
+
+.tc-check label { margin: 0; font-weight: 500; }
+
+.tc-btn {
+    display: block;
+    width: 100%;
+    padding: 0.9rem 1.5rem;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--tc-white);
+    background: var(--tc-navy);
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.tc-btn:hover { background: var(--tc-navy-dark); }
+
+.tc-auth-links {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.tc-auth-links a {
+    color: var(--tc-blue);
+    font-weight: 600;
+}
+
+.tc-auth-links a:hover { color: var(--tc-gold); }
+
+.tc-inline-form {
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+.tc-btn-link {
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+    font-weight: 600;
+    color: var(--tc-blue);
+    cursor: pointer;
+    text-decoration: underline;
+}
+.tc-btn-link:hover { color: var(--tc-gold); }
+
+.tc-auth-links--split {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem 0.5rem;
+}
+
+.tc-auth-footer {
+    padding: 1rem 1.25rem 1.5rem;
+    text-align: center;
+}
+
+.tc-auth-footer p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+/* Helper / intro lines on auth forms */
+.tc-field-hint {
+    margin: 0 0 1rem;
+    color: var(--tc-muted);
+}
+
+/* Register grid */
+.tc-register-grid {
+    display: grid;
+    gap: 0.75rem 1rem;
+}
+
+@media (min-width: 576px) {
+    .tc-register-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.tc-register-grid .tc-field--full { grid-column: 1 / -1; }
+
+.tc-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-family: inherit;
+}

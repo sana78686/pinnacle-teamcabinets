@@ -1,0 +1,73 @@
+/* Tenant form field tooltips — info icon on labels (panel + auth) */
+
+.tc-tip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    margin-left: 0.25rem;
+    font-style: normal;
+    line-height: 1;
+    color: #64748b;
+    background: transparent;
+    border: 1px solid #94a3b8;
+    border-radius: 50%;
+    cursor: help;
+    position: relative;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+
+.tc-tip i {
+    font-size: 10px;
+    font-weight: 700;
+    font-style: italic;
+    font-family: Georgia, 'Times New Roman', serif;
+    line-height: 1;
+    color: #64748b;
+}
+
+.tc-tip::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 240px;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.4;
+    color: #fff;
+    background: #0c2340;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(12, 35, 64, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.15s, visibility 0.15s;
+    z-index: 1060;
+    text-align: left;
+    white-space: normal;
+}
+
+.tc-tip:hover::after,
+.tc-tip:focus::after,
+.tc-tip:focus-visible::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Auth pages — match purple panel */
+.tc-auth-body .tc-tip::after {
+    background: #4c1d95;
+}
+
+.tc-auth-body .tc-field > label,
+.tc-auth-body .tc-check > label {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+}

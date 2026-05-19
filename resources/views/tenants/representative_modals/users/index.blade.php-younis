@@ -1,0 +1,509 @@
+@extends('layouts.tenant.master')
+@section('title', 'User Menu')
+
+@section('css')
+    <link rel="stylesheet" type="text/css" href="{{ route('/') }}/assets/main/css/datatables.css">
+    <link rel="stylesheet" type="text/css" href="{{ route('/') }}/assets/main/css/datatable-extension.css">
+@endsection
+
+@section('style')
+@endsection
+
+@section('breadcrumb-title')
+    <h2>User <span>List </span></h2>
+@endsection
+
+@section('breadcrumb-items')
+    <li class="breadcrumb-item">Users</li>
+    <li class="breadcrumb-item active">List</li>
+@endsection
+
+@section('content')
+    <div class="p-2 mt-0 card-header no-border">
+        @if (session('success'))
+            <div class=" txt-danger" role="alert">
+                <h4 class="alert-heading">Note!</h4>
+                <p>{{ session('success') }}</p>
+            </div>
+        @endif
+
+        {{-- <h5>Best Selling Product</h5> --}}
+        <a href="{{ route('tenant_user_create') }}" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
+            title="Create a new user in the system">
+            <i class="icofont icofont-plus"></i> Create User
+        </a>
+
+        <button class="btn btn-success btn-sm" data-toggle="tooltip" title="Restore a previously deleted user">
+            <i class="icofont icofont-spinner-alt-3"></i> Restore User
+        </button>
+
+        <div class=" pull-right">
+            <!-- Import & Export Buttons -->
+            <button class="btn btn-primary btn-sm" data-toggle="tooltip" title="Export user data to a file">
+                <i class="text-white icofont icofont-upload-alt"></i> Export
+            </button>
+
+            <button class="btn btn-dark btn-sm" data-toggle="tooltip" title="Import user data from a file">
+                <i class="text-white icofont icofont-download-alt"></i> Import
+            </button>
+        </div>
+    </div>
+
+    <form method="GET" action="{{ route('tenant_user_search') }}">
+        <div class="pt-0 card-body">
+            <div class="table-responsive table-sm">
+                <table class="table table-striped table-bordered table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Type</th>
+                            <th>
+                                Username
+                                <input type="text" name="username" id="username" class="form-control form-control-sm"
+                                    placeholder="Search username" autocomplete="off" value="{{ request('username') }}">
+                            </th>
+                            <th>
+                                Full Name
+                                <input type="text" name="name" id="name" class="form-control form-control-sm"
+                                    placeholder="Search name" autocomplete="off" value="{{ request('name') }}">
+                            </th>
+                            <th>
+                                Email
+                                <input type="text" name="email" id="email" class="form-control form-control-sm"
+                                    placeholder="Search email" autocomplete="off" value="{{ request('email') }}">
+                            </th>
+                            <th>Status</th>
+                            <th>Created On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($users as $key => $user)
+                            <tr>
+                                <td>{{ ++$key }}</td>
+                                <td>
+                                    @if (!empty($user->getRoleNames()))
+                                        @foreach ($user->getRoleNames() as $role)
+                                            <span class="badge bg-success">{{ $role }}</span>
+                                        @endforeach
+                                    @else
+                                        <span class="badge bg-warning">N/A</span>
+                                    @endif
+                                </td>
+                                <td>{{ $user->username ?? 'N/A' }}</td>
+                                <td>{{ $user->name ?? 'N/A' }}</td>
+                                <td>
+                                    {{ $user->email ?? 'N/A' }}
+                                    <i class="fa fa-copy" style="cursor: pointer;" title="Copy email"></i>
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm" data-user-id="{{ $user->id }}">
+                                        <option value="approved" {{ $user->status === 'approved' ? 'selected' : '' }}>
+                                            Approved</option>
+                                        <option value="un-approved"
+                                            {{ $user->status === 'un-approved' ? 'selected' : '' }}>Unapproved</option>
+                                        <option value="block" {{ $user->status === 'block' ? 'selected' : '' }}>Blocked
+                                        </option>
+                                    </select>
+                                </td>
+                                <td>{{ $user->created_at->format('d-m-Y') }}</td>
+                                <td>
+                                    <a href="{{ route('tenant_user_show', $user->id) }}">Show</a> |
+                                    <a href="{{ route('tenant_user_edit', $user->id) }}">Edit</a> |
+                                    <a href="javascript:void(0);" onclick="deleteUser({{ $user->id }})">Delete</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Username</th>
+                            <th scope="col">Full Name</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Created On</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </form>
+
+    <div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
+        aria-hidden="true">
+
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myLargeModalLabel">Large modal</h4>
+                    <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true"></span></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th>ID</th>
+                                {{-- <td>{{ $user->id }}</td> --}}
+                            </tr>
+                            <tr>
+                                <th>Type</th>
+                                {{-- <td>
+                            @if (!empty($user->getRoleNames()))
+                                @foreach ($user->getRoleNames() as $role)
+                                    <span class="badge bg-success">{{ $role }}</span>
+                                @endforeach
+                            @else
+                                <span class="badge bg-warning">N/A</span>
+                            @endif
+                        </td> --}}
+                            </tr>
+                            <tr>
+                                <th>Username</th>
+                                {{-- <td>{{ $user->username ?? 'N/A' }}</td> --}}
+                            </tr>
+                            <tr>
+                                <th>First Name</th>
+                                {{-- <td>{{ $user->first_name ?? 'N/A' }}</td> --}}
+                            </tr>
+                            <tr>
+                                <th>Last Name</th>
+                                {{-- <td>{{ $user->last_name ?? 'N/A' }}</td> --}}
+                            </tr>
+                            <tr>
+                                <th>Email</th>
+                                {{-- <td>{{ $user->email ?? 'N/A' }}</td> --}}
+                            </tr>
+                            <tr>
+                                <th>Business Name</th>
+                                {{-- <td>{{ $user->company_name ?? 'N/A' }}</td> --}}
+                            </tr>
+                            <tr>
+                                <th>Status</th>
+                                {{-- <td>{{ ucfirst($user->status) }}</td> --}}
+                            </tr>
+                            <tr>
+                                <th>Created At</th>
+                                {{-- <td>{{ $user->created_at->format('d-m-Y') }}</td> --}}
+                            </tr>
+                            <!-- Add other fields as necessary -->
+                        </tbody>
+
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="button" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="userDetailsModal" tabindex="-1" aria-labelledby="userDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userDetailsModalLabel">User Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="userDetailsContent">
+                        <!-- Content will be loaded dynamically -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+@endsection
+
+@section('script')
+
+    <script src="{{ route('/') }}/assets/main/js/datatable/datatables/jquery.dataTables.min.js"></script>
+    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.buttons.min.js"></script>
+    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/jszip.min.js"></script>
+    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/buttons.colVis.min.js"></script>
+    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/pdfmake.min.js"></script>
+    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/vfs_fonts.js"></script>
+
+    <script src="{{ route('/') }}/assets/main/js/datatable/datatables/datatable.custom.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+    {{-- sweet alert  start --}}
+    {{--
+    <script>
+        function confirmation(ev, url) {
+            ev.preventDefault();
+
+            swal({
+                title: "Are You Sure To Delete This?",
+                text: "This action will  be the permanent and cannot be undone. ",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+
+            }).then((willDelete) => {
+
+                if (willDelete) {
+                    window.location.href = url;
+                } else {
+                    swal("Your datais save!", {
+                        icon: "info",
+                    });
+                }
+            });
+        }
+    </script>
+    @if (session('success'))
+        <script>
+            swal({
+                title: "success!",
+                text: "{{ session('success') }}",
+                icon: "success",
+                button: "ok",
+            });
+        </script>
+    @endif
+
+
+
+    @if (session('error'))
+        <script>
+            swal({
+                title: "Error!",
+                text: "{{ session('error') }}",
+                icon: "error",
+                button: "ok",
+            });
+        </script>
+    @endif --}}
+
+    {{-- sweet alert  end --}}
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteButtons = document.querySelectorAll('.delete-button');
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const form = this.closest('.delete-form');
+
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You can revert this within 60 days!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit(); // Submit the form if confirmed
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Attach change event to all dropdowns with the class 'status-dropdown'
+            document.querySelectorAll('.status-dropdown').forEach(function(dropdown) {
+                dropdown.addEventListener('change', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    const newStatus = this.value;
+
+                    // Show SweetAlert confirmation
+                    Swal.fire({
+                        // title: 'Are you sure?',
+                        text: `You are about to change the user's status to ${newStatus}.`,
+                        // icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, change it!',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Make an AJAX request to update the status
+                            fetch(`/users/${userId}/status`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    body: JSON.stringify({
+                                        status: newStatus
+                                    })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        Swal.fire(
+                                            'Updated!',
+                                            `The user's status has been updated to ${newStatus}.`,
+                                            'success'
+                                        );
+                                    } else {
+                                        Swal.fire(
+                                            'Error!',
+                                            'There was a problem updating the status.',
+                                            'error'
+                                        );
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    Swal.fire(
+                                        'Error!',
+                                        'There was a problem updating the status.',
+                                        'error'
+                                    );
+                                });
+                        } else {
+                            // Revert dropdown selection if canceled
+                            this.value = this.dataset.previousValue;
+                        }
+                    });
+
+                    // Store the current value as previous value in case user cancels
+                    this.dataset.previousValue = newStatus;
+                });
+            });
+        });
+    </script>
+    <script>
+        document.querySelectorAll('.btn-info').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.href;
+                alert('here');
+                // Make an AJAX request to fetch user details
+                fetch(url)
+                    .then(response => response.text())
+                    .then(html => {
+                        // Load the response HTML into the modal content
+                        document.getElementById('userDetailsContent').innerHTML = html;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching user details:', error);
+                        document.getElementById('userDetailsContent').innerHTML =
+                            '<p>Error loading details.</p>';
+                    });
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Loop through all copy icons for users
+            document.querySelectorAll('.fa-copy').forEach(copyIcon => {
+                copyIcon.addEventListener('click', function() {
+                    const userId = this.id.split('-')[
+                        2]; // Extract the user ID from the copy icon ID
+                    const emailText = document.getElementById('email-' + userId)
+                        .textContent; // Get the email using the user ID
+
+                    // Use the Clipboard API to copy the email text
+                    navigator.clipboard.writeText(emailText).then(function() {
+                        // If the text is copied, show SweetAlert with the copied email
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Copied!',
+                            text: 'Email: ' +
+                                emailText, // Show the copied email in the SweetAlert message
+                            confirmButtonText: 'OK'
+                        });
+                    }).catch(function(err) {
+                        // If an error occurs while copying, show an error message
+                        console.error('Error copying text: ', err);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops!',
+                            text: 'Failed to copy the email.',
+                            confirmButtonText: 'Try Again'
+                        });
+                    });
+                });
+            });
+        });
+    </script>
+
+{{-- // Debounce function to optimize search --}}
+
+    <script>
+
+        function debounce(func, delay) {
+            let timer;
+            return function(...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+        function handleSearch(inputId, field) {
+            const input = document.getElementById(inputId);
+            input.addEventListener(
+                "keyup",
+                debounce(function() {
+                    const query = input.value.trim();
+
+                    if (query.length > 1) {
+                        fetch(`{{ route('tenant_user_search') }}?query=${query}&field=${field}`)
+                            .then((response) => response.json())
+                            .then((data) => {
+                                const tableBody = document.querySelector("table tbody");
+                                tableBody.innerHTML = "";
+
+                                if (data.length) {
+                                    data.forEach((user) => {
+                                        const row = `
+                                        <tr>
+                                            <td>${user.id}</td>
+                                            <td>${user.role || "N/A"}</td>
+                                            <td>${user.username || "N/A"}</td>
+                                            <td>${user.name || "N/A"}</td>
+                                            <td>${user.email || "N/A"}</td>
+                                            <td>${user.status || "N/A"}</td>
+                                            <td>${user.created_at || "N/A"}</td>
+                                            <td>
+                                                <a href="/users/${user.id}/show">Show</a> |
+                                                <a href="/users/${user.id}/edit">Edit</a> |
+                                                <a href="javascript:void(0);" onclick="deleteUser(${user.id})">Delete</a>
+                                            </td>
+                                        </tr>`;
+                                        tableBody.insertAdjacentHTML("beforeend", row);
+                                    });
+                                } else {
+                                    tableBody.innerHTML =
+                                        `<tr><td colspan="8" class="text-center">No results found</td></tr>`;
+                                }
+                            })
+                            .catch((error) => console.error("Error fetching filtered data:", error));
+                    }
+                }, 300)
+            );
+        }
+
+
+        handleSearch("username", "username");
+        handleSearch("name", "name");
+        handleSearch("email", "email");
+    </script>
+
+@endsection
+
+
+{{-- sweet alert link start --}}
+
+{{--
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"
+    integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script> --}}
+
+{{-- sweet alert link end --}}

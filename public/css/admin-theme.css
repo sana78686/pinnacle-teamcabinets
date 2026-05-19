@@ -1,0 +1,93 @@
+/* Super-admin (mega) — Pinnacle primary palette instead of default black/purple */
+
+:root {
+    --admin-primary: #0c2340;
+    --admin-primary-light: #1a4a7a;
+    --admin-accent: #c5a028;
+}
+
+.page-body .btn-primary,
+.page-body .btn-primary:focus {
+    background-color: var(--admin-primary) !important;
+    border-color: var(--admin-primary) !important;
+    color: #fff !important;
+}
+
+.page-body .btn-primary:hover,
+.page-body .btn-primary:active {
+    background-color: var(--admin-primary-light) !important;
+    border-color: var(--admin-primary-light) !important;
+    color: #fff !important;
+}
+
+.page-body .btn-outline-primary {
+    color: var(--admin-primary) !important;
+    border-color: var(--admin-primary) !important;
+}
+
+.page-body .btn-outline-primary:hover {
+    background-color: var(--admin-primary) !important;
+    border-color: var(--admin-primary) !important;
+    color: #fff !important;
+}
+
+.page-body .btn-dark,
+.page-body .btn-dark:hover {
+    background-color: var(--admin-primary) !important;
+    border-color: var(--admin-primary) !important;
+}
+
+.admin-btn-create {
+    background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-light) 100%) !important;
+}
+
+.admin-list-title,
+.admin-table thead th {
+    color: var(--admin-primary);
+}
+
+.admin-table thead th {
+    background: var(--admin-primary) !important;
+    color: #fff !important;
+}
+
+/* Dashboard stat cards — navy primary instead of theme black/purple */
+.general-widget .gradient-primary {
+    background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-light) 100%) !important;
+}
+
+.general-widget .gradient-secondary {
+    background: linear-gradient(135deg, var(--admin-primary-light) 0%, #2d5a87 100%) !important;
+}
+
+.general-widget .gradient-warning {
+    background: linear-gradient(135deg, var(--admin-accent) 0%, #e8c547 100%) !important;
+}
+
+.general-widget .gradient-warning .m-0,
+.general-widget .gradient-warning h4 {
+    color: var(--admin-primary) !important;
+}
+
+.general-widget .gradient-info {
+    background: linear-gradient(135deg, #1a4a7a 0%, var(--admin-primary) 100%) !important;
+}
+
+.general-widget .card .m-0:not(.text-white) {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+/* Tenant subscription modal */
+#tenantSubscriptionModal .modal-header {
+    background: var(--admin-primary);
+    color: #fff;
+}
+
+#tenantSubscriptionModal .modal-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+#tenantSubscriptionModal .modal-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+}

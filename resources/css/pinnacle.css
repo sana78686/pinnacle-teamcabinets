@@ -1,0 +1,5 @@
+/* Optional Tailwind layer for Pinnacle — primary styles: public/css/pinnacle-theme.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

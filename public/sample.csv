@@ -1,0 +1,3 @@
+role_id, username , name , phone, email,    country_id,    state_id,city_name,county_name,  zip_code,address,   note,   company_name,status
+
+dealer  Danielland, TN ,  40627, demo@gail.com ,3             ,5     ,   Tyler,  united-state , a-9 w  ,Lahore ,something, ultimate , pending

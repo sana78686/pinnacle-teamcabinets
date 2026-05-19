@@ -91,22 +91,18 @@ Route::middleware([
 
 
 
-  Route::post('/logout', function () {
-        Auth::logout(); // Logout the tenant user
-        request()->session()->invalidate(); // Invalidate session
-        request()->session()->regenerateToken(); // Regenerate CSRF token
-
-        return redirect('/login'); // Redirect to login page after logout
-    })->name('tenant_logout');
-
-
 Route::get('/{slug?}', [\App\Http\Controllers\TenantPageController::class, 'show'])->name('cms.page');
-
-
 
 Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.send');
 
-    Route::middleware(['tenant.auth'])->group(function () {
+    Route::middleware(['auth', 'tenant.auth'])->group(function () {
+        Route::post('/logout', function () {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+
+            return redirect()->route('tenant_login');
+        })->name('tenant_logout');
         Route::get('/subscription-required', function () {
             return view('tenants.billing.subscription-required');
         })->name('tenant.subscription.required');
@@ -120,7 +116,7 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
     });
 
          /**** Pinnacle Tenants routes */
-         Route::prefix('tenants')->middleware(['tenant.auth', 'tenant.subscribed'])->group(function () {
+         Route::prefix('tenants')->middleware(['auth', 'tenant.auth', 'tenant.subscribed'])->group(function () {
 
 
          Route::resource('pages', TenantPageController::class);
@@ -364,6 +360,7 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
           Route::get('setting/manage_document', [TenantSettingController::class, 'manage_document'])->name('tenant_setting_manage_document');
           Route::get('setting/manage_stmp', [TenantSettingController::class, 'manage_stmp'])->name('tenant_setting_manage_stmp');
           Route::post('setting/manage_stmp_store', [TenantSettingController::class, 'manage_stmp_store'])->name('tenant_setting_manage_stmp_create');
+          Route::post('setting/test_smtp', [TenantSettingController::class, 'test_smtp_connection'])->name('tenant_setting_test_smtp');
           Route::get('setting/manage_email_content', [TenantSettingController::class, 'manage_email'])->name('tenant_setting_manage_email_content');
           Route::get('setting/manage_term_condition', [TenantSettingController::class, 'manage_term_condition'])->name('tenant_setting_manage_term_condition');
           Route::get('setting/manage_credit', [TenantSettingController::class, 'manage_credit'])->name('tenant_setting_manage_credit');

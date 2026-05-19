@@ -2,57 +2,21 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\BuildsCiTenantEmail;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class PasswordChanged extends Mailable
 {
-    use Queueable, SerializesModels;
+    use BuildsCiTenantEmail, Queueable, SerializesModels;
 
-    public $user;
-    /**
-     * Create a new message instance.
-     */
-    public function __construct($user)
-    {
-        $this->user = $user;
-    }
+    public function __construct(public $user) {}
 
-    /**
-     * Get the message envelope.
-     */
-    public function envelope(): Envelope
+    public function build(): static
     {
-        return new Envelope(
-            subject: 'Password Changed',
-        );
-    }
-
-    /**
-     * Get the message content definition.
-     */
-    public function content(): Content
-    {
-        return new Content(
-            view: 'emails.password-changed',
-            with:[
-                'userName' => $this->user->name,
-                'changedAt' => now()->format('M d, Y h:i A'),
-            ]
-        );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
+        return $this->buildCiTenantEmail('password_changed', [
+            'USERNAME' => $this->user->name ?? $this->user->username ?? 'User',
+        ]);
     }
 }

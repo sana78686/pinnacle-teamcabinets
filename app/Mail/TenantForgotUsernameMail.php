@@ -2,16 +2,15 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\BuildsCiTenantEmail;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class TenantForgotUsernameMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use BuildsCiTenantEmail, Queueable, SerializesModels;
 
     public function __construct(
         public User $user,
@@ -19,27 +18,14 @@ class TenantForgotUsernameMail extends Mailable
         public ?string $tenantId = null,
     ) {}
 
-    public function envelope(): Envelope
+    public function build(): static
     {
-        return new Envelope(
-            subject: 'Your '.$this->tenantName.' username',
-        );
-    }
+        $loginUrl = tenant_url($this->tenantId ?? tenant('id') ?? $this->user->tenant_id, 'login');
 
-    public function content(): Content
-    {
-        return new Content(
-            view: 'emails.tenant.forgot-username',
-            with: [
-                'user' => $this->user,
-                'tenantName' => $this->tenantName,
-                'loginUrl' => tenant_url($this->tenantId ?? tenant('id') ?? $this->user->tenant_id, 'login'),
-            ],
-        );
-    }
-
-    public function attachments(): array
-    {
-        return [];
+        return $this->buildCiTenantEmail('forgot_username', [
+            'USERNAME' => $this->user->name ?? 'User',
+            'LOGIN' => $this->user->username ?? $this->user->email,
+            'LOGIN_URL' => $loginUrl,
+        ]);
     }
 }

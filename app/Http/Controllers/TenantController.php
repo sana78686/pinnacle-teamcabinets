@@ -11,6 +11,7 @@ use App\Models\City;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Services\TenantRegistrationMailer;
+use App\Services\TenantRoleService;
 use App\Services\TenantSubscriptionService;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
@@ -217,9 +218,8 @@ while (
             'is_verified' => true,
         ]);
 
-        $roleName = 'Admin';
-        $role = Role::firstOrCreate(['name' => $roleName]);
-        $admin->assignRole($role);
+        TenantRoleService::ensureDefaultRoles();
+        $admin->assignRole('Admin');
         // ✅ Create same user in tenant DB
         // $tenant->run(function () use ($request) {
             // $user = User::create([
@@ -393,6 +393,15 @@ while (
     {
         return view('tenants.index');
     }
+    protected function countUsersByRole(string $roleName): int
+    {
+        if (! Role::where('name', $roleName)->where('guard_name', 'web')->exists()) {
+            return 0;
+        }
+
+        return User::role($roleName)->count();
+    }
+
     public function tenant_dashboard()
     {
         if(Auth::user()->hasRole('Admin'))
@@ -405,11 +414,10 @@ $tenant = Tenant::get();
 
 $totalUsers = $users->count();
 
-$dealerCount = User::role('Dealer')->count();
-// $tenantCount = $tenant->count();
-$representativeCount = User::role('Representative')->count();
-$distributorCount = User::role('Distributor')->count();
-$showroomCount = User::role('Showroom')->count();
+$dealerCount = $this->countUsersByRole('Dealer');
+$representativeCount = $this->countUsersByRole('Representative');
+$distributorCount = $this->countUsersByRole('Distributor');
+$showroomCount = $this->countUsersByRole('Showroom');
 
 
             return view('tenants.dashboard',compact('totalUsers','dealerCount','representativeCount','distributorCount','showroomCount'));

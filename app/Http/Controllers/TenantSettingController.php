@@ -53,8 +53,11 @@ class TenantSettingController extends Controller
 
     ]);
 
-    // 🔹 Fetch or create settings
-    $settings = SiteSetting::first() ?? new SiteSetting();
+    // 🔹 Fetch or create settings (scoped to current tenant)
+    $settings = SiteSetting::first() ?? new SiteSetting(['tenant_id' => tenant('id')]);
+    if (! $settings->tenant_id && tenant('id')) {
+        $settings->tenant_id = tenant('id');
+    }
 
     // 🔹 Helper for file upload
     $uploadFile = function ($fileInput, $path, $oldFile = null) use ($request) {
@@ -106,36 +109,119 @@ class TenantSettingController extends Controller
 
     public function manage_stmp()
     {
-        return view('tenants.setting.manage_stmp');
+        $smtp = \App\Models\TenantSmtpSetting::query()->first();
+
+        return view('tenants.setting.manage_stmp', compact('smtp'));
     }
-  public function manage_stmp_store(Request $request)
-{
-    try {
-        $validated = $request->validate([
+
+    public function manage_stmp_store(Request $request)
+    {
+        $rules = [
             'smtp_host' => 'required|string|max:255',
             'smtp_username' => 'required|string|max:255',
-            'smtp_password' => 'required|string|max:255',
-            'from_email' => 'required|email',
-            'smtp_port' => 'required|numeric',
+            'from_email' => 'required|email|max:255',
+            'from_name' => 'nullable|string|max:255',
+            'smtp_port' => 'required|integer|min:1|max:65535',
             'smtp_encryption' => 'required|string|in:tls,ssl,none',
-        ]);
+        ];
 
-        // Example: Save to database or .env (implement this as needed)
-        // SMTPSetting::create($validated);
-dd('ok');
-        return redirect()->back()->with('success', 'SMTP settings saved successfully.');
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        // Validation errors will be automatically redirected with error messages,
-        // so usually no need to handle this unless you want a custom message
-        return redirect()->back()->withErrors($e->validator)->withInput();
-    } catch (\Exception $e) {
-        // Log the actual error
-        \Log::error('Failed to save SMTP settings: ' . $e->getMessage());
+        $smtp = \App\Models\TenantSmtpSetting::query()->first();
+        if (! $smtp || $request->filled('smtp_password')) {
+            $rules['smtp_password'] = 'required|string|max:255';
+        }
 
-        // Show user-friendly error
-        return redirect()->back()->with('error', 'Something went wrong. Please try again later.');
+        try {
+            $validated = $request->validate($rules);
+
+            $record = $smtp ?? new \App\Models\TenantSmtpSetting(['tenant_id' => tenant('id')]);
+            if (! $record->tenant_id) {
+                $record->tenant_id = tenant('id');
+            }
+
+            $record->fill([
+                'smtp_host' => $validated['smtp_host'],
+                'smtp_port' => $validated['smtp_port'],
+                'smtp_encryption' => $validated['smtp_encryption'],
+                'smtp_username' => $validated['smtp_username'],
+                'from_email' => $validated['from_email'],
+                'from_name' => $validated['from_name'] ?? tenant('company_name') ?? tenant('name'),
+            ]);
+
+            if (! empty($validated['smtp_password'])) {
+                $record->smtp_password = $validated['smtp_password'];
+                $record->is_verified = false;
+                $record->verified_at = null;
+            }
+
+            $record->save();
+
+            return redirect()->back()->with('success', 'SMTP settings saved. Use Test connection to verify.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->validator)->withInput();
+        } catch (\Exception $e) {
+            \Log::error('Failed to save SMTP settings: '.$e->getMessage());
+
+            return redirect()->back()->with('error', 'Something went wrong. Please try again later.');
+        }
     }
-}
+
+    public function test_smtp_connection(Request $request)
+    {
+        $smtp = \App\Models\TenantSmtpSetting::query()->first();
+
+        $rules = [
+            'smtp_host' => 'required|string|max:255',
+            'smtp_username' => 'required|string|max:255',
+            'from_email' => 'required|email|max:255',
+            'smtp_port' => 'required|integer|min:1|max:65535',
+            'smtp_encryption' => 'required|string|in:tls,ssl,none',
+        ];
+
+        if (! $smtp || $request->filled('smtp_password')) {
+            $rules['smtp_password'] = 'required|string|max:255';
+        }
+
+        $validated = $request->validate($rules);
+
+        if (empty($validated['smtp_password']) && $smtp) {
+            $validated['smtp_password'] = $smtp->smtp_password;
+        }
+
+        $validated['from_name'] = $request->input('from_name', tenant('company_name') ?? tenant('name'));
+        $validated['test_recipient'] = $request->input('test_recipient', $validated['from_email']);
+
+        $result = app(\App\Services\TenantSmtpService::class)->testConnection($validated, true);
+
+        if ($result['success']) {
+            $record = $smtp ?? new \App\Models\TenantSmtpSetting(['tenant_id' => tenant('id')]);
+            if (! $record->tenant_id) {
+                $record->tenant_id = tenant('id');
+            }
+            $record->fill([
+                'smtp_host' => $validated['smtp_host'],
+                'smtp_port' => $validated['smtp_port'],
+                'smtp_encryption' => $validated['smtp_encryption'],
+                'smtp_username' => $validated['smtp_username'],
+                'from_email' => $validated['from_email'],
+                'from_name' => $validated['from_name'] ?? tenant('company_name') ?? tenant('name'),
+            ]);
+            if (! empty($validated['smtp_password'])) {
+                $record->smtp_password = $validated['smtp_password'];
+            }
+            $record->is_verified = true;
+            $record->verified_at = now();
+            $record->save();
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json($result);
+        }
+
+        return redirect()->back()->with(
+            $result['success'] ? 'success' : 'error',
+            $result['message']
+        );
+    }
 
 
     public function manage_email()

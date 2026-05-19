@@ -51,6 +51,22 @@ if (! function_exists('tenant_url')) {
     }
 }
 
+if (! function_exists('tenant_email')) {
+    /** CI Team Cabinets email renderer/sender. */
+    function tenant_email(): \App\Services\TenantEmailService
+    {
+        return app(\App\Services\TenantEmailService::class);
+    }
+}
+
+if (! function_exists('central_mail')) {
+    /** Pinnacle / super-admin mail (Gmail from .env CENTRAL_MAIL_*). */
+    function central_mail(): \App\Services\CentralMailService
+    {
+        return app(\App\Services\CentralMailService::class);
+    }
+}
+
 if (!function_exists('dynamic_url')) {
     function dynamic_url($path)
     {

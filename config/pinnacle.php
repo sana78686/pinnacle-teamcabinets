@@ -3,6 +3,12 @@
 return [
 
     'name' => 'Pinnacle',
+
+    /** Static branding for emails when tenant has no Site Settings logo/name. */
+    'email' => [
+        'logo' => 'assets/logo/pinnacle-tenant.png',
+    ],
+
     'tagline' => 'Launch your cabinets business in minutes',
     'trial_days' => 14,
     'support_email' => env('PINNACLE_SUPPORT_EMAIL', 'support@pinnacle.example.com'),

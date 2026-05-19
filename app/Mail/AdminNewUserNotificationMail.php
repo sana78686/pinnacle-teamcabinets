@@ -2,33 +2,22 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\BuildsCiTenantEmail;
+use App\Models\ManageEmailsContent;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class AdminNewUserNotificationMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use BuildsCiTenantEmail, Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
-     public $user;
+    public function __construct(public $user) {}
 
-    public function __construct($user)
+    public function build(): static
     {
-        $this->user = $user;
-    }
-
-    public function build()
-    {
-        return $this->subject('New User Registration Alert')
-                    ->view('emails.admin-new-user-registration')
-                     ->with([
-                        'user' => $this->user, // 🔁 Pass user data to the Blade view
-                    ]);
+        return $this->buildCiTenantEmail(ManageEmailsContent::SLUG_REGISTER_ADMIN, [
+            'USERNAME' => $this->user->name ?? $this->user->username ?? 'User',
+        ]);
     }
 }

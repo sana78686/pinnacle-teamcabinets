@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\TenantRegistrationMailer;
+use App\Services\TenantRoleService;
 use App\Services\TenantSubscriptionService;
 use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
@@ -113,9 +114,8 @@ class TenantResourceController extends Controller
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
                 ]);
-                $roleName = 'Admin';
-$role = Role::firstOrCreate(['name' => $roleName]);
-$user->assignRole($roleName);
+                TenantRoleService::ensureDefaultRoles();
+                $user->assignRole('Admin');
 
 
 

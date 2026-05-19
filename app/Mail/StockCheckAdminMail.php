@@ -2,52 +2,26 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\BuildsCiTenantEmail;
+use App\Models\ManageEmailsContent;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class StockCheckAdminMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use BuildsCiTenantEmail, Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct()
-    {
-        //
-    }
+    public function __construct(
+        public string $userName,
+        public string $contentHtml,
+    ) {}
 
-    /**
-     * Get the message envelope.
-     */
-    public function envelope(): Envelope
+    public function build(): static
     {
-        return new Envelope(
-            subject: 'Stock Check Admin Mail',
-        );
-    }
-
-    /**
-     * Get the message content definition.
-     */
-    public function content(): Content
-    {
-        return new Content(
-            view: 'view.name',
-        );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
+        return $this->buildCiTenantEmail(ManageEmailsContent::SLUG_STOCK_ADMIN, [
+            'USERNAME' => $this->userName,
+            'CONTENT' => $this->contentHtml,
+        ]);
     }
 }

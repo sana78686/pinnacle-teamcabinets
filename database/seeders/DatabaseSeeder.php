@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,17 +11,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(TenantSeeder::class);
-        // User::factory(25)->create();
-        $this->call(PermissionTableSeeder::class);
-        $this->call(ImportSQLSeeder::class);
-        $this->call(CreateAdminUserSeeder::class);
-        // $this->call(CountrySeeder::class);
-        // $this->call(ProductCatalogSeeder::class);
-        // $this->call(ProductSectionSeeder::class);
-        $this->call(ProductSeeder::class);
-        $this->call(TaxValueSeeder::class);
-        $this->call(DoorColorsSeeder::class);
+        // CI email templates (OTP, orders, registration, etc.)
+        $this->call(ManageEmailsContentSeeder::class);
 
+        // Permissions, then tenant roles (Admin, Dealer, Representative, …)
+        $this->call(PermissionTableSeeder::class);
+        $this->call(TenantRoleSeeder::class);
+
+        // Countries / states / cities (world.sql)
+        $this->call(ImportSQLSeeder::class);
+
+        // Super-admin login for pinnacle.apimstec.com
+        $this->call(CreateAdminUserSeeder::class);
+
+        // --- Disabled: create tenants & catalog via Pinnacle admin / tenant panel instead ---
+        // $this->call(TenantSeeder::class);       // demo tenants (tenant1, tenant2, …)
+        // $this->call(ProductSeeder::class);     // bulk product CSV import
+        // $this->call(TaxValueSeeder::class);
+        // $this->call(DoorColorsSeeder::class);
     }
 }

@@ -33,7 +33,7 @@ class ContactController extends Controller
             'dealer' => 'Dealer inquiry — Pinnacle contact',
         ];
 
-        $to = config('pinnacle.support_email');
+        $to = config('mail.superadmin', config('pinnacle.support_email'));
         $data = [
             'from' => $validated['user_email'],
             'name' => $validated['user_name'],
@@ -43,8 +43,11 @@ class ContactController extends Controller
             'subject' => $subjects[$validated['inquiry_type']],
         ];
 
-        Mail::send('emails.pinnacle-contact', $data, function ($message) use ($to, $data) {
-            $message->to($to)
+        $central = app(\App\Services\CentralMailService::class);
+
+        $central->mailer()->send('emails.pinnacle-contact', $data, function ($message) use ($to, $data, $central) {
+            $message->from($central->fromAddress(), $central->fromName())
+                ->to($to)
                 ->replyTo($data['from'], $data['name'])
                 ->subject($data['subject']);
         });

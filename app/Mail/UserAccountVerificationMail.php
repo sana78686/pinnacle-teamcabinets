@@ -1,38 +1,23 @@
 <?php
 
-// app/Mail/UserAccountVerificationMail.php
-
 namespace App\Mail;
 
+use App\Mail\Concerns\BuildsCiTenantEmail;
+use App\Models\ManageEmailsContent;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
 class UserAccountVerificationMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use BuildsCiTenantEmail, Queueable, SerializesModels;
 
-    public $user;
+    public function __construct(public $user) {}
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct($user)
+    public function build(): static
     {
-        $this->user = $user;
-    }
-
-    /**
-     * Build the message.
-     */
-    public function build()
-    {
-        return $this->subject('Your Account hase been Verified By Admin')
-                    ->view('emails.user-account-verified')
-                      ->with([
-                        'user' => $this->user, // 🔁 Pass user data to the Blade view
-                    ]);
+        return $this->buildCiTenantEmail(ManageEmailsContent::SLUG_USER_STATUS, [
+            'USERNAME' => $this->user->name ?? $this->user->username ?? 'User',
+        ]);
     }
 }
-

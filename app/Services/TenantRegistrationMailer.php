@@ -2,30 +2,42 @@
 
 namespace App\Services;
 
-use App\Mail\SuperAdminTenantRegisteredMail;
-use App\Mail\TenantRegisteredMail;
+use App\Mail\Central\NewTenantAdminNotification;
+use App\Mail\Central\NewTenantWelcome;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class TenantRegistrationMailer
 {
     public static function send(Tenant $tenant): void
     {
-        $superadminEmail = config('mail.superadmin');
+        $central = app(CentralMailService::class);
 
         try {
+            $superadminEmail = $central->superadminRecipient();
+
             if ($superadminEmail) {
-                Mail::to($superadminEmail)->send(new SuperAdminTenantRegisteredMail($tenant));
+                $central->send(new NewTenantAdminNotification($tenant), $superadminEmail);
+                Log::info('Tenant registration admin email sent.', [
+                    'tenant_id' => $tenant->id,
+                    'to' => $superadminEmail,
+                ]);
             } else {
-                Log::warning('SUPERADMIN_EMAIL is not set; super-admin tenant notification was skipped.');
+                Log::warning('CENTRAL_MAIL is not set; super-admin tenant notification was skipped.');
             }
 
-            Mail::to($tenant->email)->send(new TenantRegisteredMail($tenant));
+            if ($tenant->email) {
+                $central->send(new NewTenantWelcome($tenant), $tenant->email);
+                Log::info('Tenant registration welcome email sent.', [
+                    'tenant_id' => $tenant->id,
+                    'to' => $tenant->email,
+                ]);
+            }
         } catch (\Throwable $e) {
             Log::error('Tenant registration emails failed: '.$e->getMessage(), [
                 'tenant_id' => $tenant->id,
                 'tenant_email' => $tenant->email,
+                'exception' => $e::class,
             ]);
         }
     }

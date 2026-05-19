@@ -2,39 +2,21 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\BuildsCiTenantEmail;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class UserAccountDeactivationMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use BuildsCiTenantEmail, Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
-    public $user;
+    public function __construct(public $user) {}
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct($user)
+    public function build(): static
     {
-        $this->user = $user;
-    }
-
-    /**
-     * Build the message.
-     */
-    public function build()
-    {
-        return $this->subject('Your Account has been deactivated By Admin')
-                    ->view('emails.user-account-deactivation')
-                      ->with([
-                        'user' => $this->user, // 🔁 Pass user data to the Blade view
-                    ]);
+        return $this->buildCiTenantEmail('user_deactivated', [
+            'USERNAME' => $this->user->name ?? $this->user->username ?? 'User',
+        ]);
     }
 }

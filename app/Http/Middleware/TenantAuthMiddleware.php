@@ -4,26 +4,39 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Ensures the authenticated user belongs to the current tenant (used after Laravel auth middleware).
+ */
 class TenantAuthMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!tenant()) {
+        if (! tenant()) {
             abort(403, 'No tenant found');
         }
 
-        // Ensure user is authenticated
-        if (!Auth::check()) {
-            return redirect()->route('tenant_login'); // Redirect to login page
+        $user = $request->user();
+
+        if (! $user || $user->is_super_user) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('tenant_login');
         }
+
+        if ((string) $user->tenant_id !== (string) tenant('id')) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('tenant_login')
+                ->with('error', 'You do not have access to this tenant.');
+        }
+
         return $next($request);
     }
 }

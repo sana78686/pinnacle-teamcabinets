@@ -10,9 +10,7 @@ use App\Models\Country;
 use App\Models\City;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use App\Services\TenantRegistrationMailer;
-use App\Services\TenantRoleService;
-use App\Services\TenantSubscriptionService;
+use App\Services\TenantProvisioningService;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
@@ -195,8 +193,6 @@ while (
 
         $tenant->update(['domain_name' => $domain]);
 
-        app(TenantSubscriptionService::class)->startTrial($tenant);
-
         // ✅ Register domain
         $tenant->domains()->create(['domain' => $domain]);
 
@@ -218,30 +214,7 @@ while (
             'is_verified' => true,
         ]);
 
-        TenantRoleService::ensureDefaultRoles();
-        $admin->assignRole('Admin');
-        // ✅ Create same user in tenant DB
-        // $tenant->run(function () use ($request) {
-            // $user = User::create([
-            //     'company_name' => $request->company_name,
-            //     'username' => $request->username,
-            //     'name' => $request->name,
-            //     'email' => $request->email,
-            //     'password' => Hash::make($request->password),
-            //     'phone' => $request->phone,
-            //     'country_id' => $request->country_id,
-            //     'state_id' => $request->state_id,
-            //     'city_name' => $request->city_name,
-            //     'zip_code' => $request->zip_code,
-            //     'address' => $request->address,
-            // ]);
-
-            // $roleName = 'Admin';
-            // $role = Role::firstOrCreate(['name' => $roleName]);
-            // $user->assignRole($role);
-        // });
-
-        TenantRegistrationMailer::send($tenant);
+        app(TenantProvisioningService::class)->provision($tenant, $admin);
 
         Log::info('Tenant and user created successfully.');
 
@@ -420,7 +393,23 @@ $distributorCount = $this->countUsersByRole('Distributor');
 $showroomCount = $this->countUsersByRole('Showroom');
 
 
-            return view('tenants.dashboard',compact('totalUsers','dealerCount','representativeCount','distributorCount','showroomCount'));
+            $showPinnacleWelcome = ! \App\Models\SiteSetting::query()->exists();
+            $onboarding = app(\App\Services\TenantOnboardingService::class);
+            $onboardingSteps = $onboarding->steps();
+            $onboardingProgress = $onboarding->completedCount().' / '.$onboarding->totalSteps();
+            $dealerReady = $onboarding->isReadyForDealers();
+
+            return view('tenants.dashboard', compact(
+                'totalUsers',
+                'dealerCount',
+                'representativeCount',
+                'distributorCount',
+                'showroomCount',
+                'showPinnacleWelcome',
+                'onboardingSteps',
+                'onboardingProgress',
+                'dealerReady'
+            ));
             // return view('tenants.dashboard');
 
         }

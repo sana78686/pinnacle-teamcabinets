@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -31,22 +32,31 @@ class AuthController extends Controller
 
 
         $credentials = $request->only('email', 'password');
+        $remember = $request->boolean('remember');
 
-        if (Auth::attempt($credentials))
-        {
+        if (Auth::attempt($credentials, $remember)) {
             $user = Auth::user();
 
-            // Super user → Redirect to master URL
             if ($user->is_super_user) {
+                if ($remember) {
+                    Cookie::queue('super_admin_login', $request->input('email'), 43200);
+                } else {
+                    Cookie::queue(Cookie::forget('super_admin_login'));
+                }
+
                 return redirect()->route('dashboard');
             }
+
             Auth::logout();
-            return redirect()->route('super-user/login')->with('error', 'Access denied.');
+
+            return redirect()->route('login')
+                ->withInput($request->only('email', 'remember'))
+                ->with('error', 'Access denied.');
         }
 
-
-
-       return back()->with('error', 'Oops! You have entered invalid credentials');
+        return back()
+            ->withInput($request->only('email', 'remember'))
+            ->with('error', 'Oops! You have entered invalid credentials');
 
     }
 

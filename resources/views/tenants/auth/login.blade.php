@@ -5,7 +5,7 @@
 @section('content')
 <x-tenant-auth-shell title="Login">
     @if(request('success'))
-        <div class="tc-alert tc-alert--success">Your account has been created successfully! Please sign in.</div>
+        <div class="tc-alert tc-alert--success">{{ config('pinnacle.portal.registration_success_message') }}</div>
     @endif
     @if(session('success'))
         <div class="tc-alert tc-alert--success">{{ session('success') }}</div>
@@ -35,7 +35,8 @@
             </div>
         </div>
         <div class="tc-check">
-            <input type="checkbox" name="remember" id="remember" {{ Cookie::get('login') ? 'checked' : '' }}>
+            <input type="checkbox" name="remember" id="remember" value="1"
+                {{ old('remember', Cookie::get('login') ? '1' : null) ? 'checked' : '' }}>
             <label for="remember">Remember me</label>
         </div>
         <button type="submit" class="tc-btn">Login</button>

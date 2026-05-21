@@ -11,6 +11,25 @@ return [
 
     'tagline' => 'Launch your cabinets business in minutes',
     'trial_days' => 14,
+
+    /**
+     * Static copy shown on the tenant portal (not editable per tenant).
+     * Override via .env for deployment-specific wording.
+     */
+    'portal' => [
+        'registration_success_message' => env(
+            'PINNACLE_REGISTRATION_SUCCESS_MESSAGE',
+            'Welcome to Pinnacle! Your dealer account has been created. Sign in below to configure your site, catalog, and team.'
+        ),
+        'dashboard_welcome_title' => env(
+            'PINNACLE_DASHBOARD_WELCOME_TITLE',
+            'Welcome to Pinnacle'
+        ),
+        'dashboard_welcome_body' => env(
+            'PINNACLE_DASHBOARD_WELCOME_BODY',
+            'Your account is active on a free trial. Next steps: complete Site Settings, add your product catalog (catalogs, door styles, products), then invite or approve dealers.'
+        ),
+    ],
     'support_email' => env('PINNACLE_SUPPORT_EMAIL', 'support@pinnacle.example.com'),
     'powered_by' => env('PINNACLE_POWERED_BY', 'apimstec'),
 

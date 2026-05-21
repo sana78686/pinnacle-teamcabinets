@@ -55,28 +55,28 @@
                     <div class="tc-field">
                         <label for="contactus_phone">Contact Us Phone</label>
                         <input type="tel" name="contactus_phone" id="contactus_phone" class="form-control"
-                            placeholder="Enter contact phone" value="{{ old('contactus_phone') }}">
+                            placeholder="Enter contact phone" value="{{ old('contactus_phone', $settings->contactus_phone ?? '') }}">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="tc-field">
                         <label for="contactus_email">Contact Us Email</label>
                         <input type="email" name="contactus_email" id="contactus_email" class="form-control"
-                            placeholder="Enter contact email" value="{{ old('contactus_email') }}">
+                            placeholder="Enter contact email" value="{{ old('contactus_email', $settings->contactus_email ?? '') }}">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="tc-field">
                         <label for="newuser_phone">New User Request Phone</label>
                         <input type="tel" name="newuser_phone" id="newuser_phone" class="form-control"
-                            placeholder="Enter registration phone" value="{{ old('newuser_phone') }}">
+                            placeholder="Enter registration phone" value="{{ old('newuser_phone', $settings->newuser_phone ?? '') }}">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="tc-field">
                         <label for="newuser_email">New User Request Email</label>
                         <input type="email" name="newuser_email" id="newuser_email" class="form-control"
-                            placeholder="Enter registration email" value="{{ old('newuser_email') }}">
+                            placeholder="Enter registration email" value="{{ old('newuser_email', $settings->newuser_email ?? '') }}">
                     </div>
                 </div>
             </div>
@@ -151,6 +151,10 @@
             contactusEmail.required = required;
             newuserPhone.required = required;
             newuserEmail.required = required;
+        }
+
+        if (!toggle || !fields) {
+            return;
         }
 
         if (toggle.checked) {

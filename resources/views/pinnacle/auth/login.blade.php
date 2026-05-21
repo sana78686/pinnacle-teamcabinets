@@ -26,7 +26,7 @@
                         'tip' => 'Your Pinnacle super-admin email address.',
                     ])
                     <input type="email" name="email" id="email" class="pn-input pn-input--lg @error('email') is-invalid @enderror"
-                        value="{{ old('email') }}" placeholder="admin@example.com" required autofocus autocomplete="email">
+                        value="{{ old('email', Cookie::get('super_admin_login')) }}" placeholder="admin@example.com" required autofocus autocomplete="email">
                     @error('email')<p class="pn-field-error">{{ $message }}</p>@enderror
                 </div>
 
@@ -40,6 +40,12 @@
                     <input type="password" name="password" id="password" class="pn-input pn-input--lg @error('password') is-invalid @enderror"
                         placeholder="Enter your password" required autocomplete="current-password">
                     @error('password')<p class="pn-field-error">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="pn-check">
+                    <input type="checkbox" name="remember" id="remember" value="1"
+                        {{ old('remember', Cookie::get('super_admin_login') ? '1' : null) ? 'checked' : '' }}>
+                    <label for="remember">Remember me</label>
                 </div>
             </div>
 

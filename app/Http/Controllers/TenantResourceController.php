@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\TenantRegistrationMailer;
-use App\Services\TenantRoleService;
-use App\Services\TenantSubscriptionService;
+use App\Services\TenantProvisioningService;
 use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use App\Rules\ReCaptcha;
@@ -102,10 +100,6 @@ class TenantResourceController extends Controller
                     ]);
                 }
 
-                TenantRegistrationMailer::send($tenant);
-
-                app(TenantSubscriptionService::class)->startTrial($tenant);
-
                 // Create the admin user in the main database
                 $user = User::create([
                     'tenant_id' => $tenant->id,
@@ -113,29 +107,12 @@ class TenantResourceController extends Controller
                     'name' => $request->name,
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
+                    'status' => 'active',
+                    'is_verified_by_admin' => true,
+                    'is_verified' => true,
                 ]);
-                TenantRoleService::ensureDefaultRoles();
-                $user->assignRole('Admin');
 
-
-
-
-            //    $superadminEmail = config('mail.superadmin');
-
-            //     // Send emails
-            //     Mail::to($superadminEmail)->send(new SuperAdminTenantRegisteredMail($user));
-            //     Mail::to($tenant->email)->send(new TenantRegisteredMail($user));
-
-                // Save the user in the tenant database
-                $tenant->run(function () use ($request) {
-                    User::create([
-                        'company_name' => $request->company_name, // Use company name as admin name
-                        'name' => $request->name, // Use company name as admin name
-                        'username' => $request->username, // Use company name as admin name
-                        'email' => $request->email,
-                        'password' => Hash::make($request->password),
-                    ]);
-                });
+                app(TenantProvisioningService::class)->provision($tenant, $user);
             //    $superadminEmail = config('mail.superadmin');
 
             //     // Send emails

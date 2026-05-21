@@ -788,3 +788,36 @@ body.pn-body > .pn-auth-main { padding-top: 1.5rem; }
     .pn-btn--block { width: 100%; }
     .pn-auth-form-plain__title { font-size: 1.625rem; }
 }
+
+/* Password show/hide toggle */
+.tc-password-wrap,
+.tc-input-wrap--password,
+.pn-field .tc-password-wrap {
+    position: relative;
+}
+.tc-password-toggle {
+    position: absolute;
+    right: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--pn-text-muted);
+    cursor: pointer;
+    border-radius: 6px;
+}
+.tc-password-toggle:hover {
+    color: var(--pn-navy);
+    background: rgba(12, 35, 64, 0.06);
+}
+.pn-field .tc-password-wrap .pn-input,
+.pn-field .tc-input-wrap--password .pn-input {
+    padding-right: 2.75rem;
+}

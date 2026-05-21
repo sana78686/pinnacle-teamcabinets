@@ -22,7 +22,7 @@
 <script src="{{asset('assets/main/js/jquery.drilldown.js')}}"></script>
 <script src="{{asset('assets/main/js/vertical-menu.js')}}"></script>
 <script src="{{asset('assets/main/js/megamenu.js')}}"></script>
-
+<script src="{{ dynamic_url('js/password-toggle.js') }}?v=1"></script>
 
 {{-- Others --}}
 <script src="{{asset('assets/main/js/tooltip-init.js')}}"></script>
@@ -65,5 +65,22 @@
 </script>
 <script src="{{ asset('js/tenant-notifications.js') }}?v=2"></script>
 <script src="{{ asset('js/tenant-select2.js') }}?v=1"></script>
+<script>
+    document.getElementById('tc-pn-menu-btn')?.addEventListener('click', function () {
+        var menu = document.querySelector('.tc-tenant-nav .sm, .tc-compact-chrome .sm');
+        if (menu) {
+            menu.style.left = '0px';
+        }
+        this.setAttribute('aria-expanded', 'true');
+    });
+    document.querySelectorAll('.tc-tenant-nav .mobile-back').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var toggle = document.getElementById('tc-pn-menu-btn');
+            if (toggle) {
+                toggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    });
+</script>
 @endauth
 <!-- Plugin used-->

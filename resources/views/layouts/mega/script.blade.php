@@ -22,6 +22,7 @@
 <script src="{{asset('assets/main/js/vertical-menu.js')}}"></script>
 <script src="{{asset('assets/main/js/megamenu.js')}}"></script>
 <script src="{{asset('assets/main/js/megamenu.js')}}"></script>
+<script src="{{ asset('js/password-toggle.js') }}?v=1"></script>
 <!-- login js-->
 @yield('script')
 <!-- Plugin used-->

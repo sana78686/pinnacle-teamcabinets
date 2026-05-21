@@ -76,3 +76,19 @@ if (!function_exists('dynamic_url')) {
         return $isLocal ? url($path) : url('public/' . ltrim($path, '/'));
     }
 }
+
+if (! function_exists('other_page_content')) {
+    /** Success/error page or pop-up HTML by slug (legacy manage_other_page_contents). */
+    function other_page_content(string $slug): string
+    {
+        return app(\App\Services\ManageOtherPageContentService::class)->contentForSlug($slug);
+    }
+}
+
+if (! function_exists('tax_value')) {
+    /** Tenant fee/tax setting from tax_values (fuel, card charges, etc.). */
+    function tax_value(string $key, ?string $default = null): ?string
+    {
+        return app(\App\Services\TaxValuesService::class)->get($key, $default);
+    }
+}

@@ -1,6 +1,10 @@
 @php
     $sectionIcons = [
         'tenant_site_setting' => 'settings',
+        'tenant_setting_tax_fees' => 'percent',
+        'tenant_setting_commission' => 'trending-up',
+        'tenant_quickbooks_index' => 'book-open',
+        'tenant_role_index' => 'shield',
         'tenant_home_setting_index' => 'layout',
         'pages.create' => 'file-text',
         'tenant_setting_manage_document' => 'book-open',

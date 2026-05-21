@@ -9,7 +9,11 @@ use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 class TaxValues extends Model
 {
     use HasFactory, BelongsToTenant;
+
+    protected $table = 'tax_values';
+
     protected $fillable = [
+                        'tenant_id',
                         'option_key',
                         'option_value',
                         'field_label',

@@ -42,4 +42,12 @@ return [
         'price_id' => env('STRIPE_PRICE_ID'),
     ],
 
+    'quickbooks' => [
+        'client_id' => env('QUICKBOOKS_CLIENT_ID'),
+        'client_secret' => env('QUICKBOOKS_CLIENT_SECRET'),
+        'redirect_uri' => env('QUICKBOOKS_REDIRECT_URI'),
+        'scope' => env('QUICKBOOKS_SCOPE', 'com.intuit.quickbooks.accounting openid profile email'),
+        'environment' => env('QUICKBOOKS_ENVIRONMENT', 'sandbox'),
+    ],
+
 ];

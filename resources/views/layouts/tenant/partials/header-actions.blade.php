@@ -1,4 +1,12 @@
-<ul class="nav-menus">
+@php
+    $tcUser = auth()->user();
+    $tcUserName = $tcUser?->name ?? 'User';
+    $tcUserEmail = $tcUser?->email ?? '';
+    $tcUserRole = $tcUser?->getRoleNames()->implode(', ') ?: 'User';
+    $tcUserAvatar = $tcUser?->logo ? dynamic_url($tcUser->logo) : null;
+    $tcUserInitials = $tcUser?->initials ?? 'U';
+@endphp
+<ul class="nav-menus tc-pn-nav-menus">
     @if (!empty($tcShowTrialBanner) && $tcTrialEndsAt)
         <li class="d-none d-md-flex align-items-center">
             <span class="badge badge-warning f-12" role="status">
@@ -39,20 +47,27 @@
     @auth
         @include('layouts.tenant.partials.notifications-dropdown')
     @endauth
-    <li class="onhover-dropdown tc-header-user pl-2 ml-1 border-left">
+    <li class="onhover-dropdown tc-header-user tc-pn-header-user pl-2 ml-1 border-left">
         <div class="d-flex align-items-center">
             <div class="media-body text-right d-none d-md-block mr-2">
-                <h6 class="mb-0 f-w-600">{{ auth()->user()->name ?? 'User' }}</h6>
-                <p class="mb-0 f-12">{{ auth()->user()->getRoleNames()->implode(', ') ?: 'Dealer user' }}</p>
+                <h6 class="mb-0 f-w-600">{{ $tcUserName }}</h6>
+                <p class="mb-0 f-12">{{ $tcUserRole }}</p>
             </div>
-            <span class="media user-header">
-                <em>{{ auth()->user()->initials ?? 'P' }}</em>
+            <span class="media user-header pn-profile-btn tc-pn-avatar" title="{{ $tcUserName }}">
+                @if ($tcUserAvatar)
+                    <img src="{{ $tcUserAvatar }}" alt="{{ $tcUserName }}" class="tc-pn-avatar__img">
+                @else
+                    <em>{{ $tcUserInitials }}</em>
+                @endif
             </span>
         </div>
         <ul class="onhover-show-div profile-dropdown">
             <li class="gradient-primary">
-                <h5 class="mb-0 f-w-600">{{ auth()->user()->name ?? 'User' }}</h5>
-                <span>{{ auth()->user()->getRoleNames()->implode(', ') ?: 'Dealer user' }}</span>
+                <h5 class="mb-0 f-w-600">{{ $tcUserName }}</h5>
+                @if ($tcUserEmail)
+                    <span class="d-block f-12 opacity-75">{{ $tcUserEmail }}</span>
+                @endif
+                <span>{{ $tcUserRole }}</span>
             </li>
             <li>
                 <a href="{{ route('tenant_profile_step_1') }}"><i data-feather="user"></i> {{ __('Profile') }}</a>

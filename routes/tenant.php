@@ -22,6 +22,7 @@ use App\Http\Controllers\ProductDoorstyleController;
 use App\Http\Controllers\TenantQuotesController;
 use App\Http\Controllers\TenantSessionCartController;
 use App\Http\Controllers\TenantSettingController;
+use App\Http\Controllers\TenantQuickBooksController;
 use App\Http\Controllers\TenantShippingQuoteController;
 use App\Http\Controllers\TenantStockCheckController;
 use App\Http\Controllers\TenantNotificationController;
@@ -363,8 +364,15 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
           Route::post('setting/test_smtp', [TenantSettingController::class, 'test_smtp_connection'])->name('tenant_setting_test_smtp');
           Route::get('setting/manage_email_content', [TenantSettingController::class, 'manage_email'])->name('tenant_setting_manage_email_content');
           Route::get('setting/manage_term_condition', [TenantSettingController::class, 'manage_term_condition'])->name('tenant_setting_manage_term_condition');
+          Route::get('setting/manage_tax_fees', [TenantSettingController::class, 'manage_tax_fees'])->name('tenant_setting_tax_fees');
+          Route::post('setting/manage_tax_fees_store', [TenantSettingController::class, 'store_tax_fees'])->name('tenant_setting_tax_fees_store');
+          Route::get('setting/manage_commission', [TenantSettingController::class, 'manage_commission'])->name('tenant_setting_commission');
           Route::get('setting/manage_credit', [TenantSettingController::class, 'manage_credit'])->name('tenant_setting_manage_credit');
           Route::get('setting/manage_fuel', [TenantSettingController::class, 'manage_fuel'])->name('tenant_setting_manage_fuel');
+          Route::get('quickbooks', [TenantQuickBooksController::class, 'index'])->name('tenant_quickbooks_index');
+          Route::get('quickbooks/connect', [TenantQuickBooksController::class, 'connect'])->name('tenant_quickbooks_connect');
+          Route::get('quickbooks/callback', [TenantQuickBooksController::class, 'callback'])->name('tenant_quickbooks_callback');
+          Route::post('quickbooks/disconnect', [TenantQuickBooksController::class, 'disconnect'])->name('tenant_quickbooks_disconnect');
           Route::get('setting/manage_success', [TenantSettingController::class, 'manage_success'])->name('tenant_setting_manage_success');
           Route::get('setting', [TenantSettingController::class, 'store'])->name('tenant_setting_store');
           Route::get('setting/{id}/edit', [TenantSettingController::class, 'edit'])->name('tenant_setting_edit');
@@ -416,6 +424,7 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
 
           Route::get('setting/manage_success_list', [TenantSettingController::class, 'manage_success_list'])->name('tenant_setting_manage_success_list');
           Route::get('setting/{id}/manage_success_edit', [TenantSettingController::class, 'manage_success_edit'])->name('tenant_setting_manage_success_edit');
+          Route::post('setting/{id}/manage_success_update', [TenantSettingController::class, 'manage_success_update'])->name('tenant_setting_manage_success_update');
           Route::get('setting/{id}/manage_success_show', [TenantSettingController::class, 'manage_success_show'])->name('tenant_setting_manage_success_show');
           Route::get('setting/deleted/manage_success_list', [TenantSettingController::class, 'deleted_manage_success_list'])->name('tenant_deleted_manage_success_list');
           Route::get('setting/{id}/restore', [TenantSettingController::class, 'restore_deleted_manage_success_list'])->name('tenant_manage_success_restore');

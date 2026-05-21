@@ -7,7 +7,8 @@
     <title>@yield('title', 'Pinnacle')</title>
     <link rel="icon" href="{{ asset('assets/logo/pinnacle-favicon.png') }}" type="image/png">
     <link rel="preload" href="{{ asset('css/pinnacle-theme.css') }}?v=9" as="style">
-    <link rel="stylesheet" href="{{ asset('css/pinnacle-theme.css') }}?v=9">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/pinnacle-theme.css') }}?v=11">
     {{-- Powered by {{ config('pinnacle.powered_by', 'apimstec') }} (not shown in UI) --}}
     @stack('head')
 </head>
@@ -18,6 +19,7 @@
     <main class="pn-auth-main">@yield('content')</main>
     @include('pinnacle.partials.footer-minimal')
     <script src="{{ asset('js/pinnacle.js') }}?v=6" defer></script>
+    <script src="{{ asset('js/password-toggle.js') }}?v=1"></script>
     @stack('scripts')
 </body>
 </html>

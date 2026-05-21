@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\ManageOtherPageContent;
 use App\Models\SiteSetting;
+use App\Services\ManageOtherPageContentService;
+use App\Services\TaxValuesService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 
@@ -96,8 +100,43 @@ class TenantSettingController extends Controller
     // 🔹 Save all
     $settings->save();
 
-    return redirect()->back()->with('success', '✅ Home page settings updated successfully!');
+    return redirect()->back()->with('success', 'Site settings saved successfully.');
 }
+
+    public function manage_tax_fees(TaxValuesService $taxValues)
+    {
+        $taxValues->ensureDefaults();
+        $values = [];
+        foreach (TaxValuesService::feeKeys() as $key => $meta) {
+            $values[$key] = $taxValues->get($key, $meta['default']);
+        }
+
+        return view('tenants.setting.manage_tax_fees', compact('values'));
+    }
+
+    public function store_tax_fees(Request $request, TaxValuesService $taxValues)
+    {
+        $request->validate([
+            'fuel_charges_value' => 'required|numeric|min:0|max:100',
+            'credit_card_charges' => 'required|numeric|min:0|max:100',
+            'debit_card_charges' => 'required|numeric|min:0|max:100',
+            'ach_pay_charges' => 'required|numeric|min:0|max:99999',
+            'sales_tax_percentage' => 'nullable|numeric|min:0|max:100',
+        ]);
+
+        foreach (TaxValuesService::feeKeys() as $key => $meta) {
+            if ($request->has($key)) {
+                $taxValues->set($key, (string) $request->input($key), $meta['label']);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Tax and fee settings saved successfully.');
+    }
+
+    public function manage_commission()
+    {
+        return view('tenants.setting.manage_commission');
+    }
 
 
 
@@ -235,16 +274,17 @@ class TenantSettingController extends Controller
 
     public function manage_credit()
     {
-        return view('tenants.setting.manage_credit');
+        return redirect()->route('tenant_setting_tax_fees');
     }
+
     public function manage_fuel()
     {
-        return view('tenants.setting.manage_fuel');
+        return redirect()->route('tenant_setting_tax_fees');
     }
 
     public function manage_success()
     {
-        return view('tenants.setting.manage_success');
+        return redirect()->route('tenant_setting_manage_success_list');
     }
    public function manage_home_list()
 {
@@ -359,23 +399,43 @@ class TenantSettingController extends Controller
     }
 
 
-    public function  manage_success_list()
-
+    public function manage_success_list(ManageOtherPageContentService $pageContentService)
     {
-        return view('tenants.setting.manage_success_list');
+        $pageContentService->ensureDefaults();
+        $pages = ManageOtherPageContent::query()->orderBy('id')->get();
+
+        return view('tenants.setting.manage_success_list', compact('pages'));
     }
 
-
-    public function  manage_success_edit()
-
+    public function manage_success_edit(string $id)
     {
-        return view('tenants.setting.manage_success_edit');
+        $page = ManageOtherPageContent::query()->findOrFail($id);
+
+        return view('tenants.setting.manage_success_edit', compact('page'));
     }
 
-    public function  manage_success_show()
-
+    public function manage_success_update(Request $request, string $id, ManageOtherPageContentService $pageContentService)
     {
-        return view('tenants.setting.manage_success_show');
+        $page = ManageOtherPageContent::query()->findOrFail($id);
+
+        $request->validate([
+            'page_content' => 'required|string',
+        ]);
+
+        $page->update([
+            'page_content' => $request->input('page_content'),
+        ]);
+
+        return redirect()
+            ->route('tenant_setting_manage_success_edit', $page->id)
+            ->with('success', 'Page content has been updated successfully.');
+    }
+
+    public function manage_success_show(string $id)
+    {
+        $page = ManageOtherPageContent::query()->findOrFail($id);
+
+        return view('tenants.setting.manage_success_show', compact('page'));
     }
 
 

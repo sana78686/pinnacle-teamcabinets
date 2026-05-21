@@ -1,28 +1,26 @@
-{{-- Theme header (Poco / assets/main) — included from layouts.light.master --}}
-<div class="page-main-header">
-    <div class="main-header-right">
-        <div class="main-header-left">
-            <div class="logo-wrapper">
-                @include('layouts.tenant.partials.tenant-logo')
-            </div>
-            <div class="tc-page-header__titles">
-                @yield('breadcrumb-title')
-                @hasSection('breadcrumb-subtitle')
-                    <p class="tc-page-header__subtitle mb-0">@yield('breadcrumb-subtitle')</p>
-                @endif
-            </div>
-        </div>
-        <div class="mobile-sidebar d-none">
-            <div class="text-right media-body switch-sm">
-                <label class="ml-3 switch"><i class="font-primary" id="sidebar-toggle" data-feather="align-center"></i></label>
-            </div>
-        </div>
-        <div class="vertical-mobile-sidebar"><i class="fa fa-bars sidebar-bar"></i></div>
-        @auth
-            <div class="nav-right col pull-right right-menu">
+{{-- Corporate Pinnacle header (pinnacle.partials.nav) — tenant panel --}}
+@php
+    $tcTenantName = tenant('company_name') ?? tenant('name') ?? config('app.name');
+    $tcLogoUrl = $tcSiteLogo ?? \App\Models\SiteSetting::first()?->logo;
+@endphp
+<header class="pn-header tc-pn-header" style="height:auto !important">
+    <div class="pn-container pn-header__inner">
+        <a href="{{ route('tenant_dashboard') }}" class="pn-logo" title="{{ $tcTenantName }}">
+            @if (!empty($tcLogoUrl))
+                <img src="{{ asset($tcLogoUrl) }}" alt="{{ $tcTenantName }}">
+            @else
+                <span class="tc-pn-header__brand-text">{{ $tcTenantName }}</span>
+            @endif
+        </a>
+
+        <div class="pn-header__actions tc-pn-header__actions nav-right right-menu">
+            @auth
                 @include('layouts.tenant.partials.header-actions')
-            </div>
-        @endauth
-        <div class="d-lg-none mobile-toggle pull-right"><i data-feather="more-horizontal"></i></div>
+            @endauth
+        </div>
+
+        <button type="button" class="pn-menu-btn tc-pn-menu-btn" id="tc-pn-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="tc-pn-mobile-nav">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
     </div>
-</div>
+</header>

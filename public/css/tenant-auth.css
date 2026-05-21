@@ -293,3 +293,42 @@
     padding: 0.75rem 1rem;
     font-family: inherit;
 }
+
+/* Password show/hide toggle */
+.tc-password-wrap,
+.tc-input-wrap--password {
+    position: relative;
+}
+
+.tc-password-toggle {
+    position: absolute;
+    right: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--tc-muted);
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.tc-password-toggle:hover {
+    color: var(--tc-navy);
+    background: rgba(12, 35, 64, 0.06);
+}
+
+.tc-input-wrap--password .tc-input {
+    padding-right: 2.75rem;
+}
+
+.pn-field .tc-password-wrap .pn-input,
+.pn-field .tc-password-toggle + .pn-input {
+    padding-right: 2.75rem;
+}

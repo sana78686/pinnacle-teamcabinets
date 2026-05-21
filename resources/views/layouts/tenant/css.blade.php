@@ -44,6 +44,7 @@
   }
 </style>
 <link rel="stylesheet" href="{{ asset('css/tenant-tooltips.css') }}?v=1">
-<link rel="stylesheet" href="{{ asset('css/tenant-forms.css') }}?v=7">
-<link rel="stylesheet" href="{{ asset('css/tenant-panel.css') }}?v=17">
+<link rel="stylesheet" href="{{ asset('css/tenant-forms.css') }}?v=8">
+<link rel="stylesheet" href="{{ asset('css/pinnacle-theme.css') }}?v=10">
+<link rel="stylesheet" href="{{ asset('css/tenant-panel.css') }}?v=20">
 

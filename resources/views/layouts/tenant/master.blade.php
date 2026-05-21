@@ -48,37 +48,7 @@
     <!-- page-wrapper Start-->
     <div class="page-wrapper vertical tc-panel-shell">
         <div class="tc-chrome tc-compact-chrome tc-sticky-top">
-            <div class="page-main-header">
-                <div class="main-header-right">
-                    <div class="main-header-left text-left">
-                        <div class="tc-brand">
-                            @php
-                                $tcLogoUrl = $tcSiteLogo ?? \App\Models\SiteSetting::first()?->logo;
-                            @endphp
-                            @if (!empty($tcLogoUrl))
-                                <div class="logo-wrapper">
-                                    @include('layouts.tenant.partials.tenant-logo')
-                                </div>
-                            @endif
-                            <p class="mb-0 f-w-600 f-14">
-                                {{ tenant('company_name') ?? tenant('name') ?? config('app.name') }}
-                            </p>
-                        </div>
-                    </div>
-                    <div class="mobile-sidebar d-none">
-                        <div class="text-right media-body switch-sm">
-                            <label class="ml-3 switch"><i class="font-primary" id="sidebar-toggle" data-feather="align-center"></i></label>
-                        </div>
-                    </div>
-                    <div class="vertical-mobile-sidebar"><i class="fa fa-bars sidebar-bar"></i></div>
-                    @auth
-                        <div class="nav-right col pull-right right-menu">
-                            @include('layouts.tenant.partials.header-actions')
-                        </div>
-                    @endauth
-                    <div class="d-lg-none mobile-toggle pull-right"><i data-feather="more-horizontal"></i></div>
-                </div>
-            </div>
+            @include('layouts.tenant.header')
             @include('layouts.tenant.admin_sidebar')
         </div>
         <!-- Page Body Start-->

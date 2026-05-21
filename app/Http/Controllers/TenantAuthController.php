@@ -67,23 +67,24 @@ public function postLogin(Request $request)
         $credentials = ['username' => $login, 'password' => $request->password];
     }
 
-    // ✅ Check if "remember me" is checked
-    $remember = $request->has('remember');
+    $remember = $request->boolean('remember');
 
-    // ✅ Attempt login with "remember me"
     if (Auth::attempt($credentials, $remember)) {
         $user = Auth::user();
 
         // ✅ Check if user is blocked or unapproved
         if (!$user->is_verified_by_admin) {
             Auth::logout();
-            return redirect()->back()->with('error', 'Your account has not been approved by the dealer admin yet. You will be notified when it is approved.');
+            return redirect()->back()
+                ->withInput($request->only('login', 'remember'))
+                ->with('error', 'Your account has not been approved by the dealer admin yet. You will be notified when it is approved.');
         }
 
-        // ✅ Check if user is deactivated
         if ($user->status === 'deactive') {
             Auth::logout();
-            return redirect()->back()->with('error', 'Your account has been deactivated.');
+            return redirect()->back()
+                ->withInput($request->only('login', 'remember'))
+                ->with('error', 'Your account has been deactivated.');
         }
 
         if ($remember) {
@@ -96,8 +97,9 @@ public function postLogin(Request $request)
             ->with('success', 'You have successfully logged in.');
     }
 
-    // ❌ Invalid credentials
-    return redirect()->back()->with('error', 'Oops! You have entered invalid credentials.');
+    return redirect()->back()
+        ->withInput($request->only('login', 'remember'))
+        ->with('error', 'Oops! You have entered invalid credentials.');
 }
 
 

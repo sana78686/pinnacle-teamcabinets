@@ -1,67 +1,28 @@
 @extends('layouts.tenant.settings')
-@section('title', 'Success Menu')
-
-@section('css')
-    <link rel="stylesheet" type="text/css" href="{{ route('/') }}/assets/main/css/select2.css">
-@endsection
-
-@section('style')
-@endsection
+@section('title', 'Success / Error Content')
 
 @section('breadcrumb-title')
-    <h2>Success/Error Content<span>Details </span></h2>
+    <h2>{{ $page->title }}<span> Content</span></h2>
 @endsection
 
 @section('breadcrumb-items')
-    <li class="breadcrumb-item active">Setting</li>
-    <li class="breadcrumb-item active">Success Error Content</li>
-    <li class="breadcrumb-item">Show</li>
+    <li class="breadcrumb-item">Settings</li>
+    <li class="breadcrumb-item"><a href="{{ route('tenant_setting_manage_success_list') }}">Success / Error Content</a></li>
+    <li class="breadcrumb-item active">View</li>
 @endsection
 
 @section('setting_content')
-
-<div class="container-fluid">
-    <div class="row g-3 tc-settings-form-row">
-
-        <!-- Personal Information -->
-        <div class="col-md-4">
-            <table class="table table-bordered">
-                <thead class="table-secondary">
-                    <tr>
-                        <th colspan="2">Success Information</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th>Pages</th>
-                        <td>Thank You Page</td>
-                    </tr>
-
-                </tbody>
-            </table>
-        </div>
-        <!-- Product Catalog Information -->
-        <div class="col-md-4">
-            <table class="table table-bordered">
-                <thead class="table-secondary">
-                    <tr>
-                        <th colspan="2">Success Catalog Information</th>
-                    </tr>
-                </thead>
-                <tbody>
-
-                </tbody>
-            </table>
-        </div>
-
+<div class="tc-settings-toolbar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <p class="mb-0 text-muted small">Slug: <code>{{ $page->slug }}</code></p>
+    <div class="d-flex gap-2">
+        <a href="{{ route('tenant_setting_manage_success_edit', $page->id) }}" class="btn btn-primary btn-sm">Edit</a>
+        <a href="{{ route('tenant_setting_manage_success_list') }}" class="btn btn-light btn-sm">Back to list</a>
     </div>
 </div>
 
+<div class="card">
+    <div class="card-body">
+        {!! $page->page_content ?: '<p class="text-muted mb-0">No content saved yet.</p>' !!}
+    </div>
+</div>
 @endsection
-
-@section('setting_script')
-
-    <script src="{{ route('/') }}/assets/main/js/select2/select2.full.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/select2/select2-custom.js"></script>
-@endsection
-

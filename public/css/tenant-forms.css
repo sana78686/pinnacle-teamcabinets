@@ -326,3 +326,46 @@
     padding: 0.35rem 0.75rem;
     font-size: var(--tc-value-size);
 }
+
+/* Password show/hide (panel forms) */
+.tc-form-page .tc-input-wrap--password,
+.tc-settings-panel .tc-input-wrap--password,
+.tc-form-page .tc-password-wrap,
+.tc-settings-panel .tc-password-wrap {
+    position: relative;
+}
+
+.tc-password-toggle {
+    position: absolute;
+    right: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--tc-muted, #6c757d);
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.tc-password-toggle:hover {
+    color: var(--tc-navy, #0c2340);
+    background: rgba(12, 35, 64, 0.06);
+}
+
+.tc-form-page .tc-input-wrap--password .tc-input,
+.tc-settings-panel .tc-input-wrap--password .tc-input,
+.tc-form-page .tc-password-wrap input[type="password"],
+.tc-settings-panel .tc-password-wrap input[type="password"] {
+    padding-right: 2.75rem;
+}
+
+.tc-form-page .tc-input-wrap--password .tc-input {
+    padding-left: 2.75rem;
+}

@@ -49,5 +49,6 @@
             </tbody>
         </table>
     </div>
+    @include('partials.tenant-pagination', ['paginator' => $pages])
 </div>
 @endsection

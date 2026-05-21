@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('tenant_id')->nullable();
             $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
             $table->string('option_key')->nullable();
-            $table->string('option_value')->nullable();
+            $table->text('option_value')->nullable();
             $table->string('field_label')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('updated_by')->nullable()->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();

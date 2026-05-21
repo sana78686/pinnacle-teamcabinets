@@ -26,7 +26,12 @@ class TenantOrderController extends Controller
 
         if(Auth::user()->hasRole('Admin'))
         {
-            $data['orders'] = Order::get();
+            $workspace = app(\App\Services\OrderWorkspaceService::class);
+            $data['records'] = $workspace
+                ->listQuery(Order::class, Auth::user())
+                ->paginate(tenant_list_per_page())
+                ->withQueryString();
+
             return view('tenants.orders.index', $data);
         }
         else

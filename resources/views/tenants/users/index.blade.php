@@ -259,6 +259,7 @@
                 </tfoot>
             </table>
         </div>
+        @include('partials.tenant-pagination', ['paginator' => $users])
     </div>
 @endsection
 @section('script')
@@ -533,6 +534,8 @@ document.addEventListener('DOMContentLoaded', function () {
         //     }
         // });
         new DataTable('#userTable', {
+            paging: false,
+            info: false,
             initComplete: function() {
                 this.api()
                     .columns()

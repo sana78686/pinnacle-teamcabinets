@@ -21,7 +21,7 @@
 
 <div class="p-2 mt-0 card-header no-border">
     {{-- <h5>Best Selling Stock Check</h5> --}}
-    <a href="" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
+    <a href="{{ route('tenant_order_workspace') }}" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
         title="Create a new Shipping Quotes in the system">
         <i class="icofont icofont-plus"></i> Create Shipping Quotes
     </a>
@@ -47,63 +47,12 @@
 
 
 <div class="pt-0 card-body">
-    <div class="table-responsive table-sm">
-        <table class="table p-0 m-0 display table-striped table-bordered table-sm" id="">
-            <thead>
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Shipping Quote Name</th>
-                    <th scope="col">Bill Name</th>
-                    <th scope="col">Ship Name</th>
-                    <th scope="col">Job Name</th>
-                    <th scope="col">Date</th>
-                    <th scope="col">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-
-                <tr>
-
-                    <td scope="col">1</td>
-                    <td scope="col">quote</td>
-                    <td scope="col">Bill</td>
-                    <td scope="col">Ship </td>
-                    <td scope="col">Job </td>
-                    <td scope="col">Date</td>
-
-
-                    <td>
-                        <a class="" href="{{ route('tenant_shipping_quotes_show',1) }}" data-toggle="tooltip"
-                            title="View details of this Stock check">
-                            Show |
-                        </a>
-
-                        <a class="" href="{{ route('tenant_shipping_quotes_edit',1) }}" data-toggle="tooltip"
-                            title="Edit this Stock check information">
-                            Edit |
-                        </a>
-                        <a class="" href="" data-toggle="tooltip"
-                            title="Delete this stock check">
-                            Delete
-                        </a>
-                    </td>
-
-                </tr>
-
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Quote Name</th>
-                    <th scope="col">Bill Name</th>
-                    <th scope="col">Ship Name</th>
-                    <th scope="col">Job Name</th>
-                    <th scope="col">Date</th>
-                    <th scope="col">Action</th>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
+    @include('tenants.partials.workspace-records-table', [
+        'records' => $records,
+        'rowLabel' => 'Shipping quote',
+        'showRoute' => 'tenant_shipping_quotes_show',
+        'destroyRoute' => 'tenant_shipping_quotes_destroy',
+    ])
 </div>
 
 @endsection

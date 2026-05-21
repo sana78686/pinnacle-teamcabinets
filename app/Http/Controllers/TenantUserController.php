@@ -48,13 +48,9 @@ class TenantUserController extends Controller
      */
     public function index(Request $request): View
     {
-        $user = User::all();
-        $data['users'] = User::latest()->get();
         $query = User::query();
 
-        $user = Auth::user();
-
-        $savedColumns = UserColumnPreference::where('user_id', $user->id)
+        $savedColumns = UserColumnPreference::where('user_id', Auth::id())
             ->where('module', 'users')
             ->first();
 
@@ -62,24 +58,21 @@ class TenantUserController extends Controller
 
         $data['columns'] = $savedColumns ? json_decode($savedColumns->columns, true) : $defaultColumns;
 
-        if ($request->has('name') && $request->name != '') {
-            $query->where('name', 'LIKE', '%' . $request->name . '%');
+        if ($request->filled('name')) {
+            $query->where('name', 'LIKE', '%'.$request->name.'%');
         }
 
-        if ($request->has('username') && $request->username != '') {
-            $query->where('username', 'LIKE', '%' . $request->username . '%');
+        if ($request->filled('username')) {
+            $query->where('username', 'LIKE', '%'.$request->username.'%');
         }
 
-        if ($request->has('email') && $request->email != '') {
-            $query->where('email', 'LIKE', '%' . $request->email . '%');
+        if ($request->filled('email')) {
+            $query->where('email', 'LIKE', '%'.$request->email.'%');
         }
 
-        $data['User'] = $query->paginate(10);
+        $data['users'] = $query->latest()->paginate(tenant_list_per_page())->withQueryString();
 
-        return view('tenants.users.index',compact('user'), $data, [
-            // we will display a list of user data on the index page
-            'users' => User::all(),
-       ]);
+        return view('tenants.users.index', $data);
     }
 
     public function search(Request $request)
@@ -673,7 +666,8 @@ public function updateStatus(Request $request, $id)
     }
     public function deletedUsersList()
     {
-        $data['users'] = User::onlyTrashed()->get();
+        $data['users'] = User::onlyTrashed()->latest()->paginate(tenant_list_per_page())->withQueryString();
+
         return view('tenants.users.deleted_users_list', $data);
     }
     public function restoreDeletedUser($id)
@@ -775,10 +769,12 @@ public function updateStatus(Request $request, $id)
     public function role_child(Request $request): View
     {
         $auth = Auth::user();
-        $user = User::where('parent_id', $auth->id)->get();
-        $data['users'] = User::where('parent_id', $auth->id)->latest()->paginate(5);
-        // dd($data['users']);
-        return view('tenants.representative_modals.users.index', $data,);
+        $data['users'] = User::where('parent_id', $auth->id)
+            ->latest()
+            ->paginate(tenant_list_per_page())
+            ->withQueryString();
+
+        return view('tenants.representative_modals.users.index', $data);
     }
     public function childRoleAutoComplete(Request $request)
 
@@ -822,7 +818,12 @@ public function updateStatus(Request $request, $id)
     public function deletedChildUsersList()
     {
         $auth = Auth::user();
-        $data['users'] = User::where('parent_id', $auth->id)->onlyTrashed()->get();
+        $data['users'] = User::where('parent_id', $auth->id)
+            ->onlyTrashed()
+            ->latest()
+            ->paginate(tenant_list_per_page())
+            ->withQueryString();
+
         return view('tenants.representative_modals.users.deleted_users_list', $data);
     }
 

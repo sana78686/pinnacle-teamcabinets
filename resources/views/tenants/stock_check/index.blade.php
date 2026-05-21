@@ -59,34 +59,25 @@
                 </tr>
             </thead>
             <tbody>
-
-                <tr>
-
-                    <td scope="col">1</td>
-                    <td scope="col">Bill</td>
-                    <td scope="col">Ship </td>
-                    <td scope="col">Job </td>
-                    <td scope="col">Date</td>
-
-
-                    <td>
-                        <a class="" href="{{ route('tenant_stock_check_show',1) }}" data-toggle="tooltip"
-                            title="View details of this Stock check">
-                            Show |
-                        </a>
-
-                        <a class="" href="{{ route('tenant_stock_check_edit',1) }}" data-toggle="tooltip"
-                            title="Edit this Stock check information">
-                            Edit |
-                        </a>
-                        <a class="" href="" data-toggle="tooltip"
-                            title="Delete this stock check">
-                            Delete
-                        </a>
-                    </td>
-
-                </tr>
-
+                @forelse ($stock_check_requests as $request)
+                    <tr>
+                        <td>{{ $stock_check_requests->firstItem() + $loop->index }}</td>
+                        <td>{{ $request->user?->name ?? '—' }}</td>
+                        <td>{{ $request->user_address ?? '—' }}</td>
+                        <td>{{ $request->job_name ?? '—' }}</td>
+                        <td>{{ $request->updated_at?->format('M j, Y') ?? '—' }}</td>
+                        <td>
+                            <a href="{{ route('tenant_stock_check_show', $request->id) }}" data-toggle="tooltip"
+                                title="View details of this Stock check">Show |</a>
+                            <a href="{{ route('tenant_stock_check_edit', $request->id) }}" data-toggle="tooltip"
+                                title="Edit this Stock check information">Edit |</a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">No stock check requests yet.</td>
+                    </tr>
+                @endforelse
             </tbody>
             <tfoot>
                 <tr>
@@ -100,6 +91,7 @@
             </tfoot>
         </table>
     </div>
+    @include('partials.tenant-pagination', ['paginator' => $stock_check_requests])
 </div>
 
 

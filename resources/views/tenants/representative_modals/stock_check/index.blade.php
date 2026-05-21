@@ -62,7 +62,7 @@
                     @forelse ($stock_check_requests as $key => $each)
                         <tr>
 
-                            <td scope="col">{{ $key + 1 }}</td>
+                            <td scope="col">{{ $stock_check_requests->firstItem() + $loop->index }}</td>
                             <td scope="col">{{ $each->user->name }}</td>
                             <td scope="col">{{ $each->user->name }} </td>
                             <td scope="col">{{ $each->job_name }} </td>
@@ -111,6 +111,7 @@
                 </tfoot>
             </table>
         </div>
+        @include('partials.tenant-pagination', ['paginator' => $stock_check_requests])
     </div>
 
 </div>

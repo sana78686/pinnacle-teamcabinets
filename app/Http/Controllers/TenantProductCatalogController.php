@@ -27,7 +27,7 @@ class TenantProductCatalogController extends Controller
         if ($request->has('pdf') && $request->pdf != '') {
             $query->where('pdf', 'LIKE', '%' . $request->pdf . '%');
         }
-        $data['product_catalogs'] = $query->paginate(10);
+        $data['product_catalogs'] = $query->latest('id')->paginate(tenant_list_per_page())->withQueryString();
         // dd($data['product_catalogs']);
         return view('tenants.product_catalogs.index', $data);
     }
@@ -158,7 +158,8 @@ class TenantProductCatalogController extends Controller
 
     public function deletedproductcatalogList()
     {
-        $data['product_catalog'] = ProductCatalog::onlyTrashed()->get();
+        $data['product_catalog'] = ProductCatalog::onlyTrashed()->latest('id')->paginate(tenant_list_per_page())->withQueryString();
+
         return view('tenants.product_catalogs.deleted_products_catalog_list', $data);
     }
 

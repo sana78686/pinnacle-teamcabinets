@@ -240,10 +240,21 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
 
           Route::get('orders/index', [TenantOrderController::class, 'index'])->name('tenant_order_list');
           Route::get('orders/workspace', [TenantCreateOrderController::class, 'catalog'])->name('tenant_order_workspace');
+          Route::get('orders/workspace/catalog/{catalog}/build', [TenantCreateOrderController::class, 'build'])->name('tenant_order_workspace_build');
+          Route::post('orders/workspace/catalog/{catalog}/door/{door}/accordion-search', [TenantCreateOrderController::class, 'accordionSearch'])->name('tenant_order_workspace_accordion_search');
+          Route::post('orders/workspace/catalog/{catalog}/cart-autosave', [TenantCreateOrderController::class, 'autoSaveCart'])->name('tenant_order_workspace_cart_autosave');
+          Route::get('orders/workspace/catalog/{catalog}/clear-cart', [TenantCreateOrderController::class, 'clearCart'])->name('tenant_order_workspace_clear_cart');
+          Route::post('orders/workspace/print', [TenantCreateOrderController::class, 'storePrint'])->name('tenant_order_workspace_print');
+          Route::post('orders/workspace/process', [TenantCreateOrderController::class, 'storeProcess'])->name('tenant_order_workspace_process');
+          Route::get('orders/workspace/checkout', [TenantCreateOrderController::class, 'checkout'])->name('tenant_order_workspace_checkout');
+          Route::get('orders/workspace/{id}/print', [TenantCreateOrderController::class, 'printOrder'])->name('tenant_order_workspace_print_page');
           Route::get('orders/workspace/catalog/{catalog}/doors', [TenantCreateOrderController::class, 'doors'])->name('tenant_order_workspace_doors');
-          Route::get('orders/workspace/catalog/{catalog}/door/{door}', [TenantCreateOrderController::class, 'build'])->name('tenant_order_workspace_build');
+          Route::get('orders/workspace/catalog/{catalog}/door/{door}', [TenantCreateOrderController::class, 'buildLegacyDoorUrl'])->name('tenant_order_workspace_build_legacy');
           Route::get('orders/workspace/catalog/{catalog}/door/{door}/search', [TenantCreateOrderController::class, 'searchProducts'])->name('tenant_order_workspace_search');
-          Route::post('orders/workspace/store', [TenantCreateOrderController::class, 'store'])->name('tenant_order_workspace_store');
+          Route::post('orders/workspace/store', [TenantCreateOrderController::class, 'storeOrder'])->name('tenant_order_workspace_store');
+          Route::post('orders/workspace/quote', [TenantCreateOrderController::class, 'storeQuote'])->name('tenant_order_workspace_quote');
+          Route::post('orders/workspace/shipping-quote', [TenantCreateOrderController::class, 'storeShippingQuote'])->name('tenant_order_workspace_shipping_quote');
+          Route::post('orders/workspace/stock-check', [TenantCreateOrderController::class, 'storeStockCheck'])->name('tenant_order_workspace_stock_check');
           Route::get('orders/create', [TenantOrderController::class, 'create'])->name('tenant_order_create_static');
           Route::get('orders/create/1', [TenantOrderController::class, 'create_step_1'])->name('tenant_order_create');
           Route::get('orders/create/2/{id}', [TenantOrderController::class, 'create_step_2'])->name('tenant_order_create_step_2');

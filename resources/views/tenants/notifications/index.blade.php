@@ -46,7 +46,7 @@
                             </li>
                         @endforeach
                     </ul>
-                    <div class="mt-3">{{ $notifications->links() }}</div>
+                    @include('partials.tenant-pagination', ['paginator' => $notifications])
                 @endif
             </div>
         </div>

@@ -7,15 +7,28 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductCatalog;
 use App\Models\ProductSection;
-use App\Models\TaxValues;
+use App\Models\Quote;
+use App\Models\ShippingQuote;
+use App\Models\StockCheckRequest;
+use App\Mail\StockCheckAdminMail;
+use App\Mail\StockCheckUserMail;
+use App\Services\OrderCartPersistenceService;
+use App\Services\OrderWorkspaceService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class TenantCreateOrderController extends Controller
 {
+    public function __construct(
+        protected OrderWorkspaceService $workspace,
+        protected OrderCartPersistenceService $cartPersistence,
+    ) {}
+
     public function catalog(): View
     {
         $catalogs = ProductCatalog::query()->where('status', 1)->orderBy('name')->get();
@@ -26,7 +39,21 @@ class TenantCreateOrderController extends Controller
         ]);
     }
 
-    public function doors(int $catalogId): View
+    /** Legacy URL — redirect to CI-style build (catalog → multi-room, door on same page). */
+    public function doors(int $catalogId): RedirectResponse
+    {
+        return redirect()->route('tenant_order_workspace_build', $catalogId);
+    }
+
+    public function buildLegacyDoorUrl(int $catalogId, int $doorId): RedirectResponse
+    {
+        return redirect()->route('tenant_order_workspace_build', [
+            'catalog' => $catalogId,
+            'door' => $doorId,
+        ]);
+    }
+
+    public function build(int $catalogId, Request $request): View|RedirectResponse
     {
         $catalog = ProductCatalog::query()->where('status', 1)->findOrFail($catalogId);
         $doorColors = DoorColors::query()
@@ -35,22 +62,126 @@ class TenantCreateOrderController extends Controller
             ->orderBy('product_label')
             ->get();
 
-        return view('tenants.orders.standalone.doors', [
+        if ($doorColors->isEmpty()) {
+            return redirect()
+                ->route('tenant_order_workspace')
+                ->with('error', 'No door styles are configured for this catalog.');
+        }
+
+        $door = $doorColors->firstWhere('id', (int) $request->query('door'))
+            ?? $doorColors->first();
+
+        $user = $request->user();
+
+        return view('tenants.orders.workspace.build', [
             'catalog' => $catalog,
+            'door' => $door,
             'doorColors' => $doorColors,
-            'step' => 2,
+            'sections' => $this->productSectionsFor($catalog, $door),
+            'savedCart' => $user ? $this->cartPersistence->load($user->id, $catalog->id) : null,
+            'shippingPopup' => other_page_content('shipping_pop_up'),
+            'stockShippingPopup' => other_page_content('stock_check_shipping_pop_up'),
+            'shipTerms' => tax_value('ship_quote_terms_and_condition', ''),
         ]);
     }
 
-    public function build(int $catalogId, int $doorId): View
+    public function accordionSearch(Request $request, int $catalogId, int $doorId): View
     {
         $catalog = ProductCatalog::query()->where('status', 1)->findOrFail($catalogId);
-        $door = DoorColors::query()
-            ->where('product_catalog_id', $catalog->id)
-            ->where('status', 1)
-            ->findOrFail($doorId);
+        $door = DoorColors::query()->findOrFail($doorId);
+        $sections = $this->productSectionsFor($catalog, $door);
 
-        $sections = ProductSection::query()
+        if ($request->filled('sku')) {
+            $term = $request->sku;
+            $sections = $sections->map(function (ProductSection $section) use ($term, $catalog, $door) {
+                $filtered = $section->products->filter(function (Product $p) use ($term) {
+                    return stripos($p->sku, $term) !== false || stripos($p->label, $term) !== false;
+                });
+                $clone = clone $section;
+                $clone->setRelation('products', $filtered->values());
+
+                return $clone;
+            })->filter(fn (ProductSection $s) => $s->products->isNotEmpty());
+        }
+
+        return view('tenants.orders.workspace.partials.product-accordion', [
+            'sections' => $sections,
+            'door' => $door,
+        ]);
+    }
+
+    public function autoSaveCart(Request $request, int $catalogId): JsonResponse
+    {
+        $user = $request->user();
+        $this->cartPersistence->save($user, $catalogId, [
+            'job_name' => $request->input('job_name'),
+            'room_data' => $request->input('room_data', []),
+            'cart_product_weight' => $request->input('cart_product_weight'),
+            'all_cart_total' => $request->input('all_cart_total', 0),
+            'is_assemble' => $request->input('is_assemble'),
+            'order_comment' => $request->input('order_comment'),
+            'door_label' => $request->input('door_label'),
+            'door_image' => $request->input('door_image'),
+        ]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function clearCart(Request $request, int $catalogId): RedirectResponse
+    {
+        if ($request->user()) {
+            $this->cartPersistence->clear($request->user()->id, $catalogId);
+        }
+        session()->forget(['workspace_checkout', 'job_name', 'rooms', 'cart']);
+
+        return redirect()->route('tenant_order_workspace_build', [
+            'catalog' => $catalogId,
+            'door' => $request->query('door'),
+        ]);
+    }
+
+    public function storePrint(Request $request): JsonResponse
+    {
+        return $this->persist($request, Order::class, 'tenant_order_workspace_print_page', 'Order ready to print.');
+    }
+
+    public function storeProcess(Request $request): JsonResponse
+    {
+        try {
+            $payload = $this->workspace->parsePayload($request);
+            session(['workspace_checkout' => $payload]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => collect($e->errors())->flatten()->first() ?? 'Validation failed.',
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'Proceeding to checkout.',
+            'redirect' => route('tenant_order_workspace_checkout'),
+        ]);
+    }
+
+    public function checkout(Request $request): View
+    {
+        $payload = session('workspace_checkout', []);
+
+        return view('tenants.orders.workspace.checkout', ['payload' => $payload]);
+    }
+
+    public function printOrder(int $id): View
+    {
+        $order = Order::query()->with('user')->findOrFail($id);
+
+        return view('tenants.orders.workspace.print', ['order' => $order]);
+    }
+
+    /**
+     * @return Collection<int, ProductSection>
+     */
+    protected function productSectionsFor(ProductCatalog $catalog, DoorColors $door): Collection
+    {
+        return ProductSection::query()
             ->orderBy('cabinets_name')
             ->get()
             ->map(function (ProductSection $section) use ($catalog, $door) {
@@ -67,13 +198,6 @@ class TenantCreateOrderController extends Controller
                 return $section;
             })
             ->filter(fn (ProductSection $section) => $section->products->isNotEmpty());
-
-        return view('tenants.orders.standalone.build', [
-            'catalog' => $catalog,
-            'door' => $door,
-            'sections' => $sections,
-            'step' => 3,
-        ]);
     }
 
     public function searchProducts(Request $request, int $catalogId, int $doorId): JsonResponse
@@ -98,6 +222,7 @@ class TenantCreateOrderController extends Controller
                 'id' => $p->id,
                 'label' => $p->label,
                 'sku' => $p->sku,
+                'list_description' => $p->sku.'-'.($p->doorColor?->product_label ?? ''),
                 'description' => trim($p->sku.' — '.($p->doorColor?->product_label ?? '').' — '.($p->description ?? '')),
                 'weight' => (float) preg_replace('/[^\d.]/', '', (string) $p->weight),
                 'cost' => (float) preg_replace('/[^\d.]/', '', (string) $p->cost),
@@ -107,88 +232,55 @@ class TenantCreateOrderController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function storeOrder(Request $request): JsonResponse
     {
-        $request->validate([
-            'job_name' => 'required|string|max:255',
-            'rooms' => 'required|array|min:1',
-            'assemble_cabinets_check' => 'required',
-            'comment' => 'nullable|string|max:500',
-        ]);
+        return $this->persist($request, Order::class, 'tenant_order_list', 'Order processed successfully.');
+    }
 
-        $user = Auth::user();
-        $assembleYes = in_array($request->assemble_cabinets_check, ['1', 1, 'yes', true], true);
-        $assembleValue = $assembleYes ? 'yes' : 'no';
+    public function storeQuote(Request $request): JsonResponse
+    {
+        return $this->persist($request, Quote::class, 'tenant_quotes_index', 'Quote saved successfully.');
+    }
 
-        $roomsPayload = [];
-        foreach ($request->rooms as $room) {
-            if (empty($room['room_name']) || empty($room['products'])) {
-                continue;
-            }
-            $roomsPayload[] = [
-                'room_name' => $room['room_name'],
-                'products' => collect($room['products'])->map(fn ($p) => [
-                    'product_id' => (int) $p['product_id'],
-                    'quantity' => max(1, (int) ($p['quantity'] ?? 1)),
-                    'checkbox_status' => $p['checkbox_status'] ?? 'none',
-                ])->values()->all(),
-            ];
+    public function storeShippingQuote(Request $request): JsonResponse
+    {
+        $request->merge(['shipping_status' => 'yes']);
+
+        return $this->persist($request, ShippingQuote::class, 'tenant_shipping_quotes_index', 'Shipping quote request saved successfully.');
+    }
+
+    public function storeStockCheck(Request $request): JsonResponse
+    {
+        return $this->persist($request, StockCheckRequest::class, 'tenant_stock_check_index', 'Stock check request submitted successfully.', 'pending');
+    }
+
+    /**
+     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $modelClass
+     */
+    protected function persist(
+        Request $request,
+        string $modelClass,
+        string $redirectRoute,
+        string $message,
+        ?string $defaultShippingStatus = null,
+    ): JsonResponse {
+        $record = null;
+        try {
+            $payload = $this->workspace->parsePayload($request, $defaultShippingStatus);
+            $record = $this->workspace->createRecord($modelClass, $payload);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => collect($e->errors())->flatten()->first() ?? 'Validation failed.',
+            ], 422);
         }
 
-        if (count($roomsPayload) === 0) {
-            return response()->json(['message' => 'Add at least one room with products.'], 422);
-        }
-
-        $countryName = $user->country_id ? $user->country?->name : '';
-        $stateName = $user->state_id ? $user->state?->name : '';
-        $userAddress = implode(', ', array_filter([
-            $user->address,
-            $user->city_name,
-            $user->county_name,
-            $stateName,
-            $countryName,
-        ]));
-
-        $fuelTax = TaxValues::query()->where('option_key', 'fuel_charges_value')->first();
-        $totalAssemble = 0;
-        $subTotalCost = 0;
-        $subTotalWeight = 0;
-
-        foreach ($roomsPayload as $room) {
-            foreach ($room['products'] as $line) {
-                $productData = Product::find($line['product_id']);
-                if (! $productData) {
-                    continue;
-                }
-                $qty = $line['quantity'];
-                $totalAssemble += ((float) $productData->assemble_cost) * $qty;
-                $subTotalCost += ((float) preg_replace('/[^\d.]/', '', (string) $productData->cost)) * $qty;
-                $subTotalWeight += ((float) preg_replace('/[^\d.]/', '', (string) $productData->weight)) * $qty;
-            }
-        }
-
-        $order = Order::create([
-            'job_name' => $request->job_name,
-            'rooms' => $roomsPayload,
-            'assemble_cabinets_check' => $assembleValue,
-            'shipping_status' => $request->input('shipping_status', 'pending'),
-            'comment' => $request->comment,
-            'user_id' => $user->id,
-            'user_address' => $userAddress,
-            'user_email' => $user->email,
-            'user_phone' => $user->phone,
-            'sub_total_cost' => $subTotalCost,
-            'fuel_tax' => $fuelTax?->option_value,
-            'sub_total_assemble_cost' => $assembleYes ? $totalAssemble : 0,
-            'grand_total_cost' => $subTotalCost + ($assembleYes ? $totalAssemble : 0),
-            'sub_total_weight' => $subTotalWeight,
-        ]);
-
-        Log::info('Order created via workspace', ['order_id' => $order->id]);
+        $redirectParams = ['id' => $record->id ?? null];
 
         return response()->json([
-            'message' => 'Order created successfully.',
-            'redirect' => route('tenant_order_list'),
+            'message' => $message,
+            'redirect' => $redirectRoute === 'tenant_order_workspace_print_page' && isset($record)
+                ? route('tenant_order_workspace_print_page', $record->id)
+                : route($redirectRoute),
         ]);
     }
 }

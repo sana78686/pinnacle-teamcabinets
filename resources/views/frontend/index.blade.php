@@ -72,7 +72,5 @@
         </table>
     </div>
 
-    @if ($pages->hasPages())
-        <div class="mt-3">{{ $pages->links() }}</div>
-    @endif
+    @include('partials.tenant-pagination', ['paginator' => $pages])
 @endsection

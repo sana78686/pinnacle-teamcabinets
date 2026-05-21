@@ -96,6 +96,7 @@
                 </tfoot>
             </table>
         </div>
+        @include('partials.tenant-pagination', ['paginator' => $product_section])
     </div>
 
 @endsection

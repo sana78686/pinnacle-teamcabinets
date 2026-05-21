@@ -21,7 +21,22 @@
 
 @section('content')
 
-    {{-- <div class="p-2 mt-0 card-header no-border">
+    <div class="p-2 mt-0 card-header no-border">
+        <a href="{{ route('tenant_order_workspace') }}" class="text-white btn btn-info btn-sm">
+            <i class="icofont icofont-plus"></i> Create Order
+        </a>
+        <a href="{{ route('tenant_deleted_order_list') }}" class="btn btn-success btn-sm">Restore Orders</a>
+        <a href="{{ url()->current() }}" class="btn btn-light btn-sm"><i class="icofont icofont-refresh"></i> Refresh</a>
+    </div>
+
+    @include('tenants.partials.workspace-records-table', [
+        'records' => $records,
+        'rowLabel' => 'Order',
+        'showRoute' => 'tenant_order_show',
+        'destroyRoute' => 'tenant_order_destroy',
+    ])
+
+    {{-- <div class="p-2 mt-0 card-header no-border d-none">
         <a href="{{ route('tenant_user_create') }}" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
             title="Create a new user in the system">
             <i class="icofont icofont-plus"></i> Create Order
@@ -45,92 +60,6 @@
 
         </div>
     </div> --}}
-
-    <table id="example1" class="table table-bordered dataTable" cellspacing="0" width="100%"
-        aria-describedby="example1_info" style="width: 100%;">
-        <thead>
-            <tr role="row">
-                <th class="sorting_desc" role="columnheader" tabindex="0" aria-controls="example1" rowspan="1"
-                    colspan="1" aria-sort="descending" aria-label="Order ID: activate to sort column ascending"
-                    style="width: 37.7778px;">Order ID</th>
-                <th class="sorting" role="columnheader" tabindex="0" aria-controls="example1" rowspan="1"
-                    colspan="1" aria-label="Customer Name: activate to sort column ascending" style="width: 77.7778px;">
-                    Customer Name</th>
-                <th class="sorting" role="columnheader" tabindex="0" aria-controls="example1" rowspan="1"
-                    colspan="1" aria-label="Customer Type: activate to sort column ascending" style="width: 84.7778px;">
-                    Customer Type</th>
-                <th class="sorting" role="columnheader" tabindex="0" aria-controls="example1" rowspan="1"
-                    colspan="1" aria-label="Customer Email: activate to sort column ascending" style="width: 243.778px;">
-                    Customer Email</th>
-                <th class="sorting" role="columnheader" tabindex="0" aria-controls="example1" rowspan="1"
-                    colspan="1" aria-label="Job Name: activate to sort column ascending" style="width: 130.778px;">Job
-                    Name</th>
-                <th class="sorting" role="columnheader" tabindex="0" aria-controls="example1" rowspan="1"
-                    colspan="1" aria-label="Company Name: activate to sort column ascending" style="width: 96.7778px;">
-                    Company Name</th>
-                <th class="sorting" role="columnheader" tabindex="0" aria-controls="example1" rowspan="1"
-                    colspan="1" aria-label="Order Weight: activate to sort column ascending" style="width: 46.7778px;">
-                    Order Weight</th>
-                <th class="sorting" role="columnheader" tabindex="0" aria-controls="example1" rowspan="1"
-                    colspan="1" aria-label="Order Amount: activate to sort column ascending" style="width: 53.7778px;">
-                    Order Amount</th>
-                <th class="sorting" role="columnheader" tabindex="0" aria-controls="example1" rowspan="1"
-                    colspan="1" aria-label="Order Status: activate to sort column ascending" style="width: 126.778px;">
-                    Order Status</th>
-                <th class="sorting" role="columnheader" tabindex="0" aria-controls="example1" rowspan="1"
-                    colspan="1" aria-label="Transaction ID: activate to sort column ascending"
-                    style="width: 78.7778px;">
-                    Transaction ID</th>
-                <th class="sorting" role="columnheader" tabindex="0" aria-controls="example1" rowspan="1"
-                    colspan="1" aria-label="Order Date: activate to sort column ascending" style="width: 37.7778px;">
-                    Order Date</th>
-                <th class="sorting" role="columnheader" tabindex="0" aria-controls="example1" rowspan="1"
-                    colspan="1" aria-label="Action: activate to sort column ascending" style="width: 43.7778px;">
-                    Acti</th>
-            </tr>
-        </thead>
-
-        <tbody role="alert" aria-live="polite" aria-relevant="all">
-            @foreach ($orders as $order)
-
-            <tr class="odd">
-
-
-                <td class=" sorting_1">1518<br>Q #: 817</td>
-                <td class="">TestUser Representative</td>
-                <td class="">Representatives</td>
-                <td class="">san.bism786illah@gmail.com</td>
-                <td class="">testing-job</td>
-                <td class="">N/A</td>
-                <td class="">96 lbs</td>
-                <td class="">$1,311.00</td>
-                <!-- <td></td>
-                <td></td>
-                <td></td>
-                <td></td> -->
-                <td class="">
-                    <select id="status" name="order_status" class="btn cls_grey">
-                        <option value="PROCESSING_1518">PROCESSING</option>
-                        <option value="PAID_1518">PAID</option>
-                        <option value="PENDING_1518">PENDING</option>
-                        <option value="CANCELLED_1518">CANCELLED</option>
-                        <option value="COMPLETED_1518" selected="selected">COMPLETED</option>
-                    </select>
-                </td>
-                <td class="">1593764208</td>
-                <td class="">Jan, 19 2025</td>
-                <td class="">
-                    abc
-                </td><!--order enhanced details 13-12-2022-->
-            </tr>
-            @endforeach
-
-        </tbody>
-    </table>
-
-
-
-
 
 @endsection
 

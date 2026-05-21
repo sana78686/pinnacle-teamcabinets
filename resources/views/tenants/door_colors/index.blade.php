@@ -97,7 +97,7 @@
         <tbody>
             @forelse($doorColors as $index => $doorColor)
                 <tr>
-                    <td>{{ $index + 1 }}</td>
+                    <td>{{ $doorColors->firstItem() + $loop->index }}</td>
                     <td>{{ $doorColor->productCatalog->name ?? 'N/A' }}</td>
                     <td>{{ $doorColor->product_label }}</td>
                     <td>
@@ -137,6 +137,7 @@
     </table>
 </div>
 
+@include('partials.tenant-pagination', ['paginator' => $doorColors])
 
 @endsection
 @section('script')

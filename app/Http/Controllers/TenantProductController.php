@@ -20,26 +20,23 @@ class TenantProductController extends Controller
      */
     public function index(Request $request)
     {
-        $product = product::all();
         $query = Product::query();
 
-
-        if ($request->has('product') && $request->product != '') {
-            $query->where('product', 'LIKE', '%' . $request->product . '%');
+        if ($request->filled('product')) {
+            $query->where('product', 'LIKE', '%'.$request->product.'%');
         }
 
-
-        if ($request->has('product_section') && $request->product_section != '') {
-            $query->where('product_section', 'LIKE', '%' . $request->product_section . '%');
+        if ($request->filled('product_section')) {
+            $query->where('product_section', 'LIKE', '%'.$request->product_section.'%');
         }
 
-
-        if ($request->has('product_label') && $request->product_label != '') {
-            $query->where('product_label', 'LIKE', '%' . $request->product_label . '%');
+        if ($request->filled('product_label')) {
+            $query->where('product_label', 'LIKE', '%'.$request->product_label.'%');
         }
 
-        $data['Product'] = $query->paginate(10);
-       return view('tenants.products.index',$data,compact('product'));
+        $data['product'] = $query->latest('id')->paginate(tenant_list_per_page())->withQueryString();
+
+        return view('tenants.products.index', $data);
     }
     public function search(Request $request)
     {
@@ -171,7 +168,8 @@ public function store(Request $request)
     public function deletedproductList()
 
     {
-        $data['product'] = Product::onlyTrashed()->get();
+        $data['product'] = Product::onlyTrashed()->latest('id')->paginate(tenant_list_per_page())->withQueryString();
+
         return view('tenants.products.deleted_products_list', $data);
     }
 

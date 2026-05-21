@@ -23,7 +23,7 @@ class TenantPageController extends Controller
 
     public function index()
     {
-        $pages = Page::with('parent')->orderBy('order_no')->paginate(10);
+        $pages = Page::with('parent')->orderBy('order_no')->paginate(tenant_list_per_page())->withQueryString();
 
         return view('frontend.index', compact('pages'));
     }
@@ -120,7 +120,7 @@ class TenantPageController extends Controller
     /** @return array<string, mixed> */
     protected function homePayload(): array
     {
-        $pages = Page::with('parent')->orderBy('order_no')->paginate(10);
+        $pages = Page::with('parent')->orderBy('order_no')->paginate(tenant_list_per_page())->withQueryString();
         $settings = SiteSetting::first();
         $doorstyles = DoorColors::query()->where('status', 1)->get();
         $catalogs = ProductCatalog::query()

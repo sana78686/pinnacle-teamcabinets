@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Services\TenantFrontendThemeService;
 use App\View\Composers\TenantFrontendThemeComposer;
 use App\View\Composers\TenantPanelComposer;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
@@ -25,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Paginator::useBootstrapFive();
+
         Schema::defaultStringLength(191);
 
         Gate::before(function ($user, $ability) {

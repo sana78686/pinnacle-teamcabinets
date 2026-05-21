@@ -34,7 +34,7 @@ class TenantRoleController extends Controller
      */
     public function index(Request $request): View
     {
-        $data['roles'] = Role::orderBy('id','DESC')->paginate(5);
+        $data['roles'] = Role::orderBy('id', 'DESC')->paginate(tenant_list_per_page())->withQueryString();
         return view('tenants.roles.index', $data);
     }
 

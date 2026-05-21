@@ -15,8 +15,9 @@ class TenantBulletinController extends Controller
      */
     public function index()
     {
-        $bulletin = Bulletin::all();
-        return view('tenants.bulletins.index',['bulletin'=>$bulletin]);
+        $bulletin = Bulletin::latest('id')->paginate(tenant_list_per_page())->withQueryString();
+
+        return view('tenants.bulletins.index', ['bulletin' => $bulletin]);
     }
 
     /**
@@ -99,7 +100,8 @@ class TenantBulletinController extends Controller
     public function deletedbulletinList()
     {
 
-        $data['bulletin'] = Bulletin::onlyTrashed()->get();
+        $data['bulletin'] = Bulletin::onlyTrashed()->latest('id')->paginate(tenant_list_per_page())->withQueryString();
+
         return view('tenants.Bulletins.deleted_bulletin_list', $data);
     }
 

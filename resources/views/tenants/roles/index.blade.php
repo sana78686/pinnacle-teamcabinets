@@ -110,7 +110,7 @@
         </tfoot>
     </table>
 
-    {!! $roles->links('pagination::bootstrap-5') !!}
+    @include('partials.tenant-pagination', ['paginator' => $roles])
 @endsection
 
 @section('script')

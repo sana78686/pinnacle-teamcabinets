@@ -86,7 +86,7 @@
                 @include('layouts.tenant.partials.nav-dropdown', [
                     'title' => 'Stock Check',
                     'items' => [
-                        ['url' => route('tenant_stock_check_create'), 'icon' => 'plus-circle', 'label' => 'Create Stock Check'],
+                        ['url' => route('tenant_order_workspace'), 'icon' => 'plus-circle', 'label' => 'Create Stock Check'],
                         ['url' => route('tenant_stock_check_index'), 'icon' => 'list', 'label' => 'Stock Check List'],
                     ],
                 ])
@@ -96,9 +96,9 @@
                 @include('layouts.tenant.partials.nav-dropdown', [
                     'title' => 'Quotes',
                     'items' => [
-                        ['url' => route('tenant_quotes_create'), 'icon' => 'plus-circle', 'label' => 'Create Quote'],
+                        ['url' => route('tenant_order_workspace'), 'icon' => 'plus-circle', 'label' => 'Create Quote'],
                         ['url' => route('tenant_quotes_index'), 'icon' => 'list', 'label' => 'Quotes List'],
-                        ['url' => route('tenant_shipping_quotes_create'), 'icon' => 'truck', 'label' => 'Create Shipping Quote'],
+                        ['url' => route('tenant_order_workspace'), 'icon' => 'truck', 'label' => 'Create Shipping Quote'],
                         ['url' => route('tenant_shipping_quotes_index'), 'icon' => 'list', 'label' => 'Shipping Quotes List'],
                     ],
                 ])

@@ -490,7 +490,10 @@ class TenantSettingController extends Controller
     public function manage_success_list(ManageOtherPageContentService $pageContentService)
     {
         $pageContentService->ensureDefaults();
-        $pages = ManageOtherPageContent::query()->orderBy('id')->get();
+        $pages = ManageOtherPageContent::query()
+            ->orderBy('id')
+            ->paginate(tenant_list_per_page())
+            ->withQueryString();
 
         return view('tenants.setting.manage_success_list', compact('pages'));
     }

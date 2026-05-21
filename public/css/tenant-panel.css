@@ -1349,7 +1349,7 @@
     border: 1px solid #e8ebf2;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(36, 41, 52, 0.06);
-    overflow: hidden;
+    overflow: visible;
 }
 
 .tc-settings-layout {
@@ -1875,39 +1875,59 @@
     padding: 1rem 1.1rem;
 }
 
-/* Panel alerts — readable text, compact padding (overrides theme .outline) */
+/* Flash / panel alerts — QuickBooks-style outline boxes, full text visible */
+.tc-flash-messages {
+    margin: 0 0 1rem;
+    width: 100%;
+    max-width: 100%;
+}
+
 .page-body .alert,
 .tc-settings-panel .alert,
+.tc-settings-panel-content .alert,
 .tc-settings-content .alert,
 .tc-form-page .alert {
-    padding: 0.55rem 0.85rem !important;
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 100%;
     margin-bottom: 0.75rem;
+    padding: 0.875rem 2.75rem 0.875rem 1rem !important;
     border-radius: 8px;
-    font-size: 0.8125rem !important;
-    line-height: 1.45 !important;
+    border-width: 1px;
+    border-style: solid;
+    font-size: 0.9375rem !important;
+    font-weight: 500;
+    line-height: 1.55 !important;
     letter-spacing: normal;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 .page-body .alert p,
 .tc-settings-panel .alert p,
-.tc-settings-content .alert p {
+.tc-settings-content .alert p,
+.tc-alert__text {
     margin: 0;
+    padding: 0;
     font-size: inherit !important;
+    font-weight: inherit;
     line-height: inherit !important;
     color: inherit;
-}
-
-.page-body .alert.outline,
-.tc-settings-panel .alert.outline,
-.tc-settings-content .alert.outline {
-    border-width: 1px;
-    border-style: solid;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    word-wrap: break-word;
 }
 
 .page-body .alert-warning,
 .page-body .alert-warning.outline,
 .tc-settings-panel .alert-warning,
-.tc-settings-panel .alert-warning.outline {
+.tc-settings-panel .alert-warning.outline,
+.tc-settings-panel-content .alert-warning {
     color: #854d0e !important;
     background-color: #fffbeb !important;
     border-color: #f59e0b !important;
@@ -1916,7 +1936,8 @@
 .page-body .alert-success,
 .page-body .alert-success.outline,
 .tc-settings-panel .alert-success,
-.tc-settings-panel .alert-success.outline {
+.tc-settings-panel .alert-success.outline,
+.tc-settings-panel-content .alert-success {
     color: #166534 !important;
     background-color: #f0fdf4 !important;
     border-color: #22c55e !important;
@@ -1925,7 +1946,8 @@
 .page-body .alert-danger,
 .page-body .alert-danger.outline,
 .tc-settings-panel .alert-danger,
-.tc-settings-panel .alert-danger.outline {
+.tc-settings-panel .alert-danger.outline,
+.tc-settings-panel-content .alert-danger {
     color: #991b1b !important;
     background-color: #fef2f2 !important;
     border-color: #ef4444 !important;
@@ -1934,15 +1956,16 @@
 .page-body .alert-info,
 .page-body .alert-info.outline,
 .tc-settings-panel .alert-info,
-.tc-settings-panel .alert-info.outline {
-    color: #1e40af !important;
-    background-color: #eff6ff !important;
-    border-color: #3b82f6 !important;
+.tc-settings-panel .alert-info.outline,
+.tc-settings-panel-content .alert-info {
+    color: #854d0e !important;
+    background-color: #fffbeb !important;
+    border-color: #f59e0b !important;
 }
 
 .page-body .tc-page-note,
 .tc-page-note {
-    padding: 0.75rem 1rem !important;
+    padding: 0.875rem 2.75rem 0.875rem 1rem !important;
 }
 
 .page-body .tc-page-note .tc-page-note__title,
@@ -2026,30 +2049,77 @@
 }
 
 .page-body .alert-primary,
-.page-body .alert-primary.outline {
-    color: #1a4a7a !important;
-    background-color: #f0f6fc !important;
-    border-color: #1a4a7a !important;
+.page-body .alert-primary.outline,
+.tc-settings-panel .alert-primary {
+    color: #854d0e !important;
+    background-color: #fffbeb !important;
+    border-color: #f59e0b !important;
 }
 
 .page-body .alert .btn-close,
-.tc-settings-panel .alert .btn-close {
-    padding: 0.65rem;
+.tc-settings-panel .alert .btn-close,
+.tc-settings-panel-content .alert .btn-close {
+    position: absolute;
+    top: 0.65rem;
+    right: 0.65rem;
+    padding: 0.35rem;
+    opacity: 0.65;
 }
 
-.page-body .alert svg,
-.tc-settings-panel .alert svg {
-    stroke: currentColor;
-    vertical-align: middle;
-    margin-right: 0.35rem;
+.page-body .alert .btn-close:hover,
+.tc-settings-panel .alert .btn-close:hover {
+    opacity: 1;
 }
 
-/* Flash message wrapper — remove bulky card padding around alerts */
+/* Legacy wrappers — no extra card chrome around alerts */
 .page-body .card-body:has(> .alert),
-.tc-settings-panel .card-body:has(> .alert) {
-    padding: 0 0 0.5rem !important;
-    margin: 0;
+.page-body .card-body:has(.tc-flash-messages),
+.tc-settings-panel .card-body:has(> .alert),
+.tc-settings-panel .card-body:has(.tc-flash-messages) {
+    padding: 0 !important;
+    margin: 0 0 0.5rem;
     background: transparent;
     border: none;
     box-shadow: none;
+    overflow: visible;
+}
+
+/* List pagination (all tenant panel tables) */
+.tc-list-pagination {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #eef2f7;
+}
+
+.tc-list-pagination__summary {
+    margin: 0;
+}
+
+.tc-list-pagination .pagination {
+    margin-bottom: 0;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.tc-list-pagination .page-link {
+    border-radius: 6px;
+    color: #242934;
+    border-color: #e2e8f0;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.875rem;
+}
+
+.tc-list-pagination .page-item.active .page-link {
+    background-color: #7e37d8;
+    border-color: #7e37d8;
+}
+
+.tc-list-pagination .page-link:hover {
+    background-color: #f8f5fd;
+    border-color: #d8b4fe;
+    color: #5b21b6;
+}
+
+.tc-list-pagination .page-item.disabled .page-link {
+    color: #94a3b8;
 }

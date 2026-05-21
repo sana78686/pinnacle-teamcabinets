@@ -13,7 +13,10 @@ class ProductDoorstyleController extends Controller
     public function index()
     {
         $productCatalogs = ProductCatalog::all();
-        $doorColors = DoorColors::with('productCatalog')->latest()->get();
+        $doorColors = DoorColors::with('productCatalog')
+            ->latest('id')
+            ->paginate(tenant_list_per_page())
+            ->withQueryString();
 
         return view('tenants.door_colors.index', compact('productCatalogs', 'doorColors'));
     }

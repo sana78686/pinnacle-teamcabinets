@@ -21,11 +21,15 @@ class TenantStockCheckController extends Controller
     public function index()
     {
         $data = [];
-        $user = Auth::user();
-        $data['stock_check_requests'] = $stockCheck = StockCheckRequest::with('user')
-                                                            ->where('user_id', $user->id)
-                                                            ->orderby('updated_at', 'desc')
-                                                            ->get();
+        $query = StockCheckRequest::with('user')->orderByDesc('updated_at');
+
+        if (! Auth::user()->hasRole('Admin')) {
+            $query->where('user_id', Auth::id());
+        }
+
+        $data['stock_check_requests'] = $query
+            ->paginate(tenant_list_per_page())
+            ->withQueryString();
         if(Auth::user()->hasRole('Admin'))
         {
             return view('tenants.stock_check.index', $data);
@@ -42,15 +46,8 @@ class TenantStockCheckController extends Controller
      */
     public function create()
     {
-        if(Auth::user()->hasRole('Admin'))
-        {
-            return view('tenants.stock_check.create');
-        }
-        else
-        {
-            return view('tenants.representative_modals.stock_check.create');
-        }
-        // return view('tenants.stock_check.create');
+        return redirect()->route('tenant_order_workspace')
+            ->with('info', 'Pick catalog → door style → build cart, then click Stock check on the build screen.');
     }
     /**
      * Display the specified resource.

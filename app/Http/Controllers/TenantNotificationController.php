@@ -9,7 +9,7 @@ class TenantNotificationController extends Controller
 {
     public function index(Request $request)
     {
-        $notifications = $request->user()->notifications()->latest()->paginate(25);
+        $notifications = $request->user()->notifications()->latest()->paginate(tenant_list_per_page())->withQueryString();
 
         return view('tenants.notifications.index', compact('notifications'));
     }

@@ -11,8 +11,9 @@ use Maatwebsite\Excel\Facades\Excel;
 class TenantProductSectionController extends Controller
 {
     public function index(){
-        $product_section = ProductSection::all();
-        return view('tenants.product_section.index',compact('product_section'));
+        $product_section = ProductSection::latest('id')->paginate(tenant_list_per_page())->withQueryString();
+
+        return view('tenants.product_section.index', compact('product_section'));
     }
 
     public function create(){
@@ -59,7 +60,8 @@ class TenantProductSectionController extends Controller
     public function deletedproductsectionList()
 
     {
-        $data['product_section'] = ProductSection::onlyTrashed()->get();
+        $data['product_section'] = ProductSection::onlyTrashed()->latest('id')->paginate(tenant_list_per_page())->withQueryString();
+
         return view('tenants.product_section.deleted_product_section_list', $data);
     }
 

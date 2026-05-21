@@ -3,13 +3,13 @@
 @section('title', 'Select Catalog')
 
 @section('content')
-<div class="co-shell">
-    <header class="co-topbar">
-        <div class="co-topbar__brand">
-            <a href="{{ route('tenant_dashboard') }}" class="co-topbar__back"><i class="fa-solid fa-arrow-left"></i> Panel</a>
-            <h1>Create order</h1>
-        </div>
-        @include('tenants.orders.standalone.partials.steps')
+<div class="co-shell ow-page--fullscreen">
+    <header class="ow-minibar">
+        <a href="{{ route('tenant_dashboard') }}" class="ow-minibar__back" title="Back to panel">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+        <span class="ow-minibar__title">Create order</span>
+        <span class="ow-minibar__step">Select catalog</span>
     </header>
 
     <main class="co-main">
@@ -17,7 +17,7 @@
 
         <div class="co-catalog-grid">
             @forelse ($catalogs as $catalog)
-                <a href="{{ route('tenant_order_workspace_doors', $catalog->id) }}" class="co-catalog-card">
+                <a href="{{ route('tenant_order_workspace_build', $catalog->id) }}" class="co-catalog-card">
                     <div class="co-catalog-card__media">
                         @if ($catalog->pdf)
                             <span class="co-catalog-card__pdf" onclick="event.preventDefault(); window.open('{{ asset($catalog->pdf) }}','_blank');">

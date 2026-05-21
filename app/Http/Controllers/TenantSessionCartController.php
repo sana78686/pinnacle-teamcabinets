@@ -42,37 +42,53 @@ class TenantSessionCartController extends Controller
     public function addProduct(Request $request)
     {
         $cart = session()->get('cart', []);
-        $productId = $request->input('product_id');
-        $roomName = trim($request->input('room_name'));
-        $price = floatval($request->input('price'));
-        $quantity = 1;
-        $product_data = Product::find($productId);
-        if (isset($cart[$productId])) {
-            $cart[$productId]['quantity'] += 1;
+        $productId = (int) $request->input('product_id');
+        $roomId = (string) $request->input('room_id', '');
+        $roomName = trim((string) $request->input('room_name'));
+        $key = $roomId !== '' ? $roomId.'_'.$productId : (string) $productId;
+        $price = (float) $request->input('price');
+        $quantity = max(1, (int) $request->input('quantity', 1));
+        $productData = Product::find($productId);
+
+        if (! $productData) {
+            return response()->json(['message' => 'Product not found'], 422);
+        }
+
+        $checkboxStatus = in_array($request->input('checkbox_status'), ['single', 'double'], true)
+            ? $request->input('checkbox_status')
+            : 'none';
+
+        if (isset($cart[$key])) {
+            $cart[$key]['quantity'] = $quantity;
+            $cart[$key]['checkbox_status'] = $checkboxStatus;
         } else {
-            $cart[$productId] = [
+            $cart[$key] = [
+                'room_id' => $roomId,
                 'room_name' => $roomName,
                 'product_id' => $productId,
-                'label' => $product_data->label,
+                'label' => $productData->label,
                 'description' => $request->input('description'),
                 'weight' => $request->input('weight'),
                 'price' => $price,
                 'quantity' => $quantity,
-                'double_check' => false, // Default double-check to false
+                'checkbox_status' => $checkboxStatus,
             ];
         }
 
         session()->put('cart', $cart);
+
         return response()->json(['message' => 'Product added to cart successfully']);
     }
 
     public function removeProduct(Request $request)
     {
         $cart = session()->get('cart', []);
-        $productId = $request->input('product_id');
+        $productId = (int) $request->input('product_id');
+        $roomId = (string) $request->input('room_id', '');
+        $key = $roomId !== '' ? $roomId.'_'.$productId : (string) $productId;
 
-        if (isset($cart[$productId])) {
-            unset($cart[$productId]);
+        if (isset($cart[$key])) {
+            unset($cart[$key]);
             session()->put('cart', $cart);
         }
 

@@ -1,0 +1,243 @@
+/* Order workspace — full-screen, no tenant header/footer */
+
+.ow-standalone-body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: #f1f5f9;
+    overflow-x: hidden;
+}
+
+.ow-page--fullscreen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.ow-minibar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    background: #fff;
+    border-bottom: 1px solid #dee2e6;
+    flex-shrink: 0;
+    min-height: 44px;
+}
+
+.ow-minibar__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #1a4a7a;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.ow-minibar__back:hover {
+    color: #0c2340;
+    text-decoration: none;
+}
+
+.ow-minibar__title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1e293b;
+}
+
+.ow-minibar__step {
+    margin-left: auto;
+    font-size: 0.8125rem;
+    color: #64748b;
+}
+
+.ow-page--fullscreen .ow-main-row {
+    flex: 1;
+    margin: 0;
+    max-height: calc(100vh - 44px - 76px);
+}
+
+.ow-page--fullscreen .ow-door-strip {
+    flex-shrink: 0;
+    padding: 0.5rem 1rem;
+    background: #fff;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.ow-page .ow-door-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+}
+
+.ow-door-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 88px;
+    padding: 0.35rem;
+    border: 2px solid var(--tc-border, #e2e8f0);
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.ow-door-tile.is-selected {
+    border-color: var(--tc-primary, #1a4a7a);
+    box-shadow: 0 0 0 1px var(--tc-primary, #1a4a7a);
+}
+
+.ow-door-tile img {
+    width: 72px;
+    height: 52px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.ow-door-tile__ph {
+    width: 72px;
+    height: 52px;
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.ow-picker-card,
+.ow-cart-card {
+    height: calc(100vh - 140px);
+    min-height: 360px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.ow-page--fullscreen .ow-picker-card,
+.ow-page--fullscreen .ow-cart-card {
+    height: calc(100vh - 120px);
+}
+
+.ow-col-picker .ow-accordion {
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(65vh - 80px);
+}
+
+.ow-col-cart .table-responsive {
+    flex: 1;
+    overflow: auto;
+    max-height: calc(50vh - 40px);
+}
+
+.ow-accordion__item {
+    border: 1px solid #dee2e6;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+}
+
+.ow-accordion__item summary {
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: #f8fafc;
+}
+
+.ow-product-label {
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cabinet-label-cell {
+    cursor: pointer;
+}
+
+.ow-search-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.ow-hint {
+    font-size: 0.8125rem;
+    color: #64748b;
+}
+
+.ow-step {
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+}
+
+.ow-cart-table .room-header-row th.ow-room-th {
+    background: #286090;
+    color: #fff;
+    vertical-align: middle;
+}
+
+.ow-cart-table .room-header-row th:not(.ow-room-th) {
+    background: #286090;
+    color: #fff;
+}
+
+.ow-cart-table .room-header-row input {
+    color: #333;
+}
+
+.ow-cart-table tbody.cart-room.active .room-header-row th {
+    background: #31708f;
+}
+
+.ow-cart-table .cart-header-row th {
+    background: #cfe2ff;
+    font-size: 0.8125rem;
+}
+
+.ow-chk {
+    width: 18px;
+    height: 18px;
+    margin: 2px 0;
+}
+
+.ow-chk--yellow {
+    accent-color: #f0ad4e;
+    outline: 2px solid #f0ad4e;
+}
+
+.ow-chk--green {
+    accent-color: #5cb85c;
+    outline: 2px solid #5cb85c;
+}
+
+.ow-qty-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.ow-qty-wrap .product-qty-input {
+    width: 2.5rem;
+    padding: 0.15rem;
+}
+
+.ow-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.ow-actions .btn {
+    min-width: 120px;
+}
+
+@media (max-width: 991px) {
+    .ow-picker-card,
+    .ow-cart-card {
+        height: auto;
+        max-height: none;
+    }
+    .ow-col-picker .ow-accordion {
+        max-height: 50vh;
+    }
+}

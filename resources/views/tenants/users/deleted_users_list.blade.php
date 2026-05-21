@@ -175,6 +175,7 @@
                 </tfoot>
             </table>
         </div>
+        @include('partials.tenant-pagination', ['paginator' => $users])
     </div>
 
 @endsection

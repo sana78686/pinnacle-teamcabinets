@@ -88,6 +88,7 @@
                 </tfoot>
             </table>
         </div>
+        @include('partials.tenant-pagination', ['paginator' => $bulletin])
     </div>
 @endsection
 @section('script')

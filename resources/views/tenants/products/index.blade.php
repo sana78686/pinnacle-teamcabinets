@@ -125,6 +125,7 @@
                 </table>
             </div>
         </div>
+        @include('partials.tenant-pagination', ['paginator' => $product])
     </form>
 @endsection
 @section('script')

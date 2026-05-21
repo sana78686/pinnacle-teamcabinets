@@ -193,12 +193,8 @@
                 </table>
             </div>
         </div>
+        @include('partials.tenant-pagination', ['paginator' => $product_catalogs])
     </form>
-
-
-
-
-
 @endsection
 
 @section('script')

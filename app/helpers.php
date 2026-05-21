@@ -92,3 +92,10 @@ if (! function_exists('tax_value')) {
         return app(\App\Services\TaxValuesService::class)->get($key, $default);
     }
 }
+
+if (! function_exists('tenant_list_per_page')) {
+    function tenant_list_per_page(): int
+    {
+        return max(1, (int) config('tenant_panel.list_per_page', 15));
+    }
+}

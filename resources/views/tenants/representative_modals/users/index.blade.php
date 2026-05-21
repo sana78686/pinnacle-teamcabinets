@@ -267,10 +267,7 @@
                 </tr>
             </tfoot>
         </table>
-        <div class="pt-2 pagination-primary">
-            {{ $users->links('pagination::bootstrap-5') }}
-
-        </div>
+        @include('partials.tenant-pagination', ['paginator' => $users])
 
 
 

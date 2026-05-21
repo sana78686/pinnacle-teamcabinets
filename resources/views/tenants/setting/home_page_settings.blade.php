@@ -1,16 +1,15 @@
 @extends('layouts.tenant.settings')
 @section('title', 'Home Page Settings')
 
-@section('breadcrumb-title')
-    <h2>Home <span>Page</span></h2>
-@endsection
-
 @section('breadcrumb-items')
     <li class="breadcrumb-item">Settings</li>
-    <li class="breadcrumb-item active">Home Page</li>
+    <li class="breadcrumb-item"><a href="{{ route('tenant_website_designing') }}">Website Designing</a></li>
+    <li class="breadcrumb-item active">Home &amp; FAQ</li>
 @endsection
 
 @section('setting_content')
+@include('layouts.tenant.partials.website-designing-nav')
+
 <form class="tc-settings-form" action="{{ route('tenant_home_setting_srore') }}" method="post" enctype="multipart/form-data">
     @csrf
 
@@ -140,8 +139,42 @@
         </div>
     </section>
 
+    <section class="tc-settings-section">
+        <h3 class="tc-settings-section__title">Homepage FAQ</h3>
+        <p class="tc-field-hint mb-3">These questions appear in the FAQ section on your public storefront (Hazel theme). Leave empty rows out before saving.</p>
+        <div id="tc-faq-list" class="tc-faq-list">
+            @foreach ($faqs as $index => $faq)
+                <div class="tc-faq-row card mb-2">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <strong class="f-14">FAQ #{{ $index + 1 }}</strong>
+                            <button type="button" class="btn btn-outline-danger btn-sm tc-faq-remove" aria-label="Remove FAQ">Remove</button>
+                        </div>
+                        <div class="tc-field mb-2">
+                            <label>Question</label>
+                            <input type="text" name="faq_question[]" class="form-control" maxlength="500"
+                                value="{{ old('faq_question.'.$index, $faq['q'] ?? '') }}" placeholder="e.g. What does RTA mean?">
+                        </div>
+                        <div class="tc-field mb-0">
+                            <label>Answer</label>
+                            <textarea name="faq_answer[]" class="form-control" rows="3" maxlength="5000"
+                                placeholder="Answer shown on your website">{{ old('faq_answer.'.$index, $faq['a'] ?? '') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+        <button type="button" class="btn btn-outline-primary btn-sm" id="tc-faq-add">
+            <i data-feather="plus" class="tc-btn-icon"></i> Add FAQ
+        </button>
+    </section>
+
     <div class="tc-settings-form-actions">
         <button type="submit" class="btn btn-primary">Save Settings</button>
     </div>
 </form>
+@endsection
+
+@section('setting_script')
+<script src="{{ asset('js/tenant-website-faqs.js') }}?v=1"></script>
 @endsection

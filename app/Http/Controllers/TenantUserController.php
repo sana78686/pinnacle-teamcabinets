@@ -11,6 +11,7 @@ use App\Models\State;
 use App\Mail\UserAccountVerificationMail;
 use App\Mail\UserAccountActivationMail;
 use App\Mail\UserAccountDeactivationMail;
+use App\Mail\UserRegisteredByAdminMail;
 use Illuminate\Support\Facades\Mail;
 
 use Illuminate\Http\Request;
@@ -28,9 +29,11 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use App\Imports\UserImport;
 use App\Exports\UserExport;
 use App\Models\UserColumnPreference;
+use App\Models\PointFactorDefault;
 use App\Models\UsersCatalogDoorPointFactor;
 use App\Models\UsersCatalogVisibility;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
 
@@ -73,7 +76,6 @@ class TenantUserController extends Controller
 
         $data['User'] = $query->paginate(10);
 
-        session()->flash('info', "Please add user's Point Factor immediately after the Approval. Otherwise it will affect the Commission Report.You can only change the user type of the user until user is not approved.");
         return view('tenants.users.index',compact('user'), $data, [
             // we will display a list of user data on the index page
             'users' => User::all(),
@@ -111,7 +113,17 @@ class TenantUserController extends Controller
         $data['states'] = State::where('country_id', '233')->pluck('name', 'name')->all();
         $data['cities'] = City::where('country_id', '233')->pluck('name', 'name')->all();
         $data['counties'] = County::pluck('name', 'name')->all();
-        // dd($data['door_colors']);
+        $data['point_factor_defaults'] = PointFactorDefault::query()
+            ->pluck('point_factor_percentage', 'user_type')
+            ->map(fn ($v) => (string) $v)
+            ->all();
+        $data['has_point_factor_defaults'] = count($data['point_factor_defaults']) > 0;
+        $data['has_product_catalogs'] = $data['product_catalogs']->isNotEmpty();
+        $data['has_door_styles'] = $data['door_colors']->isNotEmpty();
+        $data['door_factor_setup_incomplete'] = ! $data['has_point_factor_defaults']
+            || ! $data['has_product_catalogs']
+            || ! $data['has_door_styles'];
+
         return view('tenants.users.create', $data);
     }
 
@@ -141,15 +153,20 @@ class TenantUserController extends Controller
                 'email'        => 'required|email|unique:users,email',
                 'country_id'   => 'required',
                 'state_id'     => 'required',
+                'password'     => 'nullable|string|min:8',
                 // 'city_id'    => 'required',
             ]);
+
+            $plainPassword = $request->filled('password')
+                ? (string) $request->password
+                : Str::password(12);
 
             Log::info('Validated Data', $validatedData);
             // dd($validatedData, $validatedData['name']);
             $user = User::create([
                 'name' => $validatedData['name'],
                 'email' => $validatedData['email'],
-                'password' => Hash::make($request['password']),
+                'password' => Hash::make($plainPassword),
                 'username' => $validatedData['username'],
                 'phone' => $validatedData['phone'],
                 'country_id' => $validatedData['country_id'],
@@ -179,6 +196,14 @@ class TenantUserController extends Controller
             $user->assignRole($role->name);
 
             Log::info('Role Assigned');
+
+            if ($request->status === 'approved') {
+                $user->update([
+                    'is_verified_by_admin' => true,
+                    'is_verified' => true,
+                ]);
+            }
+
             // DB::beginTransaction();
             try {
                 // Ensure catalog_visibility exists
@@ -213,8 +238,12 @@ class TenantUserController extends Controller
                     }
                 }
 
-                // DB::commit(); // Commit if successful
-                return redirect()->route('tenant_user_index')->with('success', 'User created successfully');
+                $this->sendUserRegisteredByAdminEmail($user, $plainPassword);
+
+                return redirect()->route('tenant_user_index')->with(
+                    'success',
+                    'User created successfully. Login details were emailed to '.$user->email.'.'
+                );
             } catch (\Exception $e) {
                 // DB::rollBack(); // Rollback on failure
 
@@ -510,6 +539,31 @@ public function updateStatus(Request $request, $id)
     ]);
 }
 
+    protected function sendUserRegisteredByAdminEmail(User $user, string $plainPassword): void
+    {
+        try {
+            Mail::to($user->email)->send(new UserRegisteredByAdminMail($user, $plainPassword));
+
+            TenantNotificationService::notifyUser(
+                $user,
+                'Your account is ready',
+                'An email with your login link and credentials was sent to '.$user->email.'.',
+                route('tenant_login'),
+                'success'
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to send admin-created user welcome email', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'message' => $e->getMessage(),
+            ]);
+            session()->flash(
+                'error',
+                'User was created but the welcome email could not be sent. Share login details manually. ('.$e->getMessage().')'
+            );
+        }
+    }
+
     public function roleAutoComplete(Request $request)
 
     {
@@ -724,7 +778,6 @@ public function updateStatus(Request $request, $id)
         $user = User::where('parent_id', $auth->id)->get();
         $data['users'] = User::where('parent_id', $auth->id)->latest()->paginate(5);
         // dd($data['users']);
-        session()->flash('info', "Please add user's Point Factor immediately after the Approval. Otherwise it will affect the Commission Report.You can only change the user type of the user until user is not approved.");
         return view('tenants.representative_modals.users.index', $data,);
     }
     public function childRoleAutoComplete(Request $request)

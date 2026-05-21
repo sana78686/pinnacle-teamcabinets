@@ -85,13 +85,9 @@
                         <input class="tc-input tc-input--plain" type="text" name="phone" id="phone" placeholder="Phone" value="{{ old('phone') }}">
                     </div>
 
-                    @if(env('GOOGLE_RECAPTCHA_KEY'))
                     <div class="tc-field tc-field--full">
-                        <label>Verification</label>
-                        <div class="g-recaptcha" data-sitekey="{{ env('GOOGLE_RECAPTCHA_KEY') }}"></div>
-                        @error('g-recaptcha-response')<p class="tc-field-hint" style="color:#991b1b;">{{ $message }}</p>@enderror
+                        @include('partials.cloudflare-turnstile')
                     </div>
-                    @endif
                 </div>
 
                 <button type="submit" class="tc-btn" style="margin-top:1rem;">Register</button>
@@ -104,8 +100,3 @@
 </x-tenant-auth-shell>
 @endsection
 
-@push('head')
-@if(env('GOOGLE_RECAPTCHA_KEY'))
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
-@endif
-@endpush

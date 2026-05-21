@@ -55,6 +55,7 @@
 @endsection
 
 @section('content')
+    @include('partials.tenant-users-door-factor-note')
     <div class="p-2 mt-0 card-header no-border">
         @include('partial.message')
         <a href="{{ route('tenant_user_create') }}" class="text-white btn btn-info btn-sm" data-toggle="tooltip"

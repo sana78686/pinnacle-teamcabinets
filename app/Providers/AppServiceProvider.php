@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\TenantFrontendThemeService;
+use App\View\Composers\TenantFrontendThemeComposer;
 use App\View\Composers\TenantPanelComposer;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(TenantFrontendThemeService::class);
     }
 
     /**
@@ -37,6 +39,11 @@ class AppServiceProvider extends ServiceProvider
             'layouts.tenant.partials.tenant-logo',
             'layouts.tenant.partials.*',
         ], TenantPanelComposer::class);
+
+        View::composer([
+            'themes.*',
+            'frontend.superusers.*',
+        ], TenantFrontendThemeComposer::class);
 
         if (! config('app.debug')) {
             \Illuminate\Support\Facades\DB::disableQueryLog();

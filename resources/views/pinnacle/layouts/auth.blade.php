@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{{ asset('css/pinnacle-theme.css') }}?v=11">
     {{-- Powered by {{ config('pinnacle.powered_by', 'apimstec') }} (not shown in UI) --}}
     @stack('head')
+    @include('partials.cloudflare-turnstile-scripts')
 </head>
 <body class="pn-body">
     @php $pinnacle = config('pinnacle'); @endphp

@@ -8,18 +8,14 @@
 @section('style')
 @endsection
 
-@section('breadcrumb-title')
-    <h2>Contact Us<span>Setting</span></h2>
-@endsection
-
 @section('breadcrumb-items')
-<li class="breadcrumb-item active">Setting</li>
-    <li class="breadcrumb-item">Contact</li>
-    <li class="breadcrumb-item active">Us</li>
-
+    <li class="breadcrumb-item">Settings</li>
+    <li class="breadcrumb-item"><a href="{{ route('tenant_website_designing') }}">Website Designing</a></li>
+    <li class="breadcrumb-item active">Contact Us</li>
 @endsection
 
 @section('setting_content')
+@include('layouts.tenant.partials.website-designing-nav')
 
     <div class="row g-3 tc-settings-form-row">
 

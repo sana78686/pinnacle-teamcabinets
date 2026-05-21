@@ -105,6 +105,7 @@ class TenantResourceController extends Controller
                     'tenant_id' => $tenant->id,
                     'company_name' => $request->company_name,
                     'name' => $request->name,
+                    'username' => $validatedData['username'],
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
                     'status' => 'active',

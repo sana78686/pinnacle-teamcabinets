@@ -65,6 +65,8 @@
                         @enderror
                     </div>
 
+                    @include('partials.cloudflare-turnstile')
+
                     <div class="pt-2 mt-4 text-center text-lg-start">
                         <button type="submit" class="btn btn-secondary btn-lg"
                             style="padding-left: 2.5rem; padding-right: 2.5rem;background-color:#00214f">Login</button>

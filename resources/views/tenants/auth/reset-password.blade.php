@@ -39,6 +39,7 @@
                 <input class="tc-input" type="password" name="password_confirmation" id="password_confirmation" placeholder="Confirm password" required autocomplete="new-password">
             </div>
         </div>
+        @include('partials.cloudflare-turnstile')
         <button type="submit" class="tc-btn">Update password</button>
     </form>
 

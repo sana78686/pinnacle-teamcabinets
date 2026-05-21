@@ -71,6 +71,7 @@
         }
     </style>
     @yield('styles')
+    @include('partials.cloudflare-turnstile-scripts')
 </head>
 
 <body class="font-sans antialiased">

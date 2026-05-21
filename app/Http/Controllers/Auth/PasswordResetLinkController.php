@@ -10,6 +10,7 @@ use Illuminate\View\View;
 
 class PasswordResetLinkController extends Controller
 {
+    use \App\Http\Controllers\Concerns\ValidatesTurnstile;
     /**
      * Display the password reset link request view.
      */
@@ -25,7 +26,7 @@ class PasswordResetLinkController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $this->validateWithTurnstile($request, [
             'email' => ['required', 'email'],
         ]);
 

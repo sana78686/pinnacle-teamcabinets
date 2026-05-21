@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{{ dynamic_url('css/tenant-forms.css') }}?v=8">
     <link rel="stylesheet" href="{{ dynamic_url('css/tenant-tooltips.css') }}?v=1">
     @stack('head')
+    @include('partials.cloudflare-turnstile-scripts')
 </head>
 <body class="tc-auth-body">
     <main class="tc-auth-main">

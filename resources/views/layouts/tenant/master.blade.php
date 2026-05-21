@@ -56,13 +56,31 @@
             <!-- Right sidebar Start-->
             @include('layouts.tenant.chat_sidebar')
             <!-- Right sidebar Ends-->
-            <div class="page-body tc-form-page">
+            <div class="page-body tc-form-page p-0">
+                @auth
+                    @include('layouts.tenant.partials.trial-marquee')
+                @endauth
                 <div class="container-fluid">
-                    @hasSection('breadcrumb-title')
-                        <div class="page-header tc-page-header-row pb-0">
+                    @php
+                        $tcShowPageHeader = View::hasSection('breadcrumb-title')
+                            || View::hasSection('breadcrumb-items')
+                            || ! empty($tcFrontendUrl ?? null);
+                    @endphp
+                    @if ($tcShowPageHeader)
+                        <div class="page-header tc-page-header-row pb-0 pt-1">
                             <div class="row align-items-center">
                                 <div class="col-lg-6 main-header">
-                                    @yield('breadcrumb-title')
+                                    <div class="tc-page-header-heading">
+                                        @hasSection('breadcrumb-title')
+                                            @yield('breadcrumb-title')
+                                        @endif
+                                        @if (! empty($tcFrontendUrl))
+                                            @hasSection('breadcrumb-title')
+                                                <span class="tc-page-header-sep" aria-hidden="true">—</span>
+                                            @endif
+                                            @include('layouts.tenant.partials.storefront-link-inline')
+                                        @endif
+                                    </div>
                                     @hasSection('breadcrumb-subtitle')
                                         <h6 class="mb-0 txt-muted">@yield('breadcrumb-subtitle')</h6>
                                     @endif

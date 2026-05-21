@@ -7,14 +7,17 @@
 
 @section('breadcrumb-items')
     <li class="breadcrumb-item">Settings</li>
+    <li class="breadcrumb-item"><a href="{{ route('tenant_website_designing') }}">Website Designing</a></li>
     <li class="breadcrumb-item active">CMS Pages</li>
 @endsection
 
 @section('setting_content')
+@include('layouts.tenant.partials.website-designing-nav')
+
     <div class="tc-settings-toolbar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <div>
             <h5 class="mb-1 tc-settings-form-title">Pages</h5>
-            <p class="mb-0 text-muted tc-field-hint">Manage public website pages and menu structure.</p>
+            <p class="mb-0 text-muted tc-field-hint">Manage public website pages. Reserved slugs: <code>about</code>, <code>blog</code> (use Website Designing → About Us / Blog).</p>
         </div>
         <a href="{{ route('pages.create') }}" class="btn btn-primary btn-sm">
             <i data-feather="plus" class="tc-btn-icon"></i> Create Page

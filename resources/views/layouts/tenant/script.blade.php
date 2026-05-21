@@ -65,6 +65,7 @@
 </script>
 <script src="{{ asset('js/tenant-notifications.js') }}?v=2"></script>
 <script src="{{ asset('js/tenant-select2.js') }}?v=1"></script>
+<script src="{{ asset('js/tenant-panel-search.js') }}?v=1"></script>
 <script>
     document.getElementById('tc-pn-menu-btn')?.addEventListener('click', function () {
         var menu = document.querySelector('.tc-tenant-nav .sm, .tc-compact-chrome .sm');

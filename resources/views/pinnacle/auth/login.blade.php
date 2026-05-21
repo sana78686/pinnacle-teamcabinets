@@ -49,6 +49,7 @@
                 </div>
             </div>
 
+            @include('partials.cloudflare-turnstile')
             <button type="submit" class="pn-btn pn-btn--primary pn-btn--block pn-btn--lg">Sign in</button>
         </form>
 

@@ -30,6 +30,7 @@
                     value="{{ old('otp') }}" required inputmode="numeric" autocomplete="one-time-code">
             </div>
         </div>
+        @include('partials.cloudflare-turnstile')
         <button type="submit" class="tc-btn">Verify</button>
     </form>
 
@@ -38,6 +39,7 @@
         <form method="POST" action="{{ route('otp.resend') }}" class="tc-inline-form">
             @csrf
             <input type="hidden" name="email" value="{{ $email ?? old('email') }}">
+            @include('partials.cloudflare-turnstile', ['class' => 'cf-turnstile-wrap--inline'])
             <button type="submit" class="tc-btn-link">Resend now</button>
         </form>
     </div>

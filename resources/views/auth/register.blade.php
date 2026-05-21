@@ -306,6 +306,10 @@
             </label>
         </div>
 
+        <div class="col-12 mb-3">
+            @include('partials.cloudflare-turnstile')
+        </div>
+
         {{-- Submit Button --}}
         <div class="col-12 col-md-4 mb-3">
             <button class="btn btn-dark btn-lg" type="submit">Create Account</button>

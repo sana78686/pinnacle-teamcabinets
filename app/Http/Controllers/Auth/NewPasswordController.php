@@ -14,6 +14,7 @@ use Illuminate\View\View;
 
 class NewPasswordController extends Controller
 {
+    use \App\Http\Controllers\Concerns\ValidatesTurnstile;
     /**
      * Display the password reset view.
      */
@@ -29,7 +30,7 @@ class NewPasswordController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $this->validateWithTurnstile($request, [
             'token' => ['required'],
             'email' => ['required', 'email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],

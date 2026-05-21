@@ -3,10 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\HomeSetting;
 use App\Models\ManageOtherPageContent;
+use App\Models\Page;
+use App\Models\PointFactorDefault;
 use App\Models\SiteSetting;
 use App\Services\ManageOtherPageContentService;
+use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 use App\Services\TaxValuesService;
+use App\Services\TenantFrontendThemeService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -26,7 +32,7 @@ class TenantSettingController extends Controller
      */
     public function create()
     {
-        return view('tenants.setting.manage_about_us');
+        return redirect()->route('tenant_storefront_about');
     }
 
 
@@ -36,6 +42,51 @@ class TenantSettingController extends Controller
         $settings = SiteSetting::first() ;
         return view('tenants.setting.manage_site_settings',compact('settings'));
     }
+
+    public function website_designing(TenantFrontendThemeService $themes)
+    {
+        $themesList = $themes->all();
+        $activeSlug = $themes->activeSlug();
+        $activeThemeLabel = $themesList[$activeSlug]['label'] ?? $themesList[$activeSlug]['name'] ?? ucfirst($activeSlug);
+
+        $home = HomeSetting::first();
+        $faqCount = count($home?->resolvedFaqs() ?? []);
+
+        return view('tenants.setting.manage_website_designing', [
+            'activeThemeLabel' => $activeThemeLabel,
+            'faqCount' => $faqCount,
+            'pageCount' => Page::count(),
+        ]);
+    }
+
+    public function manage_frontend_theme(TenantFrontendThemeService $themes)
+    {
+        $settings = SiteSetting::first();
+        $activeTheme = $themes->activeSlug();
+
+        return view('tenants.setting.manage_frontend_theme', [
+            'settings' => $settings,
+            'themes' => $themes->all(),
+            'activeTheme' => $activeTheme,
+            'defaultTheme' => $themes->defaultSlug(),
+        ]);
+    }
+
+    public function store_frontend_theme(Request $request, TenantFrontendThemeService $themes)
+    {
+        $allowed = implode(',', array_keys($themes->all()));
+
+        $request->validate([
+            'frontend_theme' => "required|string|in:{$allowed}",
+        ]);
+
+        $themes->setActive($request->input('frontend_theme'));
+
+        return redirect()
+            ->route('tenant_frontend_theme')
+            ->with('success', 'Storefront theme updated. Visitors will see the new design on your public site.');
+    }
+
    public function store_site_settings(Request $request)
 {
     // 🔹 Validate inputs
@@ -61,6 +112,9 @@ class TenantSettingController extends Controller
     $settings = SiteSetting::first() ?? new SiteSetting(['tenant_id' => tenant('id')]);
     if (! $settings->tenant_id && tenant('id')) {
         $settings->tenant_id = tenant('id');
+    }
+    if (empty($settings->frontend_theme)) {
+        $settings->frontend_theme = app(TenantFrontendThemeService::class)->defaultSlug();
     }
 
     // 🔹 Helper for file upload
@@ -135,7 +189,41 @@ class TenantSettingController extends Controller
 
     public function manage_commission()
     {
-        return view('tenants.setting.manage_commission');
+        $roles = Role::query()
+            ->whereNotIn('name', ['admin', 'customer', 'Admin', 'Customer'])
+            ->orderBy('name')
+            ->get();
+
+        $defaults = PointFactorDefault::query()
+            ->pluck('point_factor_percentage', 'user_type');
+
+        return view('tenants.setting.manage_commission', compact('roles', 'defaults'));
+    }
+
+    public function store_commission_defaults(Request $request)
+    {
+        $validated = $request->validate([
+            'defaults' => 'required|array',
+            'defaults.*' => 'nullable|numeric|min:0|max:1',
+        ]);
+
+        foreach ($validated['defaults'] as $userType => $pct) {
+            if ($pct === null || $pct === '') {
+                continue;
+            }
+
+            PointFactorDefault::query()->updateOrCreate(
+                [
+                    'tenant_id' => tenant('id'),
+                    'user_type' => $userType,
+                ],
+                ['point_factor_percentage' => $pct]
+            );
+        }
+
+        return redirect()
+            ->route('tenant_setting_commission')
+            ->with('success', 'Default door point factors saved.');
     }
 
 

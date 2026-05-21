@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Hash;
 
 class TenantController extends Controller
 {
+    use Concerns\ValidatesTurnstile;
     public function index(TenantSubscriptionService $subscriptions)
     {
         $data['tenants'] = Tenant::all()->map(function ($tenant) use ($subscriptions) {
@@ -134,9 +135,9 @@ public function getStates($country_id)
         Log::info('Starting tenant creation.');
 
         // ✅ Validate input
-        $validatedData = $request->validate([
+        $validatedData = $this->validateWithTurnstile($request, [
             'company_name' => 'required|string|max:255',
-            'username' => 'required|string|unique:tenants,username',
+            'username' => 'required|string|max:255|unique:tenants,username|unique:users,username',
             'name' => 'required|string|max:255|unique:tenants,name',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
@@ -199,10 +200,11 @@ while (
         // ✅ Create admin user in central DB
         $admin = User::create([
             'tenant_id' => $tenant->id,
-            'company_name' => $request->company_name,
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'company_name' => $validatedData['company_name'],
+            'name' => $validatedData['name'],
+            'username' => $validatedData['username'],
+            'email' => $validatedData['email'],
+            'password' => Hash::make($validatedData['password']),
             'phone' => $request->phone,
             'country_id' => $request->country_id,
             'state_id' => $request->state_id,

@@ -13,7 +13,7 @@
     @if(session('error'))
         <div class="tc-alert tc-alert--error">{{ session('error') }}</div>
     @endif
-    @if($errors->any())
+    @if($errors->any() && !$errors->has('cf-turnstile-response'))
         <div class="tc-alert tc-alert--error">{{ $errors->first() }}</div>
     @endif
 
@@ -39,6 +39,7 @@
                 {{ old('remember', Cookie::get('login') ? '1' : null) ? 'checked' : '' }}>
             <label for="remember">Remember me</label>
         </div>
+        @include('partials.cloudflare-turnstile')
         <button type="submit" class="tc-btn">Login</button>
     </form>
 

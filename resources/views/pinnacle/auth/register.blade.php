@@ -127,6 +127,7 @@
                     </label>
                 </div>
 
+                @include('partials.cloudflare-turnstile')
                 <button type="submit" class="pn-btn pn-btn--primary pn-btn--block" id="submit-btn">Create account</button>
             </form>
 

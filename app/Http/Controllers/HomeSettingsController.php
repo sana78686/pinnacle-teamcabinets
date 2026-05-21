@@ -10,8 +10,12 @@ class HomeSettingsController extends Controller
 
      public function index()
     {
-        $settings = HomeSetting::first() ;
-        return view('tenants.setting.home_page_settings',compact('settings'));
+        $settings = HomeSetting::first();
+        $faqs = ($settings && $settings->faqs !== null)
+            ? $settings->faqs
+            : config('tenant_hazel_home.faqs', []);
+
+        return view('tenants.setting.home_page_settings', compact('settings', 'faqs'));
     }
    public function home_setting_store(Request $request)
 {
@@ -30,6 +34,10 @@ class HomeSettingsController extends Controller
         'card_two_description' => 'nullable|string|max:500',
         'card_three_title' => 'nullable|string|max:255',
         'card_three_description' => 'nullable|string|max:500',
+        'faq_question' => 'nullable|array',
+        'faq_question.*' => 'nullable|string|max:500',
+        'faq_answer' => 'nullable|array',
+        'faq_answer.*' => 'nullable|string|max:5000',
     ]);
 
     // 🔹 Fetch or create settings
@@ -67,10 +75,31 @@ class HomeSettingsController extends Controller
     $settings->card_two_description = $request->card_two_description;
     $settings->card_three_title = $request->card_three_title;
     $settings->card_three_description = $request->card_three_description;
+    $settings->faqs = $this->normalizeFaqs(
+        $request->input('faq_question', []),
+        $request->input('faq_answer', [])
+    );
     // 🔹 Save all
     $settings->save();
 
     return redirect()->back()->with('success', '✅ Home page settings updated successfully!');
 }
+
+    /** @return array<int, array{q: string, a: string}> */
+    protected function normalizeFaqs(array $questions, array $answers): array
+    {
+        $faqs = [];
+        $count = max(count($questions), count($answers));
+
+        for ($i = 0; $i < $count; $i++) {
+            $q = trim((string) ($questions[$i] ?? ''));
+            $a = trim((string) ($answers[$i] ?? ''));
+            if ($q !== '' && $a !== '') {
+                $faqs[] = ['q' => $q, 'a' => $a];
+            }
+        }
+
+        return $faqs;
+    }
 
 }

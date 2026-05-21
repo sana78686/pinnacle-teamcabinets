@@ -5,7 +5,9 @@
         'tenant_setting_commission' => 'trending-up',
         'tenant_quickbooks_index' => 'book-open',
         'tenant_role_index' => 'shield',
-        'tenant_home_setting_index' => 'layout',
+        'tenant_website_designing' => 'monitor',
+        'tenant_home_setting_index' => 'home',
+        'tenant_frontend_theme' => 'layout',
         'pages.create' => 'file-text',
         'tenant_setting_manage_document' => 'book-open',
         'tenant_setting_manage_documentation_list' => 'list',
@@ -29,16 +31,6 @@
 @endphp
 <aside class="tc-settings-sidebar">
     <h3 class="tc-settings-sidebar-title">Settings</h3>
-    <p class="tc-settings-sidebar-desc">Choose a section to configure your dealer panel.</p>
-    @if (!empty($tcFrontendUrl))
-        <p class="tc-settings-sidebar-website">
-            <a href="{{ $tcFrontendUrl }}" target="_blank" rel="noopener noreferrer"
-                class="tc-settings-sidebar-website-link" title="Open public website in a new tab">
-                <i data-feather="external-link" class="tc-settings-sidebar-website-icon" aria-hidden="true"></i>
-                <span class="tc-settings-sidebar-website-label">{{ parse_url($tcFrontendUrl, PHP_URL_HOST) }}</span>
-            </a>
-        </p>
-    @endif
     <nav class="tc-settings-nav" aria-label="Settings sections">
         @foreach (config('tenant_settings_menu.sections', []) as $section)
             @php

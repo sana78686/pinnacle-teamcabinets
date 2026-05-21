@@ -8,18 +8,14 @@
 @section('style')
 @endsection
 
-@section('breadcrumb-title')
-    <h2>About Us<span> Setting</span></h2>
-@endsection
-
 @section('breadcrumb-items')
-<li class="breadcrumb-item active">Setting</li>
-    <li class="breadcrumb-item">About</li>
-    <li class="breadcrumb-item active">Us</li>
-
+    <li class="breadcrumb-item">Settings</li>
+    <li class="breadcrumb-item"><a href="{{ route('tenant_website_designing') }}">Website Designing</a></li>
+    <li class="breadcrumb-item active">About Us</li>
 @endsection
 
 @section('setting_content')
+@include('layouts.tenant.partials.website-designing-nav')
 
 <div class="p-2 mt-0 card-header no-border">
     {{-- <h5>Best Selling Product</h5> --}}

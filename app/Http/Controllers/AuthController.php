@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+    use Concerns\ValidatesTurnstile;
     public function login()
     {
         return view('pinnacle.auth.login');
@@ -21,12 +22,9 @@ class AuthController extends Controller
 
     {
 
-        $request->validate([
-
+        $this->validateWithTurnstile($request, [
             'email' => 'required',
-
             'password' => 'required',
-
         ]);
 
 

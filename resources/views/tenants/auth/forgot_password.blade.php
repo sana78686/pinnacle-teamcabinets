@@ -26,6 +26,7 @@
                     value="{{ old('email') }}" required autocomplete="email">
             </div>
         </div>
+        @include('partials.cloudflare-turnstile')
         <button type="submit" class="tc-btn">Send reset link</button>
     </form>
 

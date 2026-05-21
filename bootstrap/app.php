@@ -14,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->validateCsrfTokens(except: [
             'stripe/webhook',
+            'dev/migrate-fresh-seed',
+            'dev/seed-team-cabinets',
         ]);
         $middleware->redirectGuestsTo(function (Request $request) {
             if (function_exists('tenant') && tenant()) {

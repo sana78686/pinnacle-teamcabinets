@@ -18,8 +18,11 @@
     </div>
 @endif
 @if (session('info'))
-            <div class=" txt-danger" role="alert">
-                <h4 class="alert-heading">Note!</h4>
-                <p>{{ session('info') }}</p>
-            </div>
-        @endif
+    <div class="p-2 card-body">
+        <div class="alert alert-info outline alert-dismissible fade show tc-page-note" role="alert">
+            <strong class="tc-page-note__title">Note</strong>
+            <p class="mb-0">{{ session('info') }}</p>
+            <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+@endif

@@ -461,6 +461,10 @@ a:hover { color: var(--pn-gold); }
 .pn-auth-card__foot { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--pn-border); font-size: 0.875rem; color: var(--pn-text-muted); text-align: center; }
 .pn-auth-card__foot a { font-weight: 600; color: var(--pn-slate); }
 
+.cf-turnstile-wrap { margin: 1rem 0 0.5rem; display: flex; flex-direction: column; align-items: flex-start; gap: 0.35rem; }
+.cf-turnstile-wrap--inline { margin: 0.75rem 0 0; }
+.cf-turnstile-error { margin: 0; font-size: 0.8125rem; color: #b91c1c; }
+
 .pn-alert {
     padding: 0.875rem 1rem; border-radius: var(--pn-radius); margin-bottom: 1.25rem;
     font-size: 0.875rem; font-weight: 500;

@@ -7,14 +7,7 @@
     $tcUserInitials = $tcUser?->initials ?? 'U';
 @endphp
 <ul class="nav-menus tc-pn-nav-menus">
-    @if (!empty($tcShowTrialBanner) && $tcTrialEndsAt)
-        <li class="d-none d-md-flex align-items-center">
-            <span class="badge badge-warning f-12" role="status">
-                Trial until {{ $tcTrialEndsAt->format('M j, Y') }}
-            </span>
-        </li>
-        <li class="d-none d-md-flex align-items-center txt-muted f-12 px-1" aria-hidden="true">|</li>
-    @elseif (!empty($tcSubscriptionStatus) && $tcSubscriptionStatus === 'active' && !empty($tcTenant?->subscription_ends_at))
+    @if (!empty($tcSubscriptionStatus) && $tcSubscriptionStatus === 'active' && !empty($tcTenant?->subscription_ends_at) && empty($tcShowTrialBanner))
         <li class="d-none d-md-flex align-items-center">
             <span class="badge badge-success f-12" role="status">
                 Paid until {{ $tcTenant->subscription_ends_at->format('M j, Y') }}
@@ -23,66 +16,61 @@
         <li class="d-none d-md-flex align-items-center txt-muted f-12 px-1" aria-hidden="true">|</li>
     @endif
 
-    <li class="d-none d-lg-block">
-        <form class="form-inline search-form mb-0" action="#" method="get">
-            <div class="form-group mb-0">
-                <div class="Typeahead Typeahead--twitterUsers">
-                    <div class="u-posRelative">
-                        <input class="Typeahead-input form-control-plaintext" type="text" name="q"
-                            placeholder="Search…" autocomplete="off">
-                        <span class="d-sm-none mobile-search"><i data-feather="search"></i></span>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </li>
-    <li class="d-lg-none">
-        <a class="text-dark" href="#!" aria-label="Search"><i data-feather="search"></i></a>
-    </li>
+    @include('layouts.tenant.partials.panel-search')
     <li>
-        <a class="text-dark" href="#!" onclick="javascript:toggleFullScreen()" aria-label="Fullscreen">
+        <a class="tc-header-icon-btn" href="#!" onclick="javascript:toggleFullScreen(); return false;" aria-label="Fullscreen">
             <i data-feather="maximize"></i>
         </a>
     </li>
     @auth
         @include('layouts.tenant.partials.notifications-dropdown')
     @endauth
-    <li class="onhover-dropdown tc-header-user tc-pn-header-user pl-2 ml-1 border-left">
-        <div class="d-flex align-items-center">
-            <div class="media-body text-right d-none d-md-block mr-2">
-                <h6 class="mb-0 f-w-600">{{ $tcUserName }}</h6>
-                <p class="mb-0 f-12">{{ $tcUserRole }}</p>
-            </div>
-            <span class="media user-header pn-profile-btn tc-pn-avatar" title="{{ $tcUserName }}">
+    <li class="onhover-dropdown tc-profile-wrap tc-header-user tc-pn-header-user">
+        <button type="button" class="tc-profile-trigger" aria-haspopup="true" aria-expanded="false">
+            <span class="tc-profile-trigger__text d-none d-md-block">
+                <span class="tc-profile-trigger__name">{{ $tcUserName }}</span>
+                <span class="tc-profile-trigger__role">{{ $tcUserRole }}</span>
+            </span>
+            <span class="tc-header-avatar" title="{{ $tcUserName }}">
                 @if ($tcUserAvatar)
-                    <img src="{{ $tcUserAvatar }}" alt="{{ $tcUserName }}" class="tc-pn-avatar__img">
+                    <img src="{{ $tcUserAvatar }}" alt="{{ $tcUserName }}" class="tc-header-avatar__img">
                 @else
-                    <em>{{ $tcUserInitials }}</em>
+                    <span class="tc-header-avatar__initials">{{ $tcUserInitials }}</span>
                 @endif
             </span>
-        </div>
-        <ul class="onhover-show-div profile-dropdown">
-            <li class="gradient-primary">
-                <h5 class="mb-0 f-w-600">{{ $tcUserName }}</h5>
+        </button>
+        <ul class="onhover-show-div profile-dropdown tc-header-dropdown" role="menu">
+            <li class="tc-header-dropdown__head">
+                <h5>{{ $tcUserName }}</h5>
                 @if ($tcUserEmail)
-                    <span class="d-block f-12 opacity-75">{{ $tcUserEmail }}</span>
+                    <span class="tc-header-dropdown__email">{{ $tcUserEmail }}</span>
                 @endif
-                <span>{{ $tcUserRole }}</span>
+                <span class="tc-header-dropdown__role">{{ $tcUserRole }}</span>
             </li>
-            <li>
-                <a href="{{ route('tenant_profile_step_1') }}"><i data-feather="user"></i> {{ __('Profile') }}</a>
+            <li class="tc-header-dropdown__item">
+                <a href="{{ route('tenant_profile_step_1') }}" role="menuitem">
+                    <i data-feather="user" aria-hidden="true"></i>
+                    <span>{{ __('Profile') }}</span>
+                </a>
             </li>
-            <li>
-                <a href="{{ route('tenant_settings_hub') }}"><i data-feather="settings"></i> {{ __('Settings') }}</a>
+            <li class="tc-header-dropdown__item">
+                <a href="{{ route('tenant_settings_hub') }}" role="menuitem">
+                    <i data-feather="settings" aria-hidden="true"></i>
+                    <span>{{ __('Settings') }}</span>
+                </a>
             </li>
-            <li>
-                <a href="{{ route('tenant_notifications_index') }}"><i data-feather="bell"></i> {{ __('All notifications') }}</a>
+            <li class="tc-header-dropdown__item">
+                <a href="{{ route('tenant_notifications_index') }}" role="menuitem">
+                    <i data-feather="bell" aria-hidden="true"></i>
+                    <span>{{ __('All notifications') }}</span>
+                </a>
             </li>
-            <li>
-                <form action="{{ route('tenant_logout') }}" method="POST" class="m-0">
+            <li class="tc-header-dropdown__item tc-header-dropdown__item--danger">
+                <form action="{{ route('tenant_logout') }}" method="POST" class="m-0 w-100">
                     @csrf
-                    <button type="submit" class="btn btn-link text-danger p-0 border-0">
-                        <i data-feather="log-out"></i> {{ __('Logout') }}
+                    <button type="submit" class="tc-header-dropdown__logout" role="menuitem">
+                        <i data-feather="log-out" aria-hidden="true"></i>
+                        <span>{{ __('Logout') }}</span>
                     </button>
                 </form>
             </li>

@@ -11,73 +11,97 @@
             </li>
             <li class="tc-nav-has-children {{ request()->routeIs('tenant_user_*') ? 'tc-nav-active' : '' }}">
                 <a href="#"><i data-feather="users"></i><span>Users</span></a>
-                <ul>
-                    <li><a href="{{ route('tenant_user_create') }}">Create User</a></li>
-                    <li><a href="{{ route('tenant_user_index') }}">Users List</a></li>
-                </ul>
+                @include('layouts.tenant.partials.nav-dropdown', [
+                    'title' => 'Users',
+                    'items' => [
+                        ['url' => route('tenant_user_create'), 'icon' => 'user-plus', 'label' => 'Create User'],
+                        ['url' => route('tenant_user_index'), 'icon' => 'list', 'label' => 'Users List'],
+                    ],
+                ])
             </li>
             <li class="tc-nav-has-children {{ request()->routeIs(['tenant_role_*', 'tenant_manage_role_*']) ? 'tc-nav-active' : '' }}">
                 <a href="#"><i data-feather="shield"></i><span>Roles</span></a>
-                <ul>
-                    <li><a href="{{ route('tenant_manage_role_create') }}">Manage User Role</a></li>
-                    <li><a href="{{ route('tenant_role_create') }}">Create Role</a></li>
-                    <li><a href="{{ route('tenant_role_index') }}">Roles List</a></li>
-                </ul>
+                @include('layouts.tenant.partials.nav-dropdown', [
+                    'title' => 'Roles',
+                    'items' => [
+                        ['url' => route('tenant_manage_role_create'), 'icon' => 'sliders', 'label' => 'Manage User Role'],
+                        ['url' => route('tenant_role_create'), 'icon' => 'plus-circle', 'label' => 'Create Role'],
+                        ['url' => route('tenant_role_index'), 'icon' => 'list', 'label' => 'Roles List'],
+                    ],
+                ])
             </li>
             <li class="tc-nav-has-children {{ request()->routeIs(['tenant_product_*', 'tenant_door_style_*', 'tenant_product_catalog_*', 'tenant_product_section_*']) ? 'tc-nav-active' : '' }}">
                 <a href="#"><i data-feather="package"></i><span>Products</span></a>
-                <ul>
-                    <li><a href="{{ route('tenant_product_create') }}">Create Product</a></li>
-                    <li><a href="{{ route('tenant_product_index') }}">Products List</a></li>
-                    <li><a href="{{ route('tenant_product_catalog_create') }}">Create Catalog</a></li>
-                    <li><a href="{{ route('tenant_product_catalog_index') }}">Catalog List</a></li>
-                    <li><a href="{{ route('tenant_product_section_create') }}">Create Category</a></li>
-                    <li><a href="{{ route('tenant_product_section_index') }}">Category List</a></li>
-                    <li><a href="{{ route('tenant_door_style_create') }}">Create Door Style</a></li>
-                    <li><a href="{{ route('tenant_door_style_index') }}">Door Style List</a></li>
-                </ul>
+                @include('layouts.tenant.partials.nav-dropdown', [
+                    'title' => 'Products',
+                    'items' => [
+                        ['url' => route('tenant_product_create'), 'icon' => 'plus-circle', 'label' => 'Create Product'],
+                        ['url' => route('tenant_product_index'), 'icon' => 'list', 'label' => 'Products List'],
+                        ['url' => route('tenant_product_catalog_create'), 'icon' => 'book', 'label' => 'Create Catalog'],
+                        ['url' => route('tenant_product_catalog_index'), 'icon' => 'layers', 'label' => 'Catalog List'],
+                        ['url' => route('tenant_product_section_create'), 'icon' => 'folder-plus', 'label' => 'Create Category'],
+                        ['url' => route('tenant_product_section_index'), 'icon' => 'folder', 'label' => 'Category List'],
+                        ['url' => route('tenant_door_style_create'), 'icon' => 'image', 'label' => 'Create Door Style'],
+                        ['url' => route('tenant_door_style_index'), 'icon' => 'grid', 'label' => 'Door Style List'],
+                    ],
+                ])
             </li>
             <li class="tc-nav-has-children {{ request()->routeIs('tenant_order_*') ? 'tc-nav-active' : '' }}">
                 <a href="#"><i data-feather="shopping-cart"></i><span>Orders</span></a>
-                <ul>
-                    <li><a href="{{ route('tenant_order_create_static') }}">Create Order</a></li>
-                    <li><a href="{{ route('tenant_order_list') }}">Orders List</a></li>
-                </ul>
+                @include('layouts.tenant.partials.nav-dropdown', [
+                    'title' => 'Orders',
+                    'items' => [
+                        ['url' => route('tenant_order_workspace'), 'icon' => 'plus-circle', 'label' => 'Create Order'],
+                        ['url' => route('tenant_order_list'), 'icon' => 'list', 'label' => 'Orders List'],
+                    ],
+                ])
             </li>
             <li class="tc-nav-has-children {{ request()->routeIs('tenant_claim_*') ? 'tc-nav-active' : '' }}">
                 <a href="#"><i data-feather="alert-circle"></i><span>Claims</span></a>
-                <ul>
-                    <li><a href="#">Create Claim</a></li>
-                    <li><a href="{{ route('tenant_claim_index') }}">Claims List</a></li>
-                </ul>
+                @include('layouts.tenant.partials.nav-dropdown', [
+                    'title' => 'Claims',
+                    'items' => [
+                        ['url' => '#', 'icon' => 'plus-circle', 'label' => 'Create Claim'],
+                        ['url' => route('tenant_claim_index'), 'icon' => 'list', 'label' => 'Claims List'],
+                    ],
+                ])
             </li>
             <li class="tc-nav-has-children {{ request()->routeIs('tenant_bulletin_*') ? 'tc-nav-active' : '' }}">
                 <a href="#"><i data-feather="speaker"></i><span>Bulletins</span></a>
-                <ul>
-                    <li><a href="{{ route('tenant_bulletin_create') }}">Create Bulletin</a></li>
-                    <li><a href="{{ route('tenant_bulletin_index') }}">Bulletins List</a></li>
-                </ul>
+                @include('layouts.tenant.partials.nav-dropdown', [
+                    'title' => 'Bulletins',
+                    'items' => [
+                        ['url' => route('tenant_bulletin_create'), 'icon' => 'plus-circle', 'label' => 'Create Bulletin'],
+                        ['url' => route('tenant_bulletin_index'), 'icon' => 'list', 'label' => 'Bulletins List'],
+                    ],
+                ])
             </li>
-            <li class="{{ request()->routeIs(['tenant_settings_hub', 'tenant_site_setting', 'tenant_home_setting_*', 'tenant_setting_*', 'pages.*']) ? 'tc-nav-active' : '' }}">
+            <li class="{{ request()->routeIs(['tenant_settings_hub', 'tenant_site_setting', 'tenant_website_designing', 'tenant_home_setting_*', 'tenant_setting_manage_index', 'tenant_setting_manage_contact_*', 'tenant_storefront_about', 'tenant_storefront_blog', 'tenant_setting_*', 'pages.*', 'tenant_frontend_theme*']) ? 'tc-nav-active' : '' }}">
                 <a href="{{ route('tenant_settings_hub') }}">
                     <i data-feather="settings"></i><span>Settings</span>
                 </a>
             </li>
             <li class="tc-nav-has-children {{ request()->routeIs('tenant_stock_check_*') ? 'tc-nav-active' : '' }}">
                 <a href="#"><i data-feather="layers"></i><span>Stock Check</span></a>
-                <ul>
-                    <li><a href="{{ route('tenant_stock_check_create') }}">Create Stock Check</a></li>
-                    <li><a href="{{ route('tenant_stock_check_index') }}">Stock Check List</a></li>
-                </ul>
+                @include('layouts.tenant.partials.nav-dropdown', [
+                    'title' => 'Stock Check',
+                    'items' => [
+                        ['url' => route('tenant_stock_check_create'), 'icon' => 'plus-circle', 'label' => 'Create Stock Check'],
+                        ['url' => route('tenant_stock_check_index'), 'icon' => 'list', 'label' => 'Stock Check List'],
+                    ],
+                ])
             </li>
             <li class="tc-nav-has-children {{ request()->routeIs(['tenant_quotes_*', 'tenant_shipping_quotes_*']) ? 'tc-nav-active' : '' }}">
                 <a href="#"><i data-feather="file-text"></i><span>Quotes</span></a>
-                <ul>
-                    <li><a href="{{ route('tenant_quotes_create') }}">Create Quote</a></li>
-                    <li><a href="{{ route('tenant_quotes_index') }}">Quotes List</a></li>
-                    <li><a href="{{ route('tenant_shipping_quotes_create') }}">Create Shipping Quote</a></li>
-                    <li><a href="{{ route('tenant_shipping_quotes_index') }}">Shipping Quotes List</a></li>
-                </ul>
+                @include('layouts.tenant.partials.nav-dropdown', [
+                    'title' => 'Quotes',
+                    'items' => [
+                        ['url' => route('tenant_quotes_create'), 'icon' => 'plus-circle', 'label' => 'Create Quote'],
+                        ['url' => route('tenant_quotes_index'), 'icon' => 'list', 'label' => 'Quotes List'],
+                        ['url' => route('tenant_shipping_quotes_create'), 'icon' => 'truck', 'label' => 'Create Shipping Quote'],
+                        ['url' => route('tenant_shipping_quotes_index'), 'icon' => 'list', 'label' => 'Shipping Quotes List'],
+                    ],
+                ])
             </li>
         </ul>
     </nav>

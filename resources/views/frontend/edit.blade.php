@@ -7,11 +7,14 @@
 
 @section('breadcrumb-items')
     <li class="breadcrumb-item">Settings</li>
+    <li class="breadcrumb-item"><a href="{{ route('tenant_website_designing') }}">Website Designing</a></li>
     <li class="breadcrumb-item"><a href="{{ route('pages.index') }}">CMS Pages</a></li>
     <li class="breadcrumb-item active">Edit</li>
 @endsection
 
 @section('setting_content')
+@include('layouts.tenant.partials.website-designing-nav')
+
     <div class="tc-settings-toolbar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <div>
             <h5 class="mb-1 tc-settings-form-title">Edit Page</h5>

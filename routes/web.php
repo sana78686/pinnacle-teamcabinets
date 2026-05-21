@@ -23,6 +23,27 @@ use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Pinnacle\ContactController as PinnacleContactController;
 use App\Http\Controllers\Pinnacle\MarketingController;
 
+Route::get('/dev/migrate-fresh-seed', \App\Http\Controllers\DevDatabaseSetupController::class)
+    ->name('dev.migrate_fresh_seed');
+
+Route::get('/dev/seed-team-cabinets', function (\Illuminate\Http\Request $request) {
+    app(\App\Http\Controllers\DevDatabaseSetupController::class)->authorizeRequest($request);
+
+    $tenantId = config('team_cabinets_tenant.tenant_id', 'team-cabinets');
+    $tenant = \App\Models\Tenant::query()->find($tenantId);
+    if (! $tenant) {
+        return response('Tenant not found: '.$tenantId, 404);
+    }
+
+    \Illuminate\Support\Facades\Artisan::call('tenants:seed', [
+        '--tenants' => [$tenantId],
+        '--class' => 'TeamCabinetsTenantDataSeeder',
+        '--force' => true,
+    ]);
+
+    return response('<pre>'.e(\Illuminate\Support\Facades\Artisan::output()).'</pre>', 200)
+        ->header('Content-Type', 'text/html; charset=UTF-8');
+})->name('dev.seed_team_cabinets');
 
 foreach (config('tenancy.central_domains') as $domain) {
     Route::domain($domain)->group(function () {
@@ -51,6 +72,9 @@ foreach (config('tenancy.central_domains') as $domain) {
             Artisan::call('route:clear');
             return "Cache is cleared";
         })->name('clear.cache');
+
+        Route::get('/dev/migrate-fresh-seed', \App\Http\Controllers\DevDatabaseSetupController::class)
+            ->name('dev.migrate_fresh_seed');
 
         /*** Authentiction Route */
         Route::get('/', [MarketingController::class, 'home'])->name('/');

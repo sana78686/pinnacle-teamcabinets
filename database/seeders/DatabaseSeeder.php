@@ -11,6 +11,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // After migrate:fresh, central migrations include tenant tables (2026_05_*).
+        // Legacy tenant-folder migrations: php artisan migrate:tenant-schema
+        // Do not use tenants:migrate-fresh on a shared database — it wipes all tables.
+
         // CI email templates (OTP, orders, registration, etc.)
         $this->call(ManageEmailsContentSeeder::class);
 

@@ -332,3 +332,22 @@
 .pn-field .tc-password-toggle + .pn-input {
     padding-right: 2.75rem;
 }
+
+/* Cloudflare Turnstile */
+.cf-turnstile-wrap {
+    margin: 1rem 0 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+}
+
+.cf-turnstile-wrap--inline {
+    margin: 0.75rem 0 0;
+}
+
+.cf-turnstile-error {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: #b91c1c;
+}

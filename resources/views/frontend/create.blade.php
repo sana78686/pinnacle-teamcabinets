@@ -7,11 +7,14 @@
 
 @section('breadcrumb-items')
     <li class="breadcrumb-item">Settings</li>
+    <li class="breadcrumb-item"><a href="{{ route('tenant_website_designing') }}">Website Designing</a></li>
     <li class="breadcrumb-item"><a href="{{ route('pages.index') }}">CMS Pages</a></li>
     <li class="breadcrumb-item active">Create</li>
 @endsection
 
 @section('setting_content')
+@include('layouts.tenant.partials.website-designing-nav')
+
     <div class="tc-settings-toolbar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <div>
             <h5 class="mb-1 tc-settings-form-title">Create New Page</h5>
@@ -58,11 +61,14 @@
         <div class="mb-3 tc-field">
             <label for="parent_id" class="form-label">Parent Page (Optional)</label>
             <select name="parent_id" id="parent_id" class="form-select">
-                <option value="">-- None --</option>
+                <option value="">-- None (top-level page) --</option>
                 @foreach ($parents as $id => $title)
-                    <option value="{{ $id }}" {{ old('parent_id') == $id ? 'selected' : '' }}>{{ $title }}</option>
+                    <option value="{{ $id }}" {{ (string) old('parent_id', $defaultParentId ?? '') === (string) $id ? 'selected' : '' }}>{{ $title }}</option>
                 @endforeach
             </select>
+            @if (!empty($defaultParentId) && isset($blogPage) && (int) $defaultParentId === (int) $blogPage->id)
+                <p class="tc-field-hint mb-0 mt-1">This post will appear on your public <strong>Blog</strong> page.</p>
+            @endif
         </div>
 
         <div class="mb-3 tc-field">

@@ -25,4 +25,5 @@
 <script src="{{ asset('js/password-toggle.js') }}?v=1"></script>
 <!-- login js-->
 @yield('script')
+@include('partials.cloudflare-turnstile-scripts')
 <!-- Plugin used-->

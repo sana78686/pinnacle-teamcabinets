@@ -61,6 +61,14 @@
                             <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
+                            @if ($door_factor_setup_incomplete ?? false)
+                                @include('partials.tenant-door-factor-setup-empty', [
+                                    'context' => 'modal',
+                                    'missingDefaults' => ! ($has_point_factor_defaults ?? false),
+                                    'missingCatalogs' => ! ($has_product_catalogs ?? false),
+                                    'missingDoorStyles' => ! ($has_door_styles ?? false),
+                                ])
+                            @endif
                             <div class="container">
                                 <div class="row">
                                     <!-- Left column: Checkboxes -->
@@ -103,8 +111,10 @@
                                                             </strong>
                                                             <input type="text"
                                                                 name="door_factors[{{ $product_catalog->id }}][{{ $door_color->id }}]"
-                                                                placeholder="Door point Factor For {{ $door_color->product_label }}"
-                                                                class="form-control">
+                                                                placeholder="Door point factor for {{ $door_color->product_label }}"
+                                                                class="form-control door-factor-input"
+                                                                inputmode="decimal"
+                                                                autocomplete="off">
                                                         </div>
                                                     </div>
                                                 @endforeach
@@ -124,12 +134,32 @@
                 </a> --}}
                 <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4 ">
                     <div class="form-group">
-                        <strong>Product Catalog:<span class="txt-danger">*</span></strong>
+                        <strong>Product Catalog &amp; door factors:<span class="txt-danger">*</span></strong>
 
                         <a href="#" class="pull-right btn-import form-control b-r-0" data-toggle="tooltip"
-                            data-toggle="tooltip" title="Click Me: To Set Point Factors" autofocus>
-                            + Set Door Point Factors For Product Catalogs
+                            title="Open catalog visibility and door point factor settings">
+                            + Set door point factors for product catalogs
                         </a>
+
+                        <div id="door-factor-empty" class="tc-door-factor-prompt mt-2">
+                            @if ($door_factor_setup_incomplete ?? false)
+                                @include('partials.tenant-door-factor-setup-empty', [
+                                    'missingDefaults' => ! ($has_point_factor_defaults ?? false),
+                                    'missingCatalogs' => ! ($has_product_catalogs ?? false),
+                                    'missingDoorStyles' => ! ($has_door_styles ?? false),
+                                ])
+                            @else
+                                <p class="mb-2 text-muted small">No door point factors set yet. Select catalogs and enter a factor for each door style.</p>
+                                <button type="button" class="btn btn-sm btn-primary btn-import">Add door point factors</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary d-none" id="apply-default-factors">
+                                    Apply default for role
+                                </button>
+                            @endif
+                        </div>
+                        <div id="door-factor-set" class="tc-door-factor-prompt tc-door-factor-prompt--set mt-2 d-none">
+                            <span class="badge bg-success"><span id="door-factor-count">0</span> door factor(s) set</span>
+                            <button type="button" class="btn btn-sm btn-link btn-import p-0 ms-2">Edit door factors</button>
+                        </div>
                     </div>
                 </div>
                 <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4 ">
@@ -176,9 +206,10 @@
                 <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
                     <div class="form-group">
                         <strong>Password &nbsp;</strong>
-                        <input type="password" name="password" placeholder="Create a strong password"
+                        <input type="password" name="password" placeholder="Leave blank to auto-generate and email"
                             class="form-control" data-toggle="tooltip"
-                            title="Enter a secure password with at least 8 characters">
+                            title="Optional. If empty, a secure password is generated and emailed to the user with their login link.">
+                        <p class="mb-0 mt-1 text-muted small">If left blank, a password is generated and sent in the welcome email.</p>
                     </div>
                 </div>
 
@@ -553,30 +584,147 @@
                     $('#importModal').modal('show');
                 }
             });
+            @if ($door_factor_setup_incomplete ?? false)
+            var importModalEl = document.getElementById('importModal');
+            if (importModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                bootstrap.Modal.getOrCreateInstance(importModalEl).show();
+            }
+            @endif
         });
     </script>
 
     <script>
-        // Show/Hide door factors for selected catalogs
-        document.addEventListener("DOMContentLoaded", function() {
-            const catalogCheckboxes = document.querySelectorAll(".product-catalog-checkbox");
+        (function () {
+            const pointFactorDefaults = @json($point_factor_defaults ?? []);
+            const emptyState = document.getElementById('door-factor-empty');
+            const setState = document.getElementById('door-factor-set');
+            const countEl = document.getElementById('door-factor-count');
+            const applyDefaultBtn = document.getElementById('apply-default-factors');
 
-            catalogCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener("change", function() {
-                    const catalogId = this.dataset.catalogId;
-                    const doorColorsContainer = document.querySelector(
-                        `.door-colors-container[data-catalog-id='${catalogId}']`);
+            function doorFactorInputs() {
+                return document.querySelectorAll('.door-factor-input');
+            }
 
-                    if (this.checked) {
-                        doorColorsContainer.style.display = "block";
-                    } else {
-                        doorColorsContainer.style.display = "none";
-                        // Clear input values when hiding
-                        doorColorsContainer.querySelectorAll("input").forEach(input => input.value =
-                            "");
+            function filledCount() {
+                let n = 0;
+                doorFactorInputs().forEach(function (input) {
+                    if (String(input.value || '').trim() !== '') {
+                        n++;
                     }
                 });
+                return n;
+            }
+
+            function updateDoorFactorStatus() {
+                const count = filledCount();
+                if (!emptyState || !setState) {
+                    return;
+                }
+                if (count > 0) {
+                    emptyState.classList.add('d-none');
+                    setState.classList.remove('d-none');
+                    if (countEl) {
+                        countEl.textContent = String(count);
+                    }
+                } else {
+                    emptyState.classList.remove('d-none');
+                    setState.classList.add('d-none');
+                }
+            }
+
+            function roleDefaultKey(roleName) {
+                if (!roleName) {
+                    return null;
+                }
+                const base = String(roleName).toLowerCase().trim().replace(/\s+/g, '-');
+                if (pointFactorDefaults[base] !== undefined) {
+                    return base;
+                }
+                const plural = base.endsWith('s') ? base : base + 's';
+                if (pointFactorDefaults[plural] !== undefined) {
+                    return plural;
+                }
+                const singular = base.replace(/s$/, '');
+                if (pointFactorDefaults[singular] !== undefined) {
+                    return singular;
+                }
+                return null;
+            }
+
+            function applyDefaultFactors() {
+                const $role = $('#search_role');
+                const selected = $role.select2('data')[0];
+                const key = roleDefaultKey(selected ? selected.text : '');
+                if (!key) {
+                    return;
+                }
+                const value = pointFactorDefaults[key];
+                doorFactorInputs().forEach(function (input) {
+                    if (String(input.value || '').trim() === '') {
+                        input.value = value;
+                    }
+                });
+                updateDoorFactorStatus();
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('.product-catalog-checkbox').forEach(function (checkbox) {
+                    checkbox.addEventListener('change', function () {
+                        const catalogId = this.dataset.catalogId;
+                        const doorColorsContainer = document.querySelector(
+                            '.door-colors-container[data-catalog-id="' + catalogId + '"]'
+                        );
+                        if (!doorColorsContainer) {
+                            return;
+                        }
+                        if (this.checked) {
+                            doorColorsContainer.style.display = 'block';
+                        } else {
+                            doorColorsContainer.style.display = 'none';
+                            doorColorsContainer.querySelectorAll('.door-factor-input').forEach(function (input) {
+                                input.value = '';
+                            });
+                        }
+                        updateDoorFactorStatus();
+                    });
+                });
+
+                doorFactorInputs().forEach(function (input) {
+                    input.addEventListener('input', updateDoorFactorStatus);
+                });
+
+                $('#search_role').on('select2:select', function (e) {
+                    const key = roleDefaultKey(e.params.data.text);
+                    if (applyDefaultBtn) {
+                        if (key) {
+                            applyDefaultBtn.classList.remove('d-none');
+                        } else {
+                            applyDefaultBtn.classList.add('d-none');
+                        }
+                    }
+                }).on('select2:clear', function () {
+                    if (applyDefaultBtn) {
+                        applyDefaultBtn.classList.add('d-none');
+                    }
+                });
+
+                if (applyDefaultBtn) {
+                    applyDefaultBtn.addEventListener('click', function () {
+                        const checked = document.querySelectorAll('.product-catalog-checkbox:checked');
+                        if (checked.length === 0) {
+                            var el = document.getElementById('importModal');
+                            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                                bootstrap.Modal.getOrCreateInstance(el).show();
+                            }
+                            alert('Select at least one product catalog, then apply default door factors.');
+                            return;
+                        }
+                        applyDefaultFactors();
+                    });
+                }
+
+                updateDoorFactorStatus();
             });
-        });
+        })();
     </script>
 @endsection

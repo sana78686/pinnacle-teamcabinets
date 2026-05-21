@@ -183,6 +183,8 @@
                                     <label for="accept_terms" class="form-check-label">Accept our <a href="#">Terms and Conditions</a>.</label>
                                 </div>
                             
+                                @include('partials.cloudflare-turnstile')
+
                                 {{-- Submit --}}
                                 <div class="mt-4 d-flex align-items-center">
                                     <div class="ml-auto">

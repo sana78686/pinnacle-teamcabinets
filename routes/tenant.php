@@ -11,6 +11,7 @@ use App\Http\Controllers\TenantClaimController;
 use App\Http\Controllers\TenantCommissionReportController;
 use App\Http\Controllers\HomeSettingsController;
 use App\Http\Controllers\TenantController;
+use App\Http\Controllers\TenantCreateOrderController;
 use App\Http\Controllers\TenantOrderController;
 use App\Http\Controllers\TenantProfileController;
 use App\Http\Controllers\TenantRoleController;
@@ -120,11 +121,14 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
          Route::prefix('tenants')->middleware(['auth', 'tenant.auth', 'tenant.subscribed'])->group(function () {
 
 
+         Route::get('website-designing/about', [TenantPageController::class, 'editAbout'])->name('tenant_storefront_about');
+         Route::get('website-designing/blog', [TenantPageController::class, 'blogManage'])->name('tenant_storefront_blog');
          Route::resource('pages', TenantPageController::class);
 
 
 
          Route::get('/dashboard', [TenantController::class, 'tenant_dashboard'])->name('tenant_dashboard');
+         Route::get('/panel-search', \App\Http\Controllers\TenantPanelSearchController::class)->name('tenant_panel_search');
          Route::view('coming-soon', 'errors.coming-soon')->name('coming_soon');
 
          Route::get('/notifications', [TenantNotificationController::class, 'index'])->name('tenant_notifications_index');
@@ -235,6 +239,11 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
         /*** Orders Routes */
 
           Route::get('orders/index', [TenantOrderController::class, 'index'])->name('tenant_order_list');
+          Route::get('orders/workspace', [TenantCreateOrderController::class, 'catalog'])->name('tenant_order_workspace');
+          Route::get('orders/workspace/catalog/{catalog}/doors', [TenantCreateOrderController::class, 'doors'])->name('tenant_order_workspace_doors');
+          Route::get('orders/workspace/catalog/{catalog}/door/{door}', [TenantCreateOrderController::class, 'build'])->name('tenant_order_workspace_build');
+          Route::get('orders/workspace/catalog/{catalog}/door/{door}/search', [TenantCreateOrderController::class, 'searchProducts'])->name('tenant_order_workspace_search');
+          Route::post('orders/workspace/store', [TenantCreateOrderController::class, 'store'])->name('tenant_order_workspace_store');
           Route::get('orders/create', [TenantOrderController::class, 'create'])->name('tenant_order_create_static');
           Route::get('orders/create/1', [TenantOrderController::class, 'create_step_1'])->name('tenant_order_create');
           Route::get('orders/create/2/{id}', [TenantOrderController::class, 'create_step_2'])->name('tenant_order_create_step_2');
@@ -352,12 +361,16 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
               return redirect()->route('tenant_site_setting');
           })->name('tenant_settings_hub');
 
+          Route::get('setting/website-designing', [TenantSettingController::class, 'website_designing'])->name('tenant_website_designing');
+
           Route::get('setting/home-setting', [HomeSettingsController::class, 'index'])->name('tenant_home_setting_index');
           Route::post('setting/home-setting-store', [HomeSettingsController::class, 'home_setting_store'])->name('tenant_home_setting_srore');
           Route::get('setting/index', [TenantSettingController::class, 'index'])->name('tenant_setting_manage_index');
           Route::get('setting/create', [TenantSettingController::class, 'create'])->name('tenant_setting_manage_create');
           Route::get('setting/manage_home', [TenantSettingController::class, 'manage_site_settings'])->name('tenant_site_setting');
           Route::post('setting/manage_home_store', [TenantSettingController::class, 'store_site_settings'])->name('tenant_site_settings_store');
+          Route::get('setting/frontend-theme', [TenantSettingController::class, 'manage_frontend_theme'])->name('tenant_frontend_theme');
+          Route::post('setting/frontend-theme', [TenantSettingController::class, 'store_frontend_theme'])->name('tenant_frontend_theme_store');
           Route::get('setting/manage_document', [TenantSettingController::class, 'manage_document'])->name('tenant_setting_manage_document');
           Route::get('setting/manage_stmp', [TenantSettingController::class, 'manage_stmp'])->name('tenant_setting_manage_stmp');
           Route::post('setting/manage_stmp_store', [TenantSettingController::class, 'manage_stmp_store'])->name('tenant_setting_manage_stmp_create');
@@ -367,9 +380,12 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
           Route::get('setting/manage_tax_fees', [TenantSettingController::class, 'manage_tax_fees'])->name('tenant_setting_tax_fees');
           Route::post('setting/manage_tax_fees_store', [TenantSettingController::class, 'store_tax_fees'])->name('tenant_setting_tax_fees_store');
           Route::get('setting/manage_commission', [TenantSettingController::class, 'manage_commission'])->name('tenant_setting_commission');
+          Route::post('setting/manage_commission', [TenantSettingController::class, 'store_commission_defaults'])->name('tenant_setting_commission_store');
           Route::get('setting/manage_credit', [TenantSettingController::class, 'manage_credit'])->name('tenant_setting_manage_credit');
           Route::get('setting/manage_fuel', [TenantSettingController::class, 'manage_fuel'])->name('tenant_setting_manage_fuel');
           Route::get('quickbooks', [TenantQuickBooksController::class, 'index'])->name('tenant_quickbooks_index');
+          Route::post('quickbooks/credentials', [TenantQuickBooksController::class, 'storeCredentials'])->name('tenant_quickbooks_store_credentials');
+          Route::post('quickbooks/test', [TenantQuickBooksController::class, 'testConnection'])->name('tenant_quickbooks_test');
           Route::get('quickbooks/connect', [TenantQuickBooksController::class, 'connect'])->name('tenant_quickbooks_connect');
           Route::get('quickbooks/callback', [TenantQuickBooksController::class, 'callback'])->name('tenant_quickbooks_callback');
           Route::post('quickbooks/disconnect', [TenantQuickBooksController::class, 'disconnect'])->name('tenant_quickbooks_disconnect');

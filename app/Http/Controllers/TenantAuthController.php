@@ -31,6 +31,7 @@ use Illuminate\Support\Facades\Cookie;
 
 class TenantAuthController extends Controller
 {
+    use Concerns\ValidatesTurnstile;
 
     public function index()
     {
@@ -55,7 +56,7 @@ class TenantAuthController extends Controller
      */
 public function postLogin(Request $request)
 {
-    $request->validate([
+    $this->validateWithTurnstile($request, [
         'login' => 'required|string',
         'password' => 'required',
     ]);
@@ -114,9 +115,9 @@ public function postLogin(Request $request)
         if (!$role) {
             return back()->with('error', 'Selected role does not exist.');
         }
-        $request->validate([
+        $this->validateWithTurnstile($request, [
             'role' => 'required',
-            'username' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users,username',
             'full_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8',
@@ -257,7 +258,7 @@ public function postLogin(Request $request)
 
     public function sendForgotUsername(Request $request)
     {
-        $request->validate(['email' => 'required|email']);
+        $this->validateWithTurnstile($request, ['email' => 'required|email']);
 
         $user = User::where('email', $request->email)->first();
         if ($user && $user->username) {
@@ -278,8 +279,8 @@ public function postLogin(Request $request)
     {
 
         // dd('hello');
-        $request->validate([
-            'otp'   => 'required|digits:6',
+        $this->validateWithTurnstile($request, [
+            'otp' => 'required|digits:6',
         ]);
 
 
@@ -317,8 +318,10 @@ public function postLogin(Request $request)
     // Resend OTP
     public function resendOtp(Request $request)
     {
+        $this->validateWithTurnstile($request, [
+            'email' => 'required|email',
+        ]);
 
-        // $request->validate(['email' => 'required|email']);
         $email = $request->input('email') ?? session('otp_email');
         $user = User::where('email', $email)->first();
 
@@ -363,7 +366,7 @@ public function postLogin(Request $request)
     public function sendTenantResetLink(Request $request)
     {
 
-        $request->validate(['email' => 'required|email']);
+        $this->validateWithTurnstile($request, ['email' => 'required|email']);
 
         $user = \App\Models\User::where('email', $request->email)->first();
 
@@ -423,7 +426,7 @@ public function postLogin(Request $request)
     // }
     public function resetPassword(Request $request)
     {
-        $request->validate([
+        $this->validateWithTurnstile($request, [
             'email' => 'required|email',
             'password' => 'required|confirmed|min:8',
         ]);

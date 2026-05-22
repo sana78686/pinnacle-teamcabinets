@@ -68,15 +68,26 @@ if (! function_exists('central_mail')) {
 }
 
 if (! function_exists('tenant_static_asset_is_local')) {
+    /** Only true on dev machines — do not use APP_ENV (live .env often has APP_ENV=local). */
     function tenant_static_asset_is_local(): bool
     {
-        if (app()->environment('local')) {
-            return true;
-        }
-
         $host = Request::getHost();
 
         return str_contains($host, 'localhost') || str_contains($host, '127.0.0.1');
+    }
+}
+
+if (! function_exists('tenant_request_uses_public_asset_root')) {
+    function tenant_request_uses_public_asset_root(): bool
+    {
+        if (tenant_static_asset_is_local()) {
+            return false;
+        }
+
+        $host = Request::getHost();
+        $centralHosts = config('tenancy.central_domains', []);
+
+        return $host !== '' && ! in_array($host, $centralHosts, true);
     }
 }
 

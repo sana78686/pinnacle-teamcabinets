@@ -26,12 +26,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Tenant hosts boot Stancl tenancy; asset() can become /tenancy/assets/ (broken).
-        // Central Pinnacle (pinnacle.apimstec.com) never boots tenancy — asset() stays /assets/...
+        // Tenant hosts: docroot is project folder → files are under /public/ on disk.
+        // Do not set APP_URL to .../public — that only affects Pinnacle, not tenant subdomains.
         $host = request()->getHost();
         $centralHosts = config('tenancy.central_domains', []);
-        if ($host !== '' && ! in_array($host, $centralHosts, true)) {
+        $isTenantHost = $host !== '' && ! in_array($host, $centralHosts, true);
+        $isDevHost = str_contains($host, 'localhost') || str_contains($host, '127.0.0.1');
+
+        if ($isTenantHost) {
             config(['tenancy.filesystem.asset_helper_tenancy' => false]);
+
+            if (! $isDevHost) {
+                $tenantAssetRoot = rtrim(request()->getSchemeAndHttpHost(), '/').'/public';
+                config(['app.asset_url' => $tenantAssetRoot]);
+                app('url')->setAssetRoot($tenantAssetRoot);
+            }
         }
 
         Paginator::useBootstrapFive();

@@ -3,7 +3,7 @@
     $tcUserName = $tcUser?->name ?? 'User';
     $tcUserEmail = $tcUser?->email ?? '';
     $tcUserRole = $tcUser?->getRoleNames()->implode(', ') ?: 'User';
-    $tcUserAvatar = $tcUser?->logo ? tenant_asset($tcUser->logo) : null;
+    $tcUserAvatar = $tcUser?->logo ? asset($tcUser->logo) : null;
     $tcUserInitials = $tcUser?->initials ?? 'U';
 @endphp
 <ul class="nav-menus tc-pn-nav-menus">

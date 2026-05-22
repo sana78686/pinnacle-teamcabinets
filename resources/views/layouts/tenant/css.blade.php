@@ -1,29 +1,29 @@
 @php($tcLayout = $tcLayout ?? tenant_layout_flags())
 <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
 <!-- Font Awesome-->
-<link rel="stylesheet" type="text/css" href="{{tenant_asset('assets/main/css/fontawesome.css')}}">
+<link rel="stylesheet" type="text/css" href="{{tenant_panel_asset('assets/main/css/fontawesome.css')}}">
 <!-- ico-font-->
-<link rel="stylesheet" type="text/css" href="{{tenant_asset('assets/main/css/icofont.css')}}">
+<link rel="stylesheet" type="text/css" href="{{tenant_panel_asset('assets/main/css/icofont.css')}}">
 <!-- Themify icon-->
-<link rel="stylesheet" type="text/css" href="{{tenant_asset('assets/main/css/themify.css')}}">
+<link rel="stylesheet" type="text/css" href="{{tenant_panel_asset('assets/main/css/themify.css')}}">
 <!-- Feather icon-->
-<link rel="stylesheet" type="text/css" href="{{tenant_asset('assets/main/css/feather-icon.css')}}">
+<link rel="stylesheet" type="text/css" href="{{tenant_panel_asset('assets/main/css/feather-icon.css')}}">
 <!-- Plugins css start-->
 @yield('css')
-<link rel="stylesheet" type="text/css" href="{{tenant_asset('assets/main/css/vertical-menu.css')}}">
-<link rel="stylesheet" type="text/css" href="{{tenant_asset('assets/main/css/pe7-icon.css')}}">
+<link rel="stylesheet" type="text/css" href="{{tenant_panel_asset('assets/main/css/vertical-menu.css')}}">
+<link rel="stylesheet" type="text/css" href="{{tenant_panel_asset('assets/main/css/pe7-icon.css')}}">
 <!-- Plugins css Ends-->
 <!-- Bootstrap css-->
-<link rel="stylesheet" type="text/css" href="{{tenant_asset('assets/main/css/bootstrap.css')}}">
+<link rel="stylesheet" type="text/css" href="{{tenant_panel_asset('assets/main/css/bootstrap.css')}}">
 <!-- App css-->
-<link rel="stylesheet" type="text/css" href="{{tenant_asset('assets/main/css/style.css')}}">
-<link id="color" rel="stylesheet" href="{{tenant_asset('assets/main/css/color-6.css')}}" media="screen">
+<link rel="stylesheet" type="text/css" href="{{tenant_panel_asset('assets/main/css/style.css')}}">
+<link id="color" rel="stylesheet" href="{{tenant_panel_asset('assets/main/css/color-6.css')}}" media="screen">
 <!-- Responsive css-->
-<link rel="stylesheet" type="text/css" href="{{tenant_asset('assets/main/css/responsive.css')}}">
+<link rel="stylesheet" type="text/css" href="{{tenant_panel_asset('assets/main/css/responsive.css')}}">
 
 {{-- Others --}}
 
-<link rel="stylesheet" type="text/css" href="{{ tenant_asset('assets/main/css/sweetalert2.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ tenant_panel_asset('assets/main/css/sweetalert2.css') }}">
 
   <style>
   /* Compact UI text — form labels/inputs use tenant-forms.css instead */
@@ -43,8 +43,8 @@
   }
 </style>
 @if ($tcLayout['settings_extras'] ?? false)
-<link rel="stylesheet" href="{{ tenant_asset('css/tenant-tooltips.css') }}?v=1">
+<link rel="stylesheet" href="{{ tenant_panel_asset('css/tenant-tooltips.css') }}?v=1">
 @endif
-<link rel="stylesheet" href="{{ tenant_asset('css/tenant-forms.css') }}?v=8">
-<link rel="stylesheet" href="{{ tenant_asset('css/pinnacle-theme.css') }}?v=10">
-<link rel="stylesheet" href="{{ tenant_asset('css/tenant-panel.css') }}?v=37">
+<link rel="stylesheet" href="{{ tenant_panel_asset('css/tenant-forms.css') }}?v=8">
+<link rel="stylesheet" href="{{ tenant_panel_asset('css/pinnacle-theme.css') }}?v=10">
+<link rel="stylesheet" href="{{ tenant_panel_asset('css/tenant-panel.css') }}?v=37">

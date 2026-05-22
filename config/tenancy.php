@@ -113,7 +113,6 @@ return [
          * Each disk listed in the 'disks' array will be suffixed by the suffix_base, followed by the tenant_id.
          */
 
-'asset_helper_tenancy' => false,
         'suffix_base' => 'tenant',
         'disks' => [
             'local',

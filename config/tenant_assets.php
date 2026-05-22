@@ -6,8 +6,9 @@
  */
 return [
     /*
-    | Live servers whose web root is the project folder (not public/) need /public/ in asset URLs.
-    | null = auto (prefix on any host that is not localhost/127.0.0.1). true/false to force.
+    | Tenant Poco panel + storefront theme only (tenant_panel_asset).
+    | Live docroot = project folder → URLs must be https://host/public/css/... not /tenancy/assets/.
+    | null = auto (use /public/ on non-localhost). true/false to force. Auth/superuser use asset() only.
     */
     'use_public_prefix' => env('TENANT_ASSET_PUBLIC_PREFIX') === null
         ? null

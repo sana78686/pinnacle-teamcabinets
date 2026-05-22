@@ -67,9 +67,12 @@ if (! function_exists('central_mail')) {
     }
 }
 
-if (! function_exists('tenant_asset_needs_public_prefix')) {
-    /** Whether tenant static files are served under /public/ (project root as docroot on live). */
-    function tenant_asset_needs_public_prefix(): bool
+if (! function_exists('tenant_panel_asset_use_public_prefix')) {
+    /**
+     * Tenant Poco panel + storefront theme: static files live under /public/ on live
+     * when the web root is the project folder (not Laravel's public/ directory).
+     */
+    function tenant_panel_asset_use_public_prefix(): bool
     {
         $configured = config('tenant_assets.use_public_prefix');
         if ($configured !== null) {
@@ -82,25 +85,38 @@ if (! function_exists('tenant_asset_needs_public_prefix')) {
     }
 }
 
+if (! function_exists('tenant_panel_asset')) {
+    /**
+     * Shared static assets (Poco panel CSS/JS, storefront theme CSS).
+     * Builds /public/... directly — never uses asset() (Stancl maps that to /tenancy/assets/).
+     */
+    function tenant_panel_asset(string $path): string
+    {
+        $path = ltrim($path, '/');
+
+        if (! tenant_panel_asset_use_public_prefix()) {
+            return asset($path);
+        }
+
+        return rtrim(Request::getSchemeAndHttpHost(), '/').'/public/'.$path;
+    }
+}
+
 if (! function_exists('dynamic_url')) {
+    /** Legacy helper for central/super-admin layouts — plain asset paths, no /public/ prefix. */
     function dynamic_url($path)
     {
         $path = ltrim((string) $path, '/');
-        if ($path === '') {
-            return tenant_asset_needs_public_prefix() ? url('public') : url('/');
-        }
 
-        return tenant_asset_needs_public_prefix()
-            ? url('public/'.$path)
-            : url($path);
+        return $path === '' ? url('/') : asset($path);
     }
 }
 
 if (! function_exists('tenant_asset')) {
-    /** Tenant panel CSS/JS/images — uses /public/ prefix on live when docroot is not Laravel's public folder. */
+    /** @deprecated Use tenant_panel_asset() in panel/storefront layouts only. */
     function tenant_asset(string $path): string
     {
-        return dynamic_url($path);
+        return tenant_panel_asset($path);
     }
 }
 

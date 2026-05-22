@@ -7,7 +7,7 @@
     <div class="pn-container pn-header__inner">
         <a href="{{ route('tenant_dashboard') }}" class="pn-logo" title="{{ $tcTenantName }}">
             @if (!empty($tcLogoUrl))
-                <img src="{{ tenant_asset($tcLogoUrl) }}" alt="{{ $tcTenantName }}">
+                <img src="{{ asset($tcLogoUrl) }}" alt="{{ $tcTenantName }}">
             @else
                 <span class="tc-pn-header__brand-text">{{ $tcTenantName }}</span>
             @endif

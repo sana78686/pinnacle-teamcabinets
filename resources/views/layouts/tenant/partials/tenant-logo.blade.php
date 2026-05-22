@@ -4,6 +4,6 @@
 @endphp
 @if (!empty($logoUrl))
     <a href="{{ route('tenant_dashboard') }}" title="{{ $tenantName }}">
-        <img src="{{ tenant_asset($logoUrl) }}" alt="{{ $tenantName }}">
+        <img src="{{ asset($logoUrl) }}" alt="{{ $tenantName }}">
     </a>
 @endif

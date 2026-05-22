@@ -16,7 +16,7 @@
             <div class="people-list friend-list">
                <ul class="list">
                   <li class="clearfix">
-                     <img class="rounded-small user-image" src="{{tenant_asset('assets/images/user/1.jpg')}}" alt="">
+                     <img class="rounded-small user-image" src="{{tenant_panel_asset('assets/images/user/1.jpg')}}" alt="">
                      <div class="status-circle online"></div>
                      <div class="about">
                         <div class="name">Vincent Porter</div>
@@ -24,7 +24,7 @@
                      </div>
                   </li>
                   <li class="clearfix">
-                     <img class="rounded-small user-image" src="{{tenant_asset('assets/images/user/2.jpg')}}" alt="">
+                     <img class="rounded-small user-image" src="{{tenant_panel_asset('assets/images/user/2.jpg')}}" alt="">
                      <div class="status-circle away"></div>
                      <div class="about">
                         <div class="name">Ain Chavez</div>
@@ -32,7 +32,7 @@
                      </div>
                   </li>
                   <li class="clearfix">
-                     <img class="rounded-small user-image" src="{{tenant_asset('assets/images/user/8.jpg')}}" alt="">
+                     <img class="rounded-small user-image" src="{{tenant_panel_asset('assets/images/user/8.jpg')}}" alt="">
                      <div class="status-circle online"></div>
                      <div class="about">
                         <div class="name">Kori Thomas</div>
@@ -40,7 +40,7 @@
                      </div>
                   </li>
                   <li class="clearfix">
-                     <img class="rounded-small user-image" src="{{tenant_asset('assets/images/user/4.jpg')}}" alt="">
+                     <img class="rounded-small user-image" src="{{tenant_panel_asset('assets/images/user/4.jpg')}}" alt="">
                      <div class="status-circle online"></div>
                      <div class="about">
                         <div class="name">Erica Hughes</div>
@@ -48,7 +48,7 @@
                      </div>
                   </li>
                   <li class="clearfix">
-                     <img class="rounded-small user-image" src="{{tenant_asset('assets/images/user/5.jpg')}}" alt="">
+                     <img class="rounded-small user-image" src="{{tenant_panel_asset('assets/images/user/5.jpg')}}" alt="">
                      <div class="status-circle offline"></div>
                      <div class="about">
                         <div class="name">Ginger Johnston</div>
@@ -56,7 +56,7 @@
                      </div>
                   </li>
                   <li class="clearfix">
-                     <img class="rounded-small user-image" src="{{tenant_asset('assets/images/user/6.jpg')}}" alt="">
+                     <img class="rounded-small user-image" src="{{tenant_panel_asset('assets/images/user/6.jpg')}}" alt="">
                      <div class="status-circle away"></div>
                      <div class="about">
                         <div class="name">Prasanth Anand</div>
@@ -64,7 +64,7 @@
                      </div>
                   </li>
                   <li class="clearfix">
-                     <img class="rounded-small user-image" src="{{tenant_asset('assets/images/user/7.jpg')}}" alt="">
+                     <img class="rounded-small user-image" src="{{tenant_panel_asset('assets/images/user/7.jpg')}}" alt="">
                      <div class="status-circle online"></div>
                      <div class="about">
                         <div class="name">Hileri Jecno</div>

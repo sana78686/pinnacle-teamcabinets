@@ -175,14 +175,22 @@
                 text: item.message,
                 showConfirmButton: !!item.url,
                 confirmButtonText: item.url ? 'View' : undefined,
-                timer: item.url ? undefined : 6000,
-                timerProgressBar: !item.url,
+                timer: 6000,
+                timerProgressBar: true,
             }).then(function (result) {
                 if (result.isConfirmed && item.url) {
                     window.location.href = item.url;
                 }
             });
         }
+    }
+
+    function bootToastIds() {
+        var raw = window.TENANT_PANEL_TOAST_IDS;
+        if (!raw || !raw.length) {
+            return [];
+        }
+        return raw.map(String);
     }
 
     function handleNewItems(items) {
@@ -219,6 +227,19 @@
 
                 if (!isInitial && data.new && data.new.length) {
                     handleNewItems(data.new);
+                }
+
+                if (isInitial) {
+                    var bootIds = bootToastIds();
+                    if (bootIds.length) {
+                        var bootItems = (data.notifications || []).filter(function (n) {
+                            return bootIds.indexOf(String(n.id)) >= 0;
+                        });
+                        if (bootItems.length) {
+                            handleNewItems(bootItems);
+                        }
+                        window.TENANT_PANEL_TOAST_IDS = [];
+                    }
                 }
 
                 (data.notifications || []).forEach(function (n) {

@@ -28,19 +28,6 @@
 @endsection
 
 @section('content')
-@if(!empty($showPinnacleWelcome))
-    <div class="container-fluid mb-3">
-        <div class="alert alert-primary outline alert-dismissible fade show" role="alert">
-            <h5 class="alert-heading mb-2">{{ config('pinnacle.portal.dashboard_welcome_title') }}</h5>
-            <p class="mb-2">{{ config('pinnacle.portal.dashboard_welcome_body') }}</p>
-            <p class="mb-0 small text-muted">
-                Trial: {{ tenant('trial_ends_at') ? tenant('trial_ends_at')->format('M j, Y') : config('pinnacle.trial_days', 14).' days' }}
-                · Support: <a href="mailto:{{ config('pinnacle.support_email') }}">{{ config('pinnacle.support_email') }}</a>
-            </p>
-            <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    </div>
-@endif
 @include('tenants.partials.onboarding-checklist')
 <div class="container-fluid general-widget">
     <div class="row">

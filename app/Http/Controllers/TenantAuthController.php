@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TenantForgotUsernameMail;
 use App\Mail\TenantResetPasswordMail;
+use App\Services\TenantNotificationService;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Auth\Events\PasswordReset;
@@ -94,8 +95,10 @@ public function postLogin(Request $request)
             Cookie::queue(Cookie::forget('login'));
         }
 
+        $toastIds = TenantNotificationService::notifyOnLogin($user);
+
         return redirect()->route('tenant_dashboard')
-            ->with('success', 'You have successfully logged in.');
+            ->with('tenant_panel_toast_ids', $toastIds);
     }
 
     return redirect()->back()

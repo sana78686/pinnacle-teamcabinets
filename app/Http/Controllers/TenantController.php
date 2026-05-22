@@ -395,7 +395,6 @@ $distributorCount = $this->countUsersByRole('Distributor');
 $showroomCount = $this->countUsersByRole('Showroom');
 
 
-            $showPinnacleWelcome = ! \App\Models\SiteSetting::query()->exists();
             $onboarding = app(\App\Services\TenantOnboardingService::class);
             $onboardingSteps = $onboarding->steps();
             $onboardingProgress = $onboarding->completedCount().' / '.$onboarding->totalSteps();
@@ -407,7 +406,6 @@ $showroomCount = $this->countUsersByRole('Showroom');
                 'representativeCount',
                 'distributorCount',
                 'showroomCount',
-                'showPinnacleWelcome',
                 'onboardingSteps',
                 'onboardingProgress',
                 'dealerReady'

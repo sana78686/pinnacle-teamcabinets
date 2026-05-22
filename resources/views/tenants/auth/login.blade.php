@@ -5,7 +5,7 @@
 @section('content')
 <x-tenant-auth-shell title="Login">
     @if(request('success'))
-        <div class="tc-alert tc-alert--success">{{ config('pinnacle.portal.registration_success_message') }}</div>
+        <div class="tc-alert tc-alert--success">Your account was created. Sign in below — check the notification bell on your dashboard for setup steps.</div>
     @endif
     @if(session('success'))
         <div class="tc-alert tc-alert--success">{{ session('success') }}</div>

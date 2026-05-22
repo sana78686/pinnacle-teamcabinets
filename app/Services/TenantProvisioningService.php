@@ -25,6 +25,7 @@ class TenantProvisioningService
             app(ManageOtherPageContentService::class)->ensureDefaults();
             app(ManageEmailsContentService::class)->ensureDefaults();
             app(TaxValuesService::class)->ensureDefaults();
+            TenantNotificationService::notifyWelcomePanelIfNeeded();
         });
 
         if ($sendEmails) {

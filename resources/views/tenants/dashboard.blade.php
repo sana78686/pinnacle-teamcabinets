@@ -167,34 +167,33 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($recentOrders as $order)
-                            @php
-                                $customerType = $order->user?->getRoleNames()->first() ?? '—';
-                            @endphp
+                        @if(isset($recentOrders) && $recentOrders->count() > 0)
+                            @foreach ($recentOrders as $order)
                             <tr class="{{ tenant_admin_unviewed_row_class($order) }}">
                                 <td>
                                     <a href="{{ route('tenant_order_show', $order->id) }}">{{ $order->id }}</a>
                                 </td>
                                 <td>{{ $order->job_name }}</td>
                                 <td>{{ $order->user?->name ?? '—' }}</td>
-                                <td>{{ $customerType }}</td>
+                                <td>{{ $order->user?->getRoleNames()->first() ?? '—' }}</td>
                                 <td>{{ $order->user?->email ?? $order->user_email ?? '—' }}</td>
                                 <td>{{ $order->sub_total_weight ?? '0' }} lbs</td>
                                 <td>${{ number_format((float) ($order->grand_total_cost ?? 0), 2) }}</td>
                                 <td>{{ ucfirst($order->shipping_status ?? 'pending') }}</td>
-                                <td>{{ $order->created_at?->format('M j, Y g:i A') ?? '—' }}</td>
+                                <td>{{ $order->created_at ? $order->created_at->format('M j, Y g:i A') : '—' }}</td>
                                 <td>
                                     <a href="{{ route('tenant_order_show', $order->id) }}">View</a>
                                 </td>
                             </tr>
-                        @empty
+                            @endforeach
+                        @else
                             <tr>
                                 <td colspan="10" class="text-center text-muted py-4">
                                     No orders yet.
                                     <a href="{{ route('tenant_order_workspace') }}">Create an order</a>
                                 </td>
                             </tr>
-                        @endforelse
+                        @endif
                     </tbody>
                 </table>
             </div>

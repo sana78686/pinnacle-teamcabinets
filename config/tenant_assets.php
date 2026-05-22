@@ -5,6 +5,14 @@
  * Wildcards use Laravel routeIs() syntax.
  */
 return [
+    /*
+    | Live servers whose web root is the project folder (not public/) need /public/ in asset URLs.
+    | null = auto (prefix on any host that is not localhost/127.0.0.1). true/false to force.
+    */
+    'use_public_prefix' => env('TENANT_ASSET_PUBLIC_PREFIX') === null
+        ? null
+        : filter_var(env('TENANT_ASSET_PUBLIC_PREFIX'), FILTER_VALIDATE_BOOLEAN),
+
     'settings_route_patterns' => [
         'tenant_settings_hub',
         'tenant_site_setting',

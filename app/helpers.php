@@ -67,13 +67,40 @@ if (! function_exists('central_mail')) {
     }
 }
 
-if (!function_exists('dynamic_url')) {
+if (! function_exists('tenant_asset_needs_public_prefix')) {
+    /** Whether tenant static files are served under /public/ (project root as docroot on live). */
+    function tenant_asset_needs_public_prefix(): bool
+    {
+        $configured = config('tenant_assets.use_public_prefix');
+        if ($configured !== null) {
+            return (bool) $configured;
+        }
+
+        $host = Request::getHost();
+
+        return ! (str_contains($host, 'localhost') || str_contains($host, '127.0.0.1'));
+    }
+}
+
+if (! function_exists('dynamic_url')) {
     function dynamic_url($path)
     {
-        $host = Request::getHost();
-        $isLocal = str_contains($host, 'localhost') || str_contains($host, '127.0.0.1');
+        $path = ltrim((string) $path, '/');
+        if ($path === '') {
+            return tenant_asset_needs_public_prefix() ? url('public') : url('/');
+        }
 
-        return $isLocal ? url($path) : url('public/' . ltrim($path, '/'));
+        return tenant_asset_needs_public_prefix()
+            ? url('public/'.$path)
+            : url($path);
+    }
+}
+
+if (! function_exists('tenant_asset')) {
+    /** Tenant panel CSS/JS/images — uses /public/ prefix on live when docroot is not Laravel's public folder. */
+    function tenant_asset(string $path): string
+    {
+        return dynamic_url($path);
     }
 }
 

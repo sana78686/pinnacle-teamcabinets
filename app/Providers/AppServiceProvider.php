@@ -37,9 +37,9 @@ class AppServiceProvider extends ServiceProvider
             config(['tenancy.filesystem.asset_helper_tenancy' => false]);
 
             if (! $isDevHost) {
-                $tenantAssetRoot = rtrim(request()->getSchemeAndHttpHost(), '/').'/public';
-                config(['app.asset_url' => $tenantAssetRoot]);
-                app('url')->setAssetRoot($tenantAssetRoot);
+                config([
+                    'app.asset_url' => rtrim(request()->getSchemeAndHttpHost(), '/').'/public',
+                ]);
             }
         }
 

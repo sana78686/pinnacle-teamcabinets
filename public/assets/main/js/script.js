@@ -11,9 +11,11 @@
     })
 })(jQuery);
 
-$('.loader-wrapper').slideUp('slow', function() {
-    $(this).remove();
-});
+if (!window.__tcLoaderFastHide) {
+    $('.loader-wrapper').slideUp('slow', function() {
+        $(this).remove();
+    });
+}
 
 $(window).on('scroll', function() {
     if ($(this).scrollTop() > 600) {

@@ -199,8 +199,19 @@ class OrderWorkspaceService
             $attrs['liftgate_cost'] = $costs['liftgate_cost'];
             $attrs['unload_cost'] = $costs['unload_cost'];
             $attrs['pallets_cost'] = $costs['pallets_cost'];
+            $attrs['total_pallets'] = $costs['total_pallets'] ?? 1;
             $attrs['shipping_cost'] = $costs['shipping_cost'];
             $attrs['grand_total_cost'] = ($payload['totals']['grand_total_cost'] ?? 0) + ($costs['shipping_cost'] ?? 0);
+        }
+
+        if (in_array($modelClass, [\App\Models\Quote::class, \App\Models\ShippingQuote::class], true)) {
+            $attrs = array_merge($attrs, array_filter([
+                'quote_name' => $payload['quote_name'] ?? null,
+                'product_catalog_id' => $payload['product_catalog_id'] ?? null,
+                'door_color_id' => $payload['door_color_id'] ?? null,
+                'product_img_src' => $payload['product_img_src'] ?? null,
+                'product_img_name' => $payload['product_img_name'] ?? null,
+            ], fn ($v) => $v !== null && $v !== ''));
         }
 
         /** @var Model $record */
@@ -212,9 +223,63 @@ class OrderWorkspaceService
     /**
      * @param  class-string<Model>  $modelClass
      */
+    public function updateRecord(Model $record, array $payload): Model
+    {
+        $attrs = [
+            'job_name' => $payload['job_name'],
+            'rooms' => $payload['rooms'],
+            'assemble_cabinets_check' => $payload['assemble'],
+            'shipping_status' => $payload['shipping_status'],
+            'comment' => $payload['comment'],
+            'fuel_tax' => $payload['fuel_tax'],
+            'sub_total_cost' => $payload['totals']['sub_total_cost'],
+            'sub_total_weight' => $payload['totals']['sub_total_weight'],
+            'sub_total_assemble_cost' => (string) ($payload['totals']['sub_total_assemble_cost'] ?? 0),
+            'grand_total_cost' => $payload['totals']['grand_total_cost'],
+        ];
+
+        if ($record instanceof \App\Models\Quote || $record instanceof \App\Models\ShippingQuote) {
+            $attrs = array_merge($attrs, array_filter([
+                'quote_name' => $payload['quote_name'] ?? null,
+                'product_catalog_id' => $payload['product_catalog_id'] ?? null,
+                'door_color_id' => $payload['door_color_id'] ?? null,
+                'product_img_src' => $payload['product_img_src'] ?? null,
+                'product_img_name' => $payload['product_img_name'] ?? null,
+            ], fn ($v) => $v !== null && $v !== ''));
+        }
+
+        $record->update($attrs);
+
+        return $record;
+    }
+
+    /**
+     * @param  class-string<Model>  $modelClass
+     */
+    /** Columns for admin list tables (excludes heavy JSON `rooms` / `comment`). */
+    public static function workspaceListColumns(): array
+    {
+        return [
+            'id',
+            'job_name',
+            'user_id',
+            'user_email',
+            'grand_total_cost',
+            'sub_total_weight',
+            'assemble_cabinets_check',
+            'shipping_status',
+            'created_at',
+            'updated_at',
+            'admin_viewed_at',
+        ];
+    }
+
     public function listQuery(string $modelClass, User $user): \Illuminate\Database\Eloquent\Builder
     {
-        $query = $modelClass::query()->with('user')->latest('id');
+        $query = $modelClass::query()
+            ->select(self::workspaceListColumns())
+            ->with(['user:id,name,email'])
+            ->latest('id');
 
         if (! $user->hasRole('Admin')) {
             $query->where('user_id', $user->id);

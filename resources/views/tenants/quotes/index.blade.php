@@ -20,12 +20,6 @@
 
 
 <div class="p-2 mt-0 card-header no-border">
-    {{-- <h5>Best Selling Stock Check</h5> --}}
-    <a href="{{ route('tenant_quotes_create') }}" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
-        title="Create a new Quotes in the system">
-        <i class="icofont icofont-plus"></i> Create Quotes
-    </a>
-
     <a   href="{{ route('tenant_deleted_quotes_list') }}" class="btn btn-success btn-sm" data-toggle="tooltip" title="Restore a previously deleted Quotes">
         <i class="icofont icofont-spinner-alt-3"></i> Restore Quotes
     </a>
@@ -51,6 +45,7 @@
         'records' => $records,
         'rowLabel' => 'Quote',
         'showRoute' => 'tenant_quotes_show',
+        'editRoute' => 'tenant_quotes_edit',
         'destroyRoute' => 'tenant_quotes_destroy',
     ])
 </div>

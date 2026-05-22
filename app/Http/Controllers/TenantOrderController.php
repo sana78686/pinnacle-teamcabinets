@@ -10,35 +10,56 @@ use App\Models\Product;
 use App\Models\ProductCatalog;
 use App\Models\ProductSection;
 use App\Models\TaxValues;
+use App\Services\AdminRecordViewService;
+use App\Services\QuoteWorkspaceService;
+use App\Services\TenantNavBadgeService;
+use App\Support\TenantListPaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
-
 
 class TenantOrderController extends Controller
 {
+    public function __construct(
+        protected QuoteWorkspaceService $recordWorkspace,
+    ) {}
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request, TenantNavBadgeService $navBadges)
     {
+        if (Auth::user()->hasRole('Admin')) {
+            $navBadges->markListSeen(Auth::user(), 'orders_list');
+        }
 
-        if(Auth::user()->hasRole('Admin'))
-        {
-            $workspace = app(\App\Services\OrderWorkspaceService::class);
-            $data['records'] = $workspace
-                ->listQuery(Order::class, Auth::user())
-                ->paginate(tenant_list_per_page())
-                ->withQueryString();
+        $perPage = TenantListPaginator::perPage($request);
+        $search = TenantListPaginator::search($request);
+        $workspace = app(\App\Services\OrderWorkspaceService::class);
+        $query = $workspace->listQuery(Order::class, Auth::user());
 
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('job_name', 'like', '%'.$search.'%')
+                    ->orWhereHas('user', function ($u) use ($search) {
+                        $u->where('name', 'like', '%'.$search.'%')
+                            ->orWhere('email', 'like', '%'.$search.'%');
+                    });
+            });
+        }
+
+        $data = [
+            'records' => $query->paginate($perPage)->withQueryString(),
+            'perPage' => $perPage,
+            'search' => $search,
+        ];
+
+        if (Auth::user()->hasRole('Admin')) {
             return view('tenants.orders.index', $data);
         }
-        else
-        {
-            return view('tenants.representative_modals.orders.index');
-        }
-        // return view('tenants.orders.index');
+
+        return view('tenants.representative_modals.orders.index', $data);
     }
 
     /**
@@ -247,9 +268,35 @@ $data['door_id'] = $door_id;
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $id, AdminRecordViewService $adminView): View
     {
-        //
+        $order = Order::query()->with('user')->findOrFail($id);
+
+        if (! $this->recordWorkspace->userMayAccess($order, Auth::user())) {
+            abort(403);
+        }
+
+        $adminView->markViewed($order, Auth::user());
+
+        $data = [
+            'record' => $order,
+            'recordLabel' => 'Order',
+            'nameRowLabel' => 'Job name',
+            'recordName' => $order->job_name ?? '—',
+            'catalogLabel' => $this->recordWorkspace->catalogLabel($order),
+            'doorLabel' => $order->product_img_name ?? '—',
+            'billName' => $this->recordWorkspace->billName($order),
+            'shipName' => $order->user_address ?? $this->recordWorkspace->shipName($order),
+            'rooms' => $order->rooms ?? [],
+            'listRoute' => 'tenant_order_list',
+            'editRoute' => null,
+        ];
+
+        $view = Auth::user()->hasRole('Admin')
+            ? 'tenants.orders.show'
+            : 'tenants.representative_modals.orders.show';
+
+        return view($view, $data);
     }
 
     /**

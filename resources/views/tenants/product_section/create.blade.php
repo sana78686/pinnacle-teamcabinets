@@ -1,4 +1,4 @@
-@extends('layouts.tenant.master')
+@extends('layouts.tenant.products-form')
 @section('title', 'Product Category Menu')
 
 @section('css')
@@ -14,16 +14,12 @@
 
 @endsection
 
-@section('breadcrumb-title')
-    <h2>Create<span>Product Category</span></h2>
+@section('products_title')
+    Create category
 @endsection
 
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">Product Category</li>
-    <li class="breadcrumb-item active">Create</li>
-@endsection
 
-@section('content')
+@section('products_content')
     @include('partial.flashMessage')
     <form action="{{ route('tenant_product_section_store') }}" method="POST">
         @csrf
@@ -52,7 +48,7 @@
 
 @endsection
 
-@section('script')
+@section('products_script')
 
     <script src="{{ route('/') }}/assets/main/js/select2/select2.full.min.js"></script>
     {{-- <script src="{{ route('/') }}/assets/main/js/select2/select2-custom.js"></script> --}}

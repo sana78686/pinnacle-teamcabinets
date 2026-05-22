@@ -6,9 +6,10 @@
     var pollUrl = window.TENANT_NOTIFICATIONS_POLL_URL;
     var readUrlTemplate = window.TENANT_NOTIFICATIONS_READ_URL || '';
     var readAllUrl = window.TENANT_NOTIFICATIONS_READ_ALL_URL || '';
-    var pollIntervalMs = window.TENANT_NOTIFICATIONS_POLL_MS || 45000;
-    var lastSince = localStorage.getItem('tc_notifications_since') || null;
+    var pollIntervalMs = window.TENANT_NOTIFICATIONS_POLL_MS || 15000;
+    var lastSince = null;
     var knownIds = new Set();
+    var pollInFlight = false;
 
     function csrfToken() {
         var meta = document.querySelector('meta[name="csrf-token"]');
@@ -30,12 +31,46 @@
         }
     }
 
+    function updateNavBadges(badges) {
+        if (!badges) return;
+
+        document.querySelectorAll('[data-nav-badge]').forEach(function (el) {
+            var key = el.getAttribute('data-nav-badge');
+            var count = badges[key] || 0;
+
+            if (el.classList.contains('tc-nav-module-dot')) {
+                if (count > 0) {
+                    el.classList.add('is-visible');
+                    el.removeAttribute('hidden');
+                } else {
+                    el.classList.remove('is-visible');
+                    el.setAttribute('hidden', 'hidden');
+                }
+                return;
+            }
+
+            if (el.classList.contains('tc-nav-list-badge')) {
+                if (count > 0) {
+                    el.textContent = count > 99 ? '99+' : String(count);
+                    el.classList.add('is-visible');
+                    el.removeAttribute('hidden');
+                } else {
+                    el.textContent = '';
+                    el.classList.remove('is-visible');
+                    el.setAttribute('hidden', 'hidden');
+                }
+            }
+        });
+    }
+
     function updateSummary(count) {
         var summary = el('tc-notification-summary');
         if (summary) {
             summary.textContent = count === 1
                 ? 'You have 1 unread notification'
-                : 'You have ' + count + ' unread notifications';
+                : count === 0
+                    ? 'You have no unread notifications'
+                    : 'You have ' + count + ' unread notifications';
         }
     }
 
@@ -57,7 +92,7 @@
 
         list.innerHTML = items.map(function (n) {
             var unread = !n.read_at;
-            var link = n.url ? ' href="' + n.url + '" data-notification-id="' + n.id + '"' : '';
+            var link = n.url ? ' href="' + escapeHtml(n.url) + '" data-notification-id="' + escapeHtml(n.id) + '"' : '';
             var tag = n.url ? 'a' : 'div';
             return (
                 '<li class="tc-notification-item' + (unread ? ' tc-notification-item--unread' : '') + '">' +
@@ -135,7 +170,7 @@
             Swal.fire({
                 toast: true,
                 position: 'top-end',
-                icon: item.type === 'success' ? 'success' : 'info',
+                icon: item.type === 'success' ? 'success' : item.type === 'warning' ? 'warning' : 'info',
                 title: item.title,
                 text: item.message,
                 showConfirmButton: !!item.url,
@@ -160,8 +195,11 @@
     }
 
     function poll(isInitial) {
+        if (pollInFlight) return;
+        pollInFlight = true;
+
         var url = pollUrl;
-        if (lastSince) {
+        if (lastSince && !isInitial) {
             url += (url.indexOf('?') >= 0 ? '&' : '?') + 'since=' + encodeURIComponent(lastSince);
         }
 
@@ -169,10 +207,14 @@
             headers: { 'Accept': 'application/json' },
             credentials: 'same-origin',
         })
-            .then(function (r) { return r.json(); })
+            .then(function (r) {
+                if (!r.ok) throw new Error('poll failed');
+                return r.json();
+            })
             .then(function (data) {
                 updateBadge(data.unread_count || 0);
                 updateSummary(data.unread_count || 0);
+                updateNavBadges(data.nav_badges);
                 renderList(data.notifications || []);
 
                 if (!isInitial && data.new && data.new.length) {
@@ -183,10 +225,14 @@
                     knownIds.add(n.id);
                 });
 
-                lastSince = new Date().toISOString();
-                localStorage.setItem('tc_notifications_since', lastSince);
+                if (data.server_time) {
+                    lastSince = data.server_time;
+                }
             })
-            .catch(function () {});
+            .catch(function () {})
+            .finally(function () {
+                pollInFlight = false;
+            });
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -204,5 +250,15 @@
 
         poll(true);
         setInterval(function () { poll(false); }, pollIntervalMs);
+
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) {
+                poll(false);
+            }
+        });
     });
+
+    window.TenantNotifications = {
+        refresh: function () { poll(false); },
+    };
 })();

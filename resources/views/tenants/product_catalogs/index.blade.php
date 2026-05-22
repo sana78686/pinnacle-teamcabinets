@@ -1,4 +1,4 @@
-@extends('layouts.tenant.master')
+@extends('layouts.tenant.products-list')
 @section('title', 'Product Catalog Menu')
 
 @section('css')
@@ -23,17 +23,11 @@
 
 @endsection
 
-@section('breadcrumb-title')
-    <h2>Product Catalogs <span>List </span></h2>
+@section('products_title')
+    Catalog list
 @endsection
 
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">Product</li>
-    <li class="breadcrumb-item">Catalogs</li>
-    <li class="breadcrumb-item active">List</li>
-@endsection
-
-@section('content')
+@section('products_content')
 
     <div class="p-2 mt-0 card-header no-border">
         <a href="{{ route('tenant_product_catalog_create') }}" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
@@ -197,7 +191,7 @@
     </form>
 @endsection
 
-@section('script')
+@section('products_script')
 
 
 

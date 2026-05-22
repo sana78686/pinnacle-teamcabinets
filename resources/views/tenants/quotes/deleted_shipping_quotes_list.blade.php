@@ -28,12 +28,7 @@
         @endif
 
         {{-- <h5>Best Selling Product</h5> --}}
-        <a href="" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
-            title="Create a new Quotes in the system">
-            <i class="icofont icofont-plus"></i> Create Shipping Quotes
-        </a>
-
-        <a href="" class="btn btn-success btn-sm" data-toggle="tooltip" title="Restore a previously deleted Stock Check">
+        <a href="{{ route('tenant_shipping_quotes_index') }}" class="btn btn-success btn-sm" data-toggle="tooltip" title="Back to shipping quotes list">
             <i class="icofont icofont-listing-number"></i> Shipping Quotes List
         </a>
         <a href="{{ url()->current() }}" class="btn btn-light btn-sm" data-toggle="tooltip" title="Refresh this Page.">

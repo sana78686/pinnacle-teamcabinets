@@ -173,7 +173,7 @@
                 </thead>
                 <tbody id="myTable">
                     @foreach ($users as $key => $user)
-                        <tr>
+                        <tr class="{{ tenant_admin_unviewed_row_class($user) }}">
                             {{-- <td>{{ ++$key }}</td> --}}
                             <td>
                                 @if (!empty($user->getRoleNames()))

@@ -8,6 +8,10 @@ use App\Models\Product;
 use App\Models\StockCheckRequest;
 use App\Models\TaxValues;
 use App\Models\User;
+use App\Services\AdminRecordViewService;
+use App\Services\OrderWorkspaceService;
+use App\Services\TenantNavBadgeService;
+use App\Support\TenantListPaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -18,44 +22,58 @@ class TenantStockCheckController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request, TenantNavBadgeService $navBadges)
     {
-        $data = [];
-        $query = StockCheckRequest::with('user')->orderByDesc('updated_at');
+        if (Auth::user()->hasRole('Admin')) {
+            $navBadges->markListSeen(Auth::user(), 'stock_check_list');
+        }
+
+        $perPage = TenantListPaginator::perPage($request);
+        $search = TenantListPaginator::search($request);
+        $query = StockCheckRequest::query()
+            ->select(OrderWorkspaceService::workspaceListColumns())
+            ->with(['user:id,name,email'])
+            ->orderByDesc('updated_at');
 
         if (! Auth::user()->hasRole('Admin')) {
             $query->where('user_id', Auth::id());
         }
 
-        $data['stock_check_requests'] = $query
-            ->paginate(tenant_list_per_page())
-            ->withQueryString();
-        if(Auth::user()->hasRole('Admin'))
-        {
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('job_name', 'like', '%'.$search.'%')
+                    ->orWhereHas('user', function ($u) use ($search) {
+                        $u->where('name', 'like', '%'.$search.'%')
+                            ->orWhere('email', 'like', '%'.$search.'%');
+                    });
+            });
+        }
+
+        $data = [
+            'stock_check_requests' => $query->paginate($perPage)->withQueryString(),
+            'perPage' => $perPage,
+            'search' => $search,
+        ];
+
+        if (Auth::user()->hasRole('Admin')) {
             return view('tenants.stock_check.index', $data);
         }
-        else
-        {
-            return view('tenants.representative_modals.stock_check.index', $data);
-        }
-        // return view('tenants.stock_check.index');
+
+        return view('tenants.representative_modals.stock_check.index', $data);
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return redirect()->route('tenant_order_workspace')
-            ->with('info', 'Pick catalog → door style → build cart, then click Stock check on the build screen.');
-    }
-    /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $id, AdminRecordViewService $adminView)
     {
-        $data['stock_check_request'] = $stockCheck = StockCheckRequest::find($id);
+        $data['stock_check_request'] = $stockCheck = StockCheckRequest::findOrFail($id);
         $data['rooms'] = json_decode($stockCheck->rooms, true);
+
+        if (Auth::user()->hasRole('Admin')) {
+            $adminView->markViewed($stockCheck, Auth::user());
+        }
+
         if(Auth::user()->hasRole('Admin'))
         {
             return view('tenants.stock_check.show');
@@ -70,9 +88,12 @@ class TenantStockCheckController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(string $id, AdminRecordViewService $adminView)
     {
-       return view('tenants.stock_check.edit');
+        $stockCheck = StockCheckRequest::findOrFail($id);
+        $adminView->markViewed($stockCheck, Auth::user());
+
+        return view('tenants.stock_check.edit');
     }
 
     /**

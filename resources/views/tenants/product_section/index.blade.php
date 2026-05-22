@@ -1,4 +1,4 @@
-@extends('layouts.tenant.master')
+@extends('layouts.tenant.products-list')
 @section('title', 'Product Category Menu')
 
 @section('css')
@@ -13,16 +13,12 @@
 
 @endsection
 
-@section('breadcrumb-title')
-    <h2>Create<span>Product Category</span></h2>
+@section('products_title')
+    Category list
 @endsection
 
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">Product Category</li>
-    <li class="breadcrumb-item active">List</li>
-@endsection
 
-@section('content')
+@section('products_content')
     <div class="p-2 mt-0 card-header no-border">
         {{-- <h5>Best Selling Product</h5> --}}
         <a href="{{ route('tenant_product_section_create') }}" id="createCatalogLink" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
@@ -170,7 +166,7 @@
 
 
 
-@section('script')
+@section('products_script')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

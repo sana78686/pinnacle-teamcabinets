@@ -1,4 +1,4 @@
-@extends('layouts.tenant.master')
+@extends('layouts.tenant.products-list')
 @section('title', 'Product Category Menu')
 
 @section('css')
@@ -9,17 +9,12 @@
 @section('style')
 @endsection
 
-@section('breadcrumb-title')
-    <h2>Product Category <span>List </span></h2>
+@section('products_title')
+    Deleted categories
 @endsection
 
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">Product</li>
-    <li class="breadcrumb-item">Category</li>
-    <li class="breadcrumb-item active">List</li>
-@endsection
 
-@section('content')
+@section('products_content')
     <div class="p-2 mt-0 card-header no-border">
         @if (session('success'))
             <div class=" txt-danger" role="alert">
@@ -101,7 +96,7 @@
 
 @endsection
 
-@section('script')
+@section('products_script')
 
     <script src="{{ route('/') }}/assets/main/js/datatable/datatables/jquery.dataTables.min.js"></script>
     <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.buttons.min.js"></script>

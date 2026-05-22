@@ -10,6 +10,7 @@ use App\Models\StockCheckRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 
 class OrderWorkspaceNotificationService
 {
@@ -41,6 +42,8 @@ class OrderWorkspaceNotificationService
         } catch (\Throwable $e) {
             Log::warning('Shipping quote email failed: '.$e->getMessage());
         }
+
+        $this->notifyAdminsShippingQuote($record, $user);
     }
 
     public function sendOrderPlacedEmails(Order $order, User $user, array $checkoutTotals, array $cartData): void
@@ -95,10 +98,14 @@ class OrderWorkspaceNotificationService
         } catch (\Throwable $e) {
             Log::warning('Order placed email failed: '.$e->getMessage());
         }
+
+        $this->notifyAdminsOrderPlaced($order, $user);
     }
 
     public function sendQuoteSavedEmails(Quote $quote, User $user, array $payload): void
     {
+        $this->notifyAdminsQuoteSaved($quote, $user);
+
         if (! $user->email) {
             return;
         }
@@ -152,6 +159,90 @@ class OrderWorkspaceNotificationService
             }
         } catch (\Throwable $e) {
             Log::warning('Stock check email failed: '.$e->getMessage());
+        }
+
+        $this->notifyAdminsStockCheck($record, $user, $withShipping);
+    }
+
+    protected function notifyAdminsOrderPlaced(Order $order, User $user): void
+    {
+        try {
+            TenantNotificationService::notifyAdminsPanel(
+                'New order placed',
+                sprintf('%s placed order #%d — %s.', $user->name ?? 'Customer', $order->id, $order->job_name ?? 'Order'),
+                $this->safeRoute('tenant_order_show', $order->id, 'tenant_order_list'),
+                'success',
+                'orders',
+                'orders_list',
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Order placed panel notification failed: '.$e->getMessage());
+        }
+    }
+
+    protected function notifyAdminsQuoteSaved(Quote $quote, User $user): void
+    {
+        try {
+            TenantNotificationService::notifyAdminsPanel(
+                'New quote saved',
+                sprintf('%s saved quote #%d — %s.', $user->name ?? 'Customer', $quote->id, $quote->job_name ?? 'Quote'),
+                $this->safeRoute('tenant_quotes_show', $quote->id, 'tenant_quotes_index'),
+                'info',
+                'quotes',
+                'quotes_list',
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Quote panel notification failed: '.$e->getMessage());
+        }
+    }
+
+    protected function notifyAdminsShippingQuote(ShippingQuote $record, User $user): void
+    {
+        try {
+            TenantNotificationService::notifyAdminsPanel(
+                'Shipping quote requested',
+                sprintf('%s requested shipping quote #%d — %s.', $user->name ?? 'Customer', $record->id, $record->job_name ?? 'Job'),
+                $this->safeRoute('tenant_shipping_quotes_show', $record->id, 'tenant_shipping_quotes_index'),
+                'info',
+                'quotes',
+                'shipping_quotes_list',
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Shipping quote panel notification failed: '.$e->getMessage());
+        }
+    }
+
+    protected function notifyAdminsStockCheck(Model $record, User $user, bool $withShipping): void
+    {
+        try {
+            $suffix = $withShipping ? ' (includes shipping)' : '';
+            TenantNotificationService::notifyAdminsPanel(
+                'Stock check requested',
+                sprintf('%s submitted stock check #%d — %s%s.', $user->name ?? 'Customer', $record->id, $record->job_name ?? 'Job', $suffix),
+                $this->safeRoute('tenant_stock_check_show', $record->id, 'tenant_stock_check_index'),
+                'warning',
+                'stock_check',
+                'stock_check_list',
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Stock check panel notification failed: '.$e->getMessage());
+        }
+    }
+
+    protected function safeRoute(string $preferred, int|string $id, string $fallback): ?string
+    {
+        try {
+            if (Route::has($preferred)) {
+                return route($preferred, $id);
+            }
+        } catch (\Throwable) {
+            // ignore
+        }
+
+        try {
+            return route($fallback);
+        } catch (\Throwable) {
+            return null;
         }
     }
 

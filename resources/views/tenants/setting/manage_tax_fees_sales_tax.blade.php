@@ -11,40 +11,52 @@
 @include('layouts.tenant.partials.tax-fees-nav')
 
 <p class="text-muted small mb-3">
-    Florida county sales tax rates (legacy CI <code>sales_tax_counties</code>). At checkout, the rate is matched by
-    ship-to county name. If no match is found, the fallback % on the Payment &amp; fuel tab is used.
+    Florida county sales tax rates. At checkout, the rate is matched by ship-to county name.
 </p>
 
-@if ($counties->isEmpty())
+@if ($counties->isEmpty() && ! request('search'))
     <div class="alert alert-warning">No county records found. Run tenant migrations, then reload this page to seed defaults.</div>
 @else
-    <form class="tc-settings-form" action="{{ route('tenant_setting_tax_fees_sales_tax_store') }}" method="post">
-        @csrf
-        <div class="table-responsive">
-            <table class="table table-sm table-striped align-middle">
-                <thead>
+    @include('partials.tc-list-toolbar', [
+        'listUrl' => route('tenant_setting_tax_fees_sales_tax'),
+        'perPage' => $perPage,
+        'search' => $search,
+        'perPageOptions' => [10, 25, 50, 100],
+    ])
+
+    <div class="table-responsive tc-admin-datatable">
+        <table class="table table-striped table-bordered table-sm mb-0">
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 70px;">ID</th>
+                    <th scope="col">County</th>
+                    <th scope="col" style="width: 120px;">State</th>
+                    <th scope="col" style="width: 100px;">Tax(%)</th>
+                    <th scope="col" style="width: 100px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($counties as $county)
                     <tr>
-                        <th>County</th>
-                        <th class="text-end" style="width: 140px;">Tax rate (%)</th>
+                        <td>{{ $county->id }}</td>
+                        <td>{{ $county->counties }}</td>
+                        <td>{{ $stateName }}</td>
+                        <td>{{ number_format((float) $county->tax, 2, '.', '') }}</td>
+                        <td>
+                            <a href="{{ route('tenant_setting_tax_fees_sales_tax_edit', $county->id) }}" class="tc-admin-datatable__edit">
+                                <i class="fa fa-edit" aria-hidden="true"></i> Edit
+                            </a>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach ($counties as $county)
-                        <tr>
-                            <td>{{ $county->counties }}</td>
-                            <td class="text-end">
-                                <input type="number" step="0.01" min="0" max="100" class="form-control form-control-sm text-end"
-                                    name="counties[{{ $county->id }}][tax]"
-                                    value="{{ old('counties.'.$county->id.'.tax', $county->tax) }}" required>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        <div class="tc-settings-form-actions mt-3">
-            <button type="submit" class="btn btn-primary">Save county tax rates</button>
-        </div>
-    </form>
+                @empty
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No counties match your search.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    @include('partials.tenant-pagination', ['paginator' => $counties])
 @endif
 @endsection

@@ -1000,6 +1000,100 @@
     flex: 1;
 }
 
+/* Shipping quote admin view (CI-style) */
+.tc-sq-admin__header-table td {
+    vertical-align: top;
+    font-size: 0.9rem;
+}
+
+.tc-sq-admin__checks {
+    white-space: nowrap;
+}
+
+.tc-sq-check {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
+    border: 1px solid #ccc;
+    vertical-align: middle;
+    opacity: 0.35;
+}
+
+.tc-sq-check.is-on {
+    opacity: 1;
+}
+
+.tc-sq-check--yellow.is-on {
+    background: #ffc107;
+    border-color: #e0a800;
+}
+
+.tc-sq-check--green.is-on {
+    background: #28a745;
+    border-color: #1e7e34;
+}
+
+.tc-sq-admin__form .form-label {
+    font-size: 0.8rem;
+}
+
+/* Admin list: unviewed rows (CI yellow highlight until opened) */
+.tc-admin-datatable tr.tc-row-unviewed > td,
+.table tr.tc-row-unviewed > td,
+#userTable tr.tc-row-unviewed > td {
+    background-color: #fff3cd !important;
+}
+
+.tc-admin-datatable tr.tc-row-unviewed:hover > td,
+.table tr.tc-row-unviewed:hover > td,
+#userTable tr.tc-row-unviewed:hover > td {
+    background-color: #ffe69c !important;
+}
+
+/* Nav module indicators (admin: orders, quotes, stock check) */
+.tc-tenant-nav #main-menu > li[data-nav-module] > a {
+    position: relative;
+}
+
+.tc-tenant-nav .tc-nav-module-dot {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #dc3545;
+    box-shadow: 0 0 0 2px #fff;
+    pointer-events: none;
+}
+
+.tc-tenant-nav .tc-nav-module-dot.is-visible,
+.tc-tenant-nav .tc-nav-module-dot:not([hidden]) {
+    display: block;
+}
+
+.tc-tenant-nav .tc-nav-list-badge {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #dc3545;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.tc-tenant-nav .tc-nav-list-badge.is-visible,
+.tc-tenant-nav .tc-nav-list-badge:not([hidden]) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* Hide mobile-only back row on desktop */
 @media (min-width: 992px) {
     .tc-tenant-nav .tc-nav-mobile-back {
@@ -2122,4 +2216,172 @@
 
 .tc-list-pagination .page-item.disabled .page-link {
     color: #94a3b8;
+}
+
+/* CI-style list toolbar (Show entries + Search) */
+.tc-list-toolbar__label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #475569;
+}
+
+.tc-list-toolbar__select {
+    width: auto;
+    min-width: 4.5rem;
+}
+
+.tc-list-toolbar__search {
+    width: 12rem;
+    max-width: 100%;
+}
+
+.tc-admin-datatable .table {
+    margin-bottom: 0;
+}
+
+.tc-admin-datatable .table thead th {
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.tc-admin-datatable__edit {
+    color: #2563eb;
+    font-size: 0.875rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.tc-admin-datatable__edit:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+/* Short global loader (replaces theme typewriter animation) */
+.loader-wrapper.tc-loader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader-wrapper.tc-loader .tc-loader-text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #334155;
+    letter-spacing: 0.02em;
+}
+
+.loader-wrapper.tc-loader .typewriter {
+    display: none;
+}
+
+.tc-workspace-detail__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.tc-workspace-detail__table th {
+    width: 42%;
+    font-weight: 600;
+    background: #f8fafc;
+}
+
+.tc-workspace-detail__comment {
+    font-size: 0.8125rem;
+}
+
+/* Product setup hub (tabs on lists, sidebar on forms — mirrors Settings) */
+.tc-products-page {
+    padding-top: 0.25rem;
+}
+
+.tc-products-list-tabs .tc-wd-subnav__link {
+    gap: 0.35rem;
+}
+
+.tc-products-tab__step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    background: #e2e8f0;
+    color: #334155;
+    font-size: 0.65rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.tc-wd-subnav__link.is-active .tc-products-tab__step {
+    background: #1e40af;
+    color: #fff;
+}
+
+.tc-products-list-hint {
+    padding-left: 0.15rem;
+}
+
+.tc-products-page-title,
+.tc-settings-form-title.tc-products-page-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.tc-products-sidebar-intro,
+.tc-products-sidebar-hint {
+    font-size: 0.7rem;
+    line-height: 1.35;
+    color: #64748b;
+    margin: 0 0 0.75rem;
+    padding: 0 0.5rem;
+}
+
+.tc-products-sidebar-step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 999px;
+    background: #e2e8f0;
+    color: #475569;
+    font-size: 0.6rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.tc-settings-nav-link.is-active .tc-products-sidebar-step {
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
+.tc-products-sidebar-list-link {
+    display: block;
+    font-size: 0.65rem;
+    color: #64748b;
+    padding: 0 0.65rem 0.5rem 2.35rem;
+    text-decoration: none;
+}
+
+.tc-products-sidebar-list-link:hover {
+    color: #1e40af;
+}
+
+.tc-products-sidebar-list-link.is-active {
+    color: #1e40af;
+    font-weight: 600;
+}
+
+.tc-products-hub-step {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    margin-bottom: 0.35rem;
 }

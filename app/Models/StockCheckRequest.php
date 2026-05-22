@@ -15,7 +15,8 @@ class StockCheckRequest extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'rooms' => 'array', // JSON format for rooms and products
+        'rooms' => 'array',
+        'admin_viewed_at' => 'datetime',
     ];
 
     public function user()

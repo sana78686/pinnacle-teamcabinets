@@ -1,4 +1,4 @@
-@extends('layouts.tenant.master')
+@extends('layouts.tenant.products-form')
 @section('title', 'Product Catalog Menu')
 @section('css')
     <link rel="stylesheet" type="text/css" href="{{ route('/') }}/assets/main/css/datatables.css">
@@ -6,15 +6,10 @@
 @endsection
 @section('style')
 @endsection
-@section('breadcrumb-title')
-    <h2>Product Catalog<span> Details</span></h2>
+@section('products_title')
+    Door style details
 @endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">Product </li>
-    <li class="breadcrumb-item">Catalog</li>
-    <li class="breadcrumb-item active">View</li>
-@endsection
-@section('content')
+@section('products_content')
     <div class="container-fluid">
         <div class="row">
             <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4 ">
@@ -82,7 +77,7 @@
         </div>
     </div>
 @endsection
-@section('script')
+@section('products_script')
     <script src="{{ route('/') }}/assets/main/js/datatable/datatables/jquery.dataTables.min.js"></script>
     <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.buttons.min.js"></script>
     <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/jszip.min.js"></script>

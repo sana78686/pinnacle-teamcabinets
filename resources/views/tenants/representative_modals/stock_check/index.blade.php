@@ -46,7 +46,12 @@
 <div class="bg-white">
 
     <div class="pt-0 card-body">
-        <div class="table-responsive table-sm">
+        @include('partials.tc-list-toolbar', [
+            'listUrl' => route('tenant_stock_check_index'),
+            'perPage' => $perPage ?? tenant_list_per_page(),
+            'search' => $search ?? '',
+        ])
+        <div class="table-responsive table-sm tc-admin-datatable">
             <table class="table p-0 m-0 display table-striped table-bordered table-sm" id="">
                 <thead>
                     <tr>

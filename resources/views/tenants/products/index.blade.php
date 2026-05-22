@@ -1,4 +1,4 @@
-@extends('layouts.tenant.master')
+@extends('layouts.tenant.products-list')
 @section('title', 'Product Menu')
 
 @section('css')
@@ -9,19 +9,15 @@
 @section('style')
 @endsection
 
-@section('breadcrumb-title')
-    <h2>Product <span>List</span></h2>
+@section('products_title')
+    Product list
 @endsection
 
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">Product</li>
-    <li class="breadcrumb-item active">List</li>
-@endsection
 
-@section('content')
+@section('products_content')
     <div class="p-2 mt-0 card-header no-border">
         {{-- <h5>Best Selling Product</h5> --}}
-        <a href="javascript:;" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
+        <a href="{{ route('tenant_product_create') }}" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
             title="Create a new Product in the system">
             <i class="icofont icofont-plus"></i> Create Product
         </a>
@@ -128,7 +124,7 @@
         @include('partials.tenant-pagination', ['paginator' => $product])
     </form>
 @endsection
-@section('script')
+@section('products_script')
     <script>
         function confirmation(ev) {
             ev.preventDefault();

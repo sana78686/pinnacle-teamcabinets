@@ -1,4 +1,4 @@
-@extends('layouts.tenant.master')
+@extends('layouts.tenant.products-form')
 @section('title', 'Product Catalog Menu')
 
 @section('css')
@@ -9,16 +9,12 @@
 @section('style')
 @endsection
 
-@section('breadcrumb-title')
-    <h2>Update <span>Product Catalog </span></h2>
+@section('products_title')
+    Edit catalog
 @endsection
 
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">Product Catalog</li>
-    <li class="breadcrumb-item active">List</li>
-@endsection
 
-@section('content')
+@section('products_content')
     @include('partial.message')
     <form action="{{ route('tenant_product_catalog_update', $product_catalog->id) }}" method="POST"
         enctype="multipart/form-data">
@@ -67,7 +63,7 @@
 
 @endsection
 
-@section('script')
+@section('products_script')
 
 
 

@@ -92,6 +92,8 @@ class TenantCreateOrderController extends Controller
             'doorColors' => $doorColors,
             'sections' => $this->productSectionsFor($catalog, $door, $user),
             'savedCart' => $this->cartPersistence->load($user->id, $catalog->id),
+            'editingQuoteId' => session('editing_quote_id'),
+            'editingShippingQuoteId' => session('editing_shipping_quote_id'),
             'pricingContext' => $pricingContext,
             'shippingPopup' => other_page_content('shipping_pop_up'),
             'stockShippingPopup' => other_page_content('stock_check_shipping_pop_up'),
@@ -451,11 +453,14 @@ class TenantCreateOrderController extends Controller
         $clearCart = $this->shouldClearWorkspaceCart($modelClass);
         try {
             $payload = $this->workspace->parsePayload($request, $defaultShippingStatus);
-            $record = $this->workspace->createRecord($modelClass, $payload);
+            $payload = $this->mergeWorkspaceMeta($request, $payload);
+
+            $record = $this->resolveWorkspaceRecord($request, $modelClass, $payload);
             $this->sendActionEmails($modelClass, $payload, $record);
 
             if ($clearCart) {
                 $this->clearWorkspaceCart($request);
+                session()->forget(['editing_quote_id', 'editing_shipping_quote_id']);
             }
         } catch (ValidationException $e) {
             return response()->json([
@@ -479,6 +484,48 @@ class TenantCreateOrderController extends Controller
                 ? route('tenant_order_workspace_print_page', $record->id)
                 : route($redirectRoute),
         ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function mergeWorkspaceMeta(Request $request, array $payload): array
+    {
+        return array_merge($payload, [
+            'product_catalog_id' => (int) $request->input('catalog_id'),
+            'door_color_id' => (int) $request->input('door_id'),
+            'product_img_src' => $request->input('product_img_src'),
+            'product_img_name' => $request->input('product_img_name'),
+        ]);
+    }
+
+    /**
+     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $modelClass
+     */
+    protected function resolveWorkspaceRecord(Request $request, string $modelClass, array $payload)
+    {
+        $quoteId = (int) ($request->input('quote_saved_id') ?: session('editing_quote_id'));
+        $shippingQuoteId = (int) ($request->input('shipping_quote_saved_id') ?: session('editing_shipping_quote_id'));
+
+        if ($modelClass === Quote::class && $quoteId > 0) {
+            $quote = Quote::query()->findOrFail($quoteId);
+            if ((int) $quote->user_id !== (int) $request->user()->id && ! $request->user()->hasRole('Admin')) {
+                abort(403);
+            }
+
+            return $this->workspace->updateRecord($quote, $payload);
+        }
+
+        if ($modelClass === ShippingQuote::class && $shippingQuoteId > 0) {
+            $shippingQuote = ShippingQuote::query()->findOrFail($shippingQuoteId);
+            if ((int) $shippingQuote->user_id !== (int) $request->user()->id && ! $request->user()->hasRole('Admin')) {
+                abort(403);
+            }
+
+            return $this->workspace->updateRecord($shippingQuote, $payload);
+        }
+
+        return $this->workspace->createRecord($modelClass, $payload);
     }
 
     protected function shouldClearWorkspaceCart(string $modelClass): bool

@@ -1,4 +1,4 @@
-@extends('layouts.tenant.master')
+@extends('layouts.tenant.products-list')
 @section('title', 'Product Catalog Menu')
 @section('css')
 
@@ -16,15 +16,10 @@
     }
 </style>
 @endsection
-@section('breadcrumb-title')
-    <h2 class="mt-5">Product Door Style  <span>List </span></h2>
+@section('products_title')
+    Door style list
 @endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">Product</li>
-    <li class="breadcrumb-item">Catalogs</li>
-    <li class="breadcrumb-item active">List</li>
-@endsection
-@section('content')
+@section('products_content')
 
  <!-- Button to open modal -->
 <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#doorColorModal">Add Door Color</button>
@@ -140,7 +135,7 @@
 @include('partials.tenant-pagination', ['paginator' => $doorColors])
 
 @endsection
-@section('script')
+@section('products_script')
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
     {{-- <script src="{{ route('/') }}/assets/main/js/datatable/datatables/jquery.dataTables.min.js"></script>
 <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.buttons.min.js"></script>

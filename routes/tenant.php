@@ -6,7 +6,6 @@ use App\Http\Controllers\ManageRoleController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TenantAuthController;
 use App\Http\Controllers\TenantBulletinController;
-use App\Http\Controllers\TenantCartController;
 use App\Http\Controllers\TenantClaimController;
 use App\Http\Controllers\TenantCommissionReportController;
 use App\Http\Controllers\HomeSettingsController;
@@ -201,6 +200,9 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
 
         /*** Products Routes */
 
+           Route::get('products/hub', function () {
+               return view('tenants.products.hub');
+           })->name('tenant_products_hub');
            Route::get('/products/search', [TenantProductCatalogController::class, 'search'])->name('tenant_product_search');
            Route::get('products/index', [TenantProductController::class, 'index'])->name('tenant_product_index');
            Route::get('products/create', [TenantProductController::class, 'create'])->name('tenant_product_create');
@@ -275,12 +277,7 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
             Route::get('order/export', [TenantOrderController::class, 'order_export'])->name('order_export');
             Route::post('order/import', [TenantOrderController::class, 'order_import'])->name('order_import');
 
-            /*** Cart Routes */
-
-           Route::post('/cart/add-room', [TenantCartController::class, 'addRoom'])->name('cart.addRoom');
-           Route::post('/cart/remove-room', [TenantCartController::class, 'removeRoom'])->name('cart.removeRoom');
-        //    Route::post('/cart/add-product', [TenantCartController::class, 'addProduct'])->name('cart.addProduct');
-        //    Route::post('/cart/remove-product', [TenantCartController::class, 'removeProduct'])->name('cart.removeProduct');
+            /*** Cart Routes (session cart — used by order workspace / legacy step-3 flows) */
 
             Route::post('/cart/saveJobName', [TenantSessionCartController::class, 'saveJobName'])->name('cart.saveJobName');
             Route::post('/cart/addRoom', [TenantSessionCartController::class, 'addRoom'])->name('cart.addRoom');
@@ -395,6 +392,8 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
           Route::get('setting/tax-fees/shipping', [TenantSettingController::class, 'manage_tax_fees_shipping'])->name('tenant_setting_tax_fees_shipping');
           Route::post('setting/tax-fees/shipping', [TenantSettingController::class, 'store_tax_fees_shipping'])->name('tenant_setting_tax_fees_shipping_store');
           Route::get('setting/tax-fees/sales-tax', [TenantSettingController::class, 'manage_tax_fees_sales_tax'])->name('tenant_setting_tax_fees_sales_tax');
+          Route::get('setting/tax-fees/sales-tax/{id}/edit', [TenantSettingController::class, 'edit_tax_fees_sales_tax'])->name('tenant_setting_tax_fees_sales_tax_edit');
+          Route::put('setting/tax-fees/sales-tax/{id}', [TenantSettingController::class, 'update_tax_fees_sales_tax'])->name('tenant_setting_tax_fees_sales_tax_update');
           Route::post('setting/tax-fees/sales-tax', [TenantSettingController::class, 'store_tax_fees_sales_tax'])->name('tenant_setting_tax_fees_sales_tax_store');
           Route::get('setting/tax-fees/paytrace', [TenantSettingController::class, 'manage_tax_fees_paytrace'])->name('tenant_setting_tax_fees_paytrace');
           Route::post('setting/tax-fees/paytrace', [TenantSettingController::class, 'store_tax_fees_paytrace'])->name('tenant_setting_tax_fees_paytrace_store');
@@ -480,7 +479,6 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
           /*** Stock Check page Routes */
 
           Route::get('stock_check/index', [TenantStockCheckController::class, 'index'])->name('tenant_stock_check_index');
-          Route::get('stock_check/create', [TenantStockCheckController::class, 'create'])->name('tenant_stock_check_create');
           Route::post('stock_check', [TenantStockCheckController::class, 'store'])->name('tenant_stock_check_store');
           Route::get('stock_check/{id}/edit', [TenantStockCheckController::class, 'edit'])->name('tenant_stock_check_edit');
           Route::get('stock_check/{id}/show', [TenantStockCheckController::class, 'show'])->name('tenant_stock_check_show');
@@ -492,7 +490,6 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
         /*** Quotes page Routes */
 
         Route::get('quotes/index', [TenantQuotesController::class, 'index'])->name('tenant_quotes_index');
-        Route::get('quotes/create', [TenantQuotesController::class, 'create'])->name('tenant_quotes_create');
         Route::post('quotes', [TenantQuotesController::class, 'store'])->name('tenant_quotes_store');
         Route::get('quotes/{id}/edit', [TenantQuotesController::class, 'edit'])->name('tenant_quotes_edit');
         Route::get('quotes/{id}/show', [TenantQuotesController::class, 'show'])->name('tenant_quotes_show');
@@ -504,14 +501,12 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
         /***Shipping  Quotes page Routes */
 
         Route::get('shipping_quotes/index', [TenantShippingQuoteController::class, 'index'])->name('tenant_shipping_quotes_index');
-        Route::get('shipping_quotes/create', [TenantQuotesController::class, 'shipping_quotes_create'])->name('tenant_shipping_quotes_create');
-        Route::post('shipping_quotes', [TenantQuotesController::class, 'shipping_quotes_store'])->name('tenant_shipping_quotes_store');
-        Route::get('shipping_quotes/{id}/edit', [TenantQuotesController::class, 'shipping_quotes_edit'])->name('tenant_shipping_quotes_edit');
-        Route::get('shipping_quotes/{id}/show', [TenantQuotesController::class, 'shipping_quotes_show'])->name('tenant_shipping_quotes_show');
-        Route::put('shipping_quotes/{id}', [TenantQuotesController::class, 'shipping_quotes_update'])->name('tenant_shipping_quotes_update');
-        Route::delete('shipping_quotes/{id}', [TenantQuotesController::class, 'shipping_quotes_destroy'])->name('tenant_shipping_quotes_destroy');
-        Route::get('shipping_quotes/deleted/quotes_list', [TenantQuotesController::class, 'deleted_shipping_quotes_list'])->name('tenant_deleted_quotes_list');
-        Route::get('shipping_quotes/{id}/restore', [TenantQuotesController::class, 'restore_deleted_shipping_quotes_list'])->name('tenant_quotes_restore');
+        Route::post('shipping_quotes', [TenantShippingQuoteController::class, 'store'])->name('tenant_shipping_quotes_store');
+        Route::get('shipping_quotes/{id}/edit', [TenantShippingQuoteController::class, 'edit'])->name('tenant_shipping_quotes_edit');
+        Route::get('shipping_quotes/{id}/show', [TenantShippingQuoteController::class, 'show'])->name('tenant_shipping_quotes_show');
+        Route::put('shipping_quotes/{id}/shipping-costs', [TenantShippingQuoteController::class, 'updateShippingCosts'])->name('tenant_shipping_quotes_update_costs');
+        Route::delete('shipping_quotes/{id}', [TenantShippingQuoteController::class, 'destroy'])->name('tenant_shipping_quotes_destroy');
+        Route::get('shipping_quotes/deleted/quotes_list', [TenantQuotesController::class, 'deleted_shipping_quotes_list'])->name('tenant_deleted_shipping_quotes_list');
 
         /*** Commission report page Routes */
 

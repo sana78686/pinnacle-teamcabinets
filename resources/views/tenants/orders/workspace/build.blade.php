@@ -195,6 +195,8 @@
                     <input type="hidden" name="product_img_name" class="product_img_name" value="{{ $door->product_label }}">
                     <input type="hidden" name="catalogue_name" value="{{ $catalog->name }}">
                     <input type="hidden" name="quote_name" id="quote_name">
+                    <input type="hidden" name="quote_saved_id" id="quote_saved_id" value="{{ $editingQuoteId ?? '' }}">
+                    <input type="hidden" name="shipping_quote_saved_id" id="shipping_quote_saved_id" value="{{ $editingShippingQuoteId ?? '' }}">
                     <input type="hidden" name="save_quote_mod_btn" id="save_quote_mod_btn">
                     <input type="hidden" name="ship_quote_delivery_type" id="ship_quote_delivery_type">
                     <input type="hidden" name="ship_quote_liftgate_req" id="ship_quote_liftgate_req">
@@ -223,5 +225,5 @@
 @endsection
 
 @section('script')
-<script src="{{ asset('js/order-page.js') }}?v=14"></script>
+<script src="{{ asset('js/order-page.js') }}?v=15"></script>
 @endsection

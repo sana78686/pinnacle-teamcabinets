@@ -1,3 +1,4 @@
+@php($tcNavBadges = $tcNavBadges ?? [])
 <div class="vertical-menu-main tc-tenant-nav">
     <nav id="main-nav" aria-label="Main navigation">
         <ul class="sm pixelstrap tc-nav-menu" id="main-menu">
@@ -30,29 +31,19 @@
                     ],
                 ])
             </li>
-            <li class="tc-nav-has-children {{ request()->routeIs(['tenant_product_*', 'tenant_door_style_*', 'tenant_product_catalog_*', 'tenant_product_section_*']) ? 'tc-nav-active' : '' }}">
-                <a href="#"><i data-feather="package"></i><span>Products</span></a>
-                @include('layouts.tenant.partials.nav-dropdown', [
-                    'title' => 'Products',
-                    'items' => [
-                        ['url' => route('tenant_product_create'), 'icon' => 'plus-circle', 'label' => 'Create Product'],
-                        ['url' => route('tenant_product_index'), 'icon' => 'list', 'label' => 'Products List'],
-                        ['url' => route('tenant_product_catalog_create'), 'icon' => 'book', 'label' => 'Create Catalog'],
-                        ['url' => route('tenant_product_catalog_index'), 'icon' => 'layers', 'label' => 'Catalog List'],
-                        ['url' => route('tenant_product_section_create'), 'icon' => 'folder-plus', 'label' => 'Create Category'],
-                        ['url' => route('tenant_product_section_index'), 'icon' => 'folder', 'label' => 'Category List'],
-                        ['url' => route('tenant_door_style_create'), 'icon' => 'image', 'label' => 'Create Door Style'],
-                        ['url' => route('tenant_door_style_index'), 'icon' => 'grid', 'label' => 'Door Style List'],
-                    ],
-                ])
+            <li class="{{ request()->routeIs(config('tenant_products_menu.chrome_route_patterns', [])) ? 'tc-nav-active' : '' }}">
+                <a href="{{ route('tenant_products_hub') }}"><i data-feather="package"></i><span>Products</span></a>
             </li>
-            <li class="tc-nav-has-children {{ request()->routeIs('tenant_order_*') ? 'tc-nav-active' : '' }}">
-                <a href="#"><i data-feather="shopping-cart"></i><span>Orders</span></a>
+            <li class="tc-nav-has-children {{ request()->routeIs('tenant_order_*') ? 'tc-nav-active' : '' }}" data-nav-module="orders">
+                <a href="#">
+                    <i data-feather="shopping-cart"></i><span>Orders</span>
+                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['orders'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="orders" @if ((int) ($tcNavBadges['orders'] ?? 0) <= 0) hidden @endif aria-hidden="true"></span>
+                </a>
                 @include('layouts.tenant.partials.nav-dropdown', [
                     'title' => 'Orders',
                     'items' => [
                         ['url' => route('tenant_order_workspace'), 'icon' => 'plus-circle', 'label' => 'Create Order'],
-                        ['url' => route('tenant_order_list'), 'icon' => 'list', 'label' => 'Orders List'],
+                        ['url' => route('tenant_order_list'), 'icon' => 'list', 'label' => 'Orders List', 'badge_key' => 'orders_list'],
                     ],
                 ])
             </li>
@@ -81,25 +72,31 @@
                     <i data-feather="settings"></i><span>Settings</span>
                 </a>
             </li>
-            <li class="tc-nav-has-children {{ request()->routeIs('tenant_stock_check_*') ? 'tc-nav-active' : '' }}">
-                <a href="#"><i data-feather="layers"></i><span>Stock Check</span></a>
+            <li class="tc-nav-has-children {{ request()->routeIs('tenant_stock_check_*') ? 'tc-nav-active' : '' }}" data-nav-module="stock_check">
+                <a href="#">
+                    <i data-feather="layers"></i><span>Stock Check</span>
+                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['stock_check'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="stock_check" @if ((int) ($tcNavBadges['stock_check'] ?? 0) <= 0) hidden @endif aria-hidden="true"></span>
+                </a>
                 @include('layouts.tenant.partials.nav-dropdown', [
                     'title' => 'Stock Check',
                     'items' => [
                         ['url' => route('tenant_order_workspace'), 'icon' => 'plus-circle', 'label' => 'Create Stock Check'],
-                        ['url' => route('tenant_stock_check_index'), 'icon' => 'list', 'label' => 'Stock Check List'],
+                        ['url' => route('tenant_stock_check_index'), 'icon' => 'list', 'label' => 'Stock Check List', 'badge_key' => 'stock_check_list'],
                     ],
                 ])
             </li>
-            <li class="tc-nav-has-children {{ request()->routeIs(['tenant_quotes_*', 'tenant_shipping_quotes_*']) ? 'tc-nav-active' : '' }}">
-                <a href="#"><i data-feather="file-text"></i><span>Quotes</span></a>
+            <li class="tc-nav-has-children {{ request()->routeIs(['tenant_quotes_*', 'tenant_shipping_quotes_*']) ? 'tc-nav-active' : '' }}" data-nav-module="quotes">
+                <a href="#">
+                    <i data-feather="file-text"></i><span>Quotes</span>
+                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['quotes'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="quotes" @if ((int) ($tcNavBadges['quotes'] ?? 0) <= 0) hidden @endif aria-hidden="true"></span>
+                </a>
                 @include('layouts.tenant.partials.nav-dropdown', [
                     'title' => 'Quotes',
                     'items' => [
                         ['url' => route('tenant_order_workspace'), 'icon' => 'plus-circle', 'label' => 'Create Quote'],
-                        ['url' => route('tenant_quotes_index'), 'icon' => 'list', 'label' => 'Quotes List'],
+                        ['url' => route('tenant_quotes_index'), 'icon' => 'list', 'label' => 'Quotes List', 'badge_key' => 'quotes_list'],
                         ['url' => route('tenant_order_workspace'), 'icon' => 'truck', 'label' => 'Create Shipping Quote'],
-                        ['url' => route('tenant_shipping_quotes_index'), 'icon' => 'list', 'label' => 'Shipping Quotes List'],
+                        ['url' => route('tenant_shipping_quotes_index'), 'icon' => 'list', 'label' => 'Shipping Quotes List', 'badge_key' => 'shipping_quotes_list'],
                     ],
                 ])
             </li>

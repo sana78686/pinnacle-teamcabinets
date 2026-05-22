@@ -39,6 +39,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 
 use Maatwebsite\Excel\Facades\Excel as FacadesExcel;
+use App\Services\AdminRecordViewService;
 use App\Services\TenantNotificationService;
 
 class TenantUserController extends Controller
@@ -174,6 +175,7 @@ class TenantUserController extends Controller
                 'company_name' => $request->business_name,
                 // 'gross_sale' => $request->gross_sale,
                 'status' => $request->status,
+                'admin_viewed_at' => now(),
             ]);
 
             Log::info('User Created');
@@ -270,12 +272,11 @@ class TenantUserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($id, AdminRecordViewService $adminView)
     {
         $user = User::with(['catalogVisibilities.productCatalog', 'catalogVisibilities', 'doorFactors.doorStyle'])->findOrFail($id);
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'User not found'], 404);
-        }
+
+        $adminView->markViewed($user, Auth::user());
 
         return view('tenants.users.show', compact('user'));
     }
@@ -294,10 +295,11 @@ class TenantUserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id): View
+    public function edit($id, AdminRecordViewService $adminView): View
     {
         $data = [];
-        $edit_user = User::find($id);
+        $edit_user = User::findOrFail($id);
+        $adminView->markViewed($edit_user, Auth::user());
         $data['user'] = User::with(['catalogVisibilities'])->find($id); // Eager load the catalogVisibilities relationship
         $data['product_catalogs'] = ProductCatalog::where('status', 1)->get();
             $data['countries'] = Country::where('id', 233)->pluck('name', 'id');

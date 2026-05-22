@@ -19,12 +19,6 @@
 @section('content')
 
 <div class="p-2 mt-0 card-header no-border">
-    {{-- <h5>Best Selling Stock Check</h5> --}}
-    <a href="{{ route('tenant_stock_check_create') }}" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
-        title="Create a new Stock Check in the system">
-        <i class="icofont icofont-plus"></i> Create Stock Check
-    </a>
-
     <a   href="{{ route('tenant_deleted_stock_check_list') }}" class="btn btn-success btn-sm" data-toggle="tooltip" title="Restore a previously deleted Stock Check">
         <i class="icofont icofont-spinner-alt-3"></i> Restore Stock Check
     </a>
@@ -46,7 +40,12 @@
 
 
 <div class="pt-0 card-body">
-    <div class="table-responsive table-sm">
+    @include('partials.tc-list-toolbar', [
+        'listUrl' => route('tenant_stock_check_index'),
+        'perPage' => $perPage ?? tenant_list_per_page(),
+        'search' => $search ?? '',
+    ])
+    <div class="table-responsive table-sm tc-admin-datatable">
         <table class="table p-0 m-0 display table-striped table-bordered table-sm" id="">
             <thead>
                 <tr>
@@ -60,7 +59,7 @@
             </thead>
             <tbody>
                 @forelse ($stock_check_requests as $request)
-                    <tr>
+                    <tr class="{{ tenant_admin_unviewed_row_class($request) }}">
                         <td>{{ $stock_check_requests->firstItem() + $loop->index }}</td>
                         <td>{{ $request->user?->name ?? '—' }}</td>
                         <td>{{ $request->user_address ?? '—' }}</td>

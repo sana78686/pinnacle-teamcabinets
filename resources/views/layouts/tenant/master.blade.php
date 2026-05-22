@@ -11,13 +11,6 @@
     <meta name="keywords"
         content="admin template, Poco admin template, dashboard template, flat admin template, responsive admin template, web app">
     <meta name="author" content="pixelstrap">
-<link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5-premium-features/46.0.0/ckeditor5-premium-features.css" />
-<link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5-premium-features/46.0.0/ckeditor5-premium-features.css" />
-     <!-- CKEditor Core Content Styles -->
-    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/46.0.0/ckeditor5.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <link rel="icon" href="{{ dynamic_url('assets/logo/pinnacle-favicon.png') }}" type="image/x-icon">
     <link rel="shortcut icon" href="{{ dynamic_url('assets/logo/pinnacle-favicon.png') }}" type="image/x-icon">
     <title>{{ config('app.name', 'Laravel') }} - @yield('title')</title>
@@ -38,12 +31,24 @@
 </head>
 
 <body>
+    @php($tcLayout = $tcLayout ?? tenant_layout_flags())
     <!-- Loader starts-->
-    <div class="loader-wrapper">
-        <div class="typewriter">
-            <h1>Pinnacle Admin Tenant Dashboard Loading..</h1>
-        </div>
+    <div class="loader-wrapper tc-loader" aria-hidden="true">
+        <p class="tc-loader-text mb-0">Loading…</p>
     </div>
+    <script>
+        (function () {
+            var hide = function () {
+                var el = document.querySelector('.loader-wrapper.tc-loader');
+                if (!el) return;
+                el.style.transition = 'opacity .12s ease';
+                el.style.opacity = '0';
+                setTimeout(function () { el.remove(); }, 130);
+            };
+            if (document.readyState !== 'loading') hide();
+            else document.addEventListener('DOMContentLoaded', hide);
+        })();
+    </script>
     <!-- Loader ends-->
     <!-- page-wrapper Start-->
     <div class="page-wrapper vertical tc-panel-shell">
@@ -61,12 +66,7 @@
                     @include('layouts.tenant.partials.trial-marquee')
                 @endauth
                 <div class="container-fluid">
-                    @php
-                        $tcShowPageHeader = View::hasSection('breadcrumb-title')
-                            || View::hasSection('breadcrumb-items')
-                            || ! empty($tcFrontendUrl ?? null);
-                    @endphp
-                    @if ($tcShowPageHeader)
+                    @if (View::hasSection('breadcrumb-title') || View::hasSection('breadcrumb-items') || ! empty($tcFrontendUrl ?? null))
                         <div class="page-header tc-page-header-row pb-0 pt-1">
                             <div class="row align-items-center">
                                 <div class="col-lg-6 main-header">

@@ -1,4 +1,4 @@
-@extends('layouts.tenant.master')
+@extends('layouts.tenant.products-form')
 @section('title', 'Product Catalog Menu')
 
 @section('css')
@@ -9,17 +9,12 @@
 @section('style')
 @endsection
 
-@section('breadcrumb-title')
-    <h2>Create product <span>Catalog </span></h2>
+@section('products_title')
+    Create catalog
 @endsection
 
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">products </li>
-    <li class="breadcrumb-item"> Catalog</li>
-    <li class="breadcrumb-item active">List</li>
-@endsection
 
-@section('content')
+@section('products_content')
 
     @include('partial.message')
 
@@ -63,7 +58,7 @@
 
 @endsection
 
-@section('script')
+@section('products_script')
 
 
 

@@ -1,4 +1,4 @@
-@extends('layouts.tenant.master')
+@extends('layouts.tenant.products-form')
 @section('title', 'Product Catalog Menu')
 @section('css')
     <link rel="stylesheet" type="text/css" href="{{ route('/') }}/assets/main/css/datatables.css">
@@ -6,14 +6,10 @@
 @endsection
 @section('style')
 @endsection
-@section('breadcrumb-title')
-    <h2>Update <span>Product Catalog  </span></h2>
+@section('products_title')
+    Edit door style
 @endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">Product Catalog</li>
-    <li class="breadcrumb-item active">List</li>
-@endsection
-@section('content')
+@section('products_content')
 <form method="POST" action="{{ isset($doorColor) ? route('tenant_door_style_update', $doorColor->id) : route('tenant_door_style_store') }}" enctype="multipart/form-data">
     @csrf
     @if(isset($doorColor))
@@ -64,7 +60,7 @@
     </button>
 </form>
 @endsection
-@section('script')
+@section('products_script')
     <script src="{{ route('/') }}/assets/main/js/datatable/datatables/jquery.dataTables.min.js"></script>
     <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.buttons.min.js"></script>
     <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/jszip.min.js"></script>

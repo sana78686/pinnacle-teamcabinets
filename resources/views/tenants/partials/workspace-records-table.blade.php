@@ -1,10 +1,22 @@
 @php
     $showRoute = $showRoute ?? null;
+    $editRoute = $editRoute ?? null;
     $destroyRoute = $destroyRoute ?? null;
     $rowLabel = $rowLabel ?? 'Record';
+    $listUrl = $listUrl ?? url()->current();
+    $perPage = (int) ($perPage ?? request('per_page', tenant_list_per_page()));
+    $search = $search ?? request('search', '');
 @endphp
 
-<div class="table-responsive table-sm">
+@if ($showListToolbar ?? true)
+    @include('partials.tc-list-toolbar', [
+        'listUrl' => $listUrl,
+        'perPage' => $perPage,
+        'search' => $search,
+    ])
+@endif
+
+<div class="table-responsive table-sm tc-admin-datatable">
     <table class="table table-striped table-bordered table-sm mb-0">
         <thead>
             <tr>
@@ -21,7 +33,7 @@
         </thead>
         <tbody>
             @forelse ($records as $record)
-                <tr>
+                <tr class="{{ tenant_admin_unviewed_row_class($record) }}">
                     <td>{{ $records->firstItem() + $loop->index }}</td>
                     <td>{{ $record->job_name }}</td>
                     <td>{{ $record->user?->name ?? $record->user_email ?? '—' }}</td>
@@ -34,8 +46,12 @@
                         @if ($showRoute)
                             <a href="{{ route($showRoute, $record->id) }}">Show</a>
                         @endif
-                        @if ($destroyRoute)
+                        @if ($editRoute)
                             @if ($showRoute) | @endif
+                            <a href="{{ route($editRoute, $record->id) }}">Edit</a>
+                        @endif
+                        @if ($destroyRoute)
+                            @if ($showRoute || $editRoute) | @endif
                             <form action="{{ route($destroyRoute, $record->id) }}" method="POST" class="d-inline"
                                 onsubmit="return confirm('Delete this {{ strtolower($rowLabel) }}?');">
                                 @csrf

@@ -516,6 +516,7 @@
             cus_rep_id: $('input[name="cus_rep_id"]').val() || '',
             cus_parent_id: $('input[name="cus_parent_id"]').val() || '',
             catalog_id: cfg.catalogId,
+            door_id: cfg.doorId,
         };
     }
 
@@ -732,7 +733,11 @@
         }
         $('#ow-err-quote-name').text('');
         $('#ow-modal-quote').modal('hide');
-        postAction(cfg.urls.quote, { quote_name: name, shipping_status: 'pending' })
+        postAction(cfg.urls.quote, {
+            quote_name: name,
+            shipping_status: 'pending',
+            quote_saved_id: $('#quote_saved_id').val() || '',
+        })
             .done(handleSaveResponse)
             .fail(showError);
     });
@@ -768,6 +773,7 @@
             ship_quote_liftgate_req: liftgate,
             ship_quote_unload_type: unload,
             shipping_status: 'yes',
+            shipping_quote_saved_id: $('#shipping_quote_saved_id').val() || '',
         })
             .done(handleSaveResponse)
             .fail(showError);

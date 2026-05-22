@@ -3,13 +3,18 @@
 namespace App\View\Composers;
 
 use App\Models\SiteSetting;
+use App\Services\TenantNavBadgeService;
 use App\Services\TenantSubscriptionService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class TenantPanelComposer
 {
+    protected static ?\App\Models\SiteSetting $cachedSiteSettings = null;
+
     public function __construct(
         protected TenantSubscriptionService $subscriptions,
+        protected TenantNavBadgeService $navBadges,
     ) {}
 
     public function compose(View $view): void
@@ -21,7 +26,12 @@ class TenantPanelComposer
 
         $status = $this->subscriptions->resolveStatus($tenant);
         $meta = $this->subscriptions->statusMeta($tenant);
-        $settings = SiteSetting::first();
+        $settings = self::$cachedSiteSettings ??= SiteSetting::query()->select(['id', 'logo'])->first();
+
+        $tcNavBadges = [];
+        if (Auth::check()) {
+            $tcNavBadges = $this->navBadges->countsForUser(Auth::user());
+        }
 
         $view->with([
             'tcTenant' => $tenant,
@@ -31,6 +41,8 @@ class TenantPanelComposer
             'tcTrialEndsAt' => $tenant->trial_ends_at,
             'tcShowTrialBanner' => $status === TenantSubscriptionService::STATUS_TRIAL && $tenant->trial_ends_at,
             'tcFrontendUrl' => tenant_url($tenant->id),
+            'tcLayout' => tenant_layout_flags(),
+            'tcNavBadges' => $tcNavBadges,
         ]);
     }
 }

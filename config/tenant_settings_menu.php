@@ -42,6 +42,8 @@ return [
                 'tenant_setting_tax_fees_shipping',
                 'tenant_setting_tax_fees_shipping_store',
                 'tenant_setting_tax_fees_sales_tax',
+                'tenant_setting_tax_fees_sales_tax_edit',
+                'tenant_setting_tax_fees_sales_tax_update',
                 'tenant_setting_tax_fees_sales_tax_store',
                 'tenant_setting_tax_fees_paytrace',
                 'tenant_setting_tax_fees_paytrace_store',

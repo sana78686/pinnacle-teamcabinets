@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Quote;
+use App\Services\AdminRecordViewService;
 use App\Services\OrderWorkspaceService;
+use App\Services\QuoteWorkspaceService;
+use App\Services\TenantNavBadgeService;
+use App\Support\TenantListPaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,89 +17,106 @@ class TenantQuotesController extends Controller
 {
     public function __construct(
         protected OrderWorkspaceService $workspace,
+        protected QuoteWorkspaceService $recordWorkspace,
     ) {}
 
-    public function index(): View
+    public function index(Request $request, TenantNavBadgeService $navBadges): View
     {
-        $records = $this->workspace
-            ->listQuery(Quote::class, Auth::user())
-            ->paginate(tenant_list_per_page())
-            ->withQueryString();
+        if (Auth::user()->hasRole('Admin')) {
+            $navBadges->markListSeen(Auth::user(), 'quotes_list');
+        }
+
+        $perPage = TenantListPaginator::perPage($request);
+        $search = TenantListPaginator::search($request);
+        $query = $this->workspace->listQuery(Quote::class, Auth::user());
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('job_name', 'like', '%'.$search.'%')
+                    ->orWhereHas('user', function ($u) use ($search) {
+                        $u->where('name', 'like', '%'.$search.'%')
+                            ->orWhere('email', 'like', '%'.$search.'%');
+                    });
+            });
+        }
+
+        $records = $query->paginate($perPage)->withQueryString();
 
         $view = Auth::user()->hasRole('Admin')
             ? 'tenants.quotes.index'
             : 'tenants.representative_modals.quotes.index';
 
-        return view($view, compact('records'));
+        return view($view, compact('records', 'perPage', 'search'));
     }
 
-    public function create(): RedirectResponse
+    public function edit(string $id, AdminRecordViewService $adminView): RedirectResponse
     {
-        return redirect()->route('tenant_order_workspace');
-    }
+        $quote = Quote::query()->findOrFail($id);
 
-    public function edit(string $id){
-
-        return view('tenants.quotes.edit');
-    }
-
-    public function show(string $id){
-
-        if(Auth::user()->hasRole('Admin'))
-        {
-            return view('tenants.quotes.show');
+        if (! $this->recordWorkspace->userMayAccess($quote, Auth::user())) {
+            abort(403);
         }
-        else
-        {
-            return view('tenants.representative_modals.quotes.show');
-        }
-        // return view('tenants.quotes.show');
+
+        $adminView->markViewed($quote, Auth::user());
+
+        return $this->recordWorkspace->restoreToWorkspace($quote, Auth::user());
     }
 
+    public function show(string $id, AdminRecordViewService $adminView): View
+    {
+        $quote = Quote::query()->with('user')->findOrFail($id);
 
+        if (! $this->recordWorkspace->userMayAccess($quote, Auth::user())) {
+            abort(403);
+        }
+
+        $adminView->markViewed($quote, Auth::user());
+
+        $data = [
+            'record' => $quote,
+            'recordLabel' => 'Quote',
+            'nameRowLabel' => 'Quote name',
+            'recordName' => $this->recordWorkspace->displayRecordName($quote),
+            'catalogLabel' => $this->recordWorkspace->catalogLabel($quote),
+            'doorLabel' => $quote->product_img_name ?? '—',
+            'billName' => $this->recordWorkspace->billName($quote),
+            'shipName' => $this->recordWorkspace->shipName($quote),
+            'rooms' => $quote->rooms ?? [],
+            'listRoute' => 'tenant_quotes_index',
+            'editRoute' => 'tenant_quotes_edit',
+        ];
+
+        $view = Auth::user()->hasRole('Admin')
+            ? 'tenants.quotes.show'
+            : 'tenants.representative_modals.quotes.show';
+
+        return view($view, $data);
+    }
+
+    public function destroy(string $id): RedirectResponse
+    {
+        $quote = Quote::query()->findOrFail($id);
+
+        if (! $this->recordWorkspace->userMayAccess($quote, Auth::user())) {
+            abort(403);
+        }
+
+        $quote->delete();
+
+        return redirect()
+            ->route('tenant_quotes_index')
+            ->with('success', 'Quote deleted successfully.');
+    }
 
     public function deleted_quotes_list()
-
     {
-        // $data['product_section'] = ProductSection::onlyTrashed()->get();
         return view('tenants.quotes.deleted_quotes_list');
     }
 
-    public function restoreDeletedproductsection($id)
-    {
-        // $product_section = ProductSection::onlyTrashed()->findOrFail($id);
-        // if (!$product_section) {
-        //     session()->flash('error', 'Product Section cannot found.');
-        //     return redirect()->back();
-        // }
-        // $product_section->restore(); // Restore the user
-        // return redirect()->route('tenant_deleted_product_section_list')
-        //     ->with('success', 'product_section.'.$product_section->name.'. Restored successfully');
-    }
+    public function restoreDeletedproductsection($id) {}
 
-    public function shipping_quotes_create(): RedirectResponse
-    {
-        return redirect()->route('tenant_order_workspace');
-    }
-
-    public function shipping_quotes_edit(string $id){
-        return view('tenants.quotes.edit_shipping_quotes');
-    }
-    public function shipping_quotes_show(){
-        if(Auth::user()->hasRole('Admin'))
-        {
-            return view('tenants.quotes.show_shipping_quotes');
-        }
-        else
-        {
-            return view('tenants.representative_modals.quotes.show_shipping_quotes');
-        }
-        // return view('tenants.quotes.show_shipping_quotes');
-    }
     public function deleted_shipping_quotes_list()
-
     {
-        // $data['product_section'] = ProductSection::onlyTrashed()->get();
         return view('tenants.quotes.deleted_shipping_quotes_list');
     }
 

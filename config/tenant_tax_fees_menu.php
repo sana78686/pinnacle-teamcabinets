@@ -24,7 +24,12 @@ return [
             'label' => 'Sales tax counties',
             'route' => 'tenant_setting_tax_fees_sales_tax',
             'icon' => 'map-pin',
-            'active' => ['tenant_setting_tax_fees_sales_tax', 'tenant_setting_tax_fees_sales_tax_store'],
+            'active' => [
+                'tenant_setting_tax_fees_sales_tax',
+                'tenant_setting_tax_fees_sales_tax_edit',
+                'tenant_setting_tax_fees_sales_tax_update',
+                'tenant_setting_tax_fees_sales_tax_store',
+            ],
         ],
         [
             'label' => 'Paytrace',

@@ -1,4 +1,4 @@
-@extends('layouts.tenant.master')
+@extends('layouts.tenant.products-form')
 @section('title', 'Product Category Menu')
 
 @section('css')
@@ -15,16 +15,12 @@
 
 @endsection
 
-@section('breadcrumb-title')
-    <h2>Update<span>Product Category</span></h2>
+@section('products_title')
+    Edit category
 @endsection
 
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">Product Category</li>
-    <li class="breadcrumb-item active">List</li>
-@endsection
 
-@section('content')
+@section('products_content')
 
 <form action="{{ route('tenant_product_section_update',$product_section->id) }}">
     <div class="row">
@@ -51,7 +47,7 @@
 
 @endsection
 
-@section('script')
+@section('products_script')
 
     <script src="{{ route('/') }}/assets/main/js/select2/select2.full.min.js"></script>
     {{-- <script src="{{ route('/') }}/assets/main/js/select2/select2-custom.js"></script> --}}

@@ -1,4 +1,4 @@
-@extends('layouts.tenant.master')
+@extends('layouts.tenant.products-form')
 @section('title', 'Product Menu')
 
 @section('css')
@@ -9,16 +9,12 @@
 @section('style')
 @endsection
 
-@section('breadcrumb-title')
-    <h2>Update<span>Product </span></h2>
+@section('products_title')
+    Edit product
 @endsection
 
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">Product</li>
-    <li class="breadcrumb-item active">List</li>
-@endsection
 
-@section('content')
+@section('products_content')
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm-12">
@@ -104,7 +100,7 @@
     </div>
 @endsection
 
-@section('script')
+@section('products_script')
 
 
 

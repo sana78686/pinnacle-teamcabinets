@@ -32,6 +32,7 @@
         'records' => $records,
         'rowLabel' => 'Quote',
         'showRoute' => 'tenant_quotes_show',
+        'editRoute' => 'tenant_quotes_edit',
         'destroyRoute' => 'tenant_quotes_destroy',
     ])
 </div>

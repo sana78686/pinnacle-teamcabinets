@@ -28,12 +28,7 @@
         @endif
 
         {{-- <h5>Best Selling Product</h5> --}}
-        <a href="{{ route('tenant_stock_check_create') }}" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
-            title="Create a new Stock Check in the system">
-            <i class="icofont icofont-plus"></i> Create Stock Check
-        </a>
-
-        <a href="" class="btn btn-success btn-sm" data-toggle="tooltip" title="Restore a previously deleted Stock Check">
+        <a href="{{ route('tenant_stock_check_index') }}" class="btn btn-success btn-sm" data-toggle="tooltip" title="Back to stock check list">
             <i class="icofont icofont-listing-number"></i> Stock Check List
         </a>
         <a href="{{ url()->current() }}" class="btn btn-light btn-sm" data-toggle="tooltip" title="Refresh this Page.">

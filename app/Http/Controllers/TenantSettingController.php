@@ -12,6 +12,7 @@ use App\Services\ManageOtherPageContentService;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use App\Models\SalesTaxCounty;
+use App\Support\TenantListPaginator;
 use App\Services\SalesTaxCountiesService;
 use App\Services\TaxValuesService;
 use App\Services\TenantFrontendThemeService;
@@ -225,32 +226,59 @@ class TenantSettingController extends Controller
             ->with('success', 'Shipping quote charges saved.');
     }
 
-    public function manage_tax_fees_sales_tax(SalesTaxCountiesService $salesTaxCounties)
+    public function manage_tax_fees_sales_tax(Request $request, SalesTaxCountiesService $salesTaxCounties)
     {
         app(TaxValuesService::class)->ensureDefaults();
         $salesTaxCounties->ensureFloridaDefaults();
 
-        $counties = SalesTaxCounty::query()->orderBy('counties')->get();
+        $perPage = TenantListPaginator::perPage($request, [10, 25, 50, 100], 10);
+        $search = TenantListPaginator::search($request);
 
-        return view('tenants.setting.manage_tax_fees_sales_tax', compact('counties'));
+        $query = SalesTaxCounty::query()
+            ->select(['id', 'counties', 'state_id', 'tax'])
+            ->orderBy('id');
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('counties', 'like', '%'.$search.'%');
+                if (is_numeric($search)) {
+                    $q->orWhere('id', (int) $search);
+                }
+            });
+        }
+
+        $counties = $query->paginate($perPage)->withQueryString();
+        $stateName = 'Florida';
+
+        return view('tenants.setting.manage_tax_fees_sales_tax', compact('counties', 'stateName', 'perPage', 'search'));
     }
 
-    public function store_tax_fees_sales_tax(Request $request)
+    public function edit_tax_fees_sales_tax(string $id)
     {
+        $county = SalesTaxCounty::query()->findOrFail($id);
+        $stateName = 'Florida';
+
+        return view('tenants.setting.manage_tax_fees_sales_tax_edit', compact('county', 'stateName'));
+    }
+
+    public function update_tax_fees_sales_tax(Request $request, string $id)
+    {
+        $county = SalesTaxCounty::query()->findOrFail($id);
+
         $validated = $request->validate([
-            'counties' => 'required|array',
-            'counties.*.tax' => 'required|numeric|min:0|max:100',
+            'sales_tax_amount' => 'required|numeric|min:0|max:100',
         ]);
 
-        foreach ($validated['counties'] as $id => $row) {
-            SalesTaxCounty::query()->whereKey($id)->update([
-                'tax' => (float) $row['tax'],
-            ]);
-        }
+        $county->update(['tax' => (float) $validated['sales_tax_amount']]);
 
         return redirect()
             ->route('tenant_setting_tax_fees_sales_tax')
-            ->with('success', 'Florida county sales tax rates updated.');
+            ->with('success', 'Sales tax updated for '.$county->counties.'.');
+    }
+
+    /** @deprecated Use per-county edit on the sales tax list. */
+    public function store_tax_fees_sales_tax(Request $request)
+    {
+        return redirect()->route('tenant_setting_tax_fees_sales_tax');
     }
 
     public function manage_tax_fees_paytrace(TaxValuesService $taxValues)

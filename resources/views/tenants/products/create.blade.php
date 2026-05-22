@@ -1,4 +1,4 @@
-@extends('layouts.tenant.master')
+@extends('layouts.tenant.products-form')
 @section('title', 'Product Menu')
 
 @section('css')
@@ -8,16 +8,11 @@
 @section('style')
 @endsection
 
-@section('breadcrumb-title')
-    <h2>Create <span>Products </span></h2>
+@section('products_title')
+    Create product
 @endsection
 
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">Products</li>
-    <li class="breadcrumb-item active">Create</li>
-@endsection
-
-@section('content')
+@section('products_content')
     @include('partial.flashMessage')
     <div class="m-2 card-body">
         <form method="POST" action="{{ route('tenant_product_store') }}" enctype="multipart/form-data">
@@ -137,7 +132,7 @@
 
 @endsection
 
-@section('script')
+@section('products_script')
 
     <script src="{{ route('/') }}/assets/main/js/select2/select2.full.min.js"></script>
     <script src="{{ route('/') }}/assets/main/js/select2/select2-custom.js"></script>

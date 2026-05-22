@@ -73,8 +73,6 @@ foreach (config('tenancy.central_domains') as $domain) {
             return "Cache is cleared";
         })->name('clear.cache');
 
-        Route::get('/dev/migrate-fresh-seed', \App\Http\Controllers\DevDatabaseSetupController::class)
-            ->name('dev.migrate_fresh_seed');
 
         /*** Authentiction Route */
         Route::get('/', [MarketingController::class, 'home'])->name('/');

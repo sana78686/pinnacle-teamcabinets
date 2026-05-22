@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\TenantNavBadgeService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TenantNotificationController extends Controller
 {
+    public function __construct(
+        protected TenantNavBadgeService $navBadges,
+    ) {}
     public function index(Request $request)
     {
         $notifications = $request->user()->notifications()->latest()->paginate(tenant_list_per_page())->withQueryString();
@@ -17,18 +22,23 @@ class TenantNotificationController extends Controller
     public function poll(Request $request): JsonResponse
     {
         $user = $request->user();
-        $since = $request->query('since');
+        $sinceRaw = $request->query('since');
 
         $all = $user->notifications()->latest()->take(20)->get();
         $unreadCount = $user->unreadNotifications()->count();
 
         $newItems = collect();
-        if ($since) {
-            $newItems = $user->unreadNotifications()
-                ->where('created_at', '>', $since)
-                ->latest()
-                ->take(10)
-                ->get();
+        if ($sinceRaw) {
+            try {
+                $since = Carbon::parse($sinceRaw);
+                $newItems = $user->unreadNotifications()
+                    ->where('created_at', '>', $since)
+                    ->latest()
+                    ->take(10)
+                    ->get();
+            } catch (\Throwable) {
+                $newItems = collect();
+            }
         }
 
         $map = fn ($n) => [
@@ -46,6 +56,8 @@ class TenantNotificationController extends Controller
             'unread_count' => $unreadCount,
             'notifications' => $all->map($map)->values(),
             'new' => $newItems->map($map)->values(),
+            'server_time' => now()->toIso8601String(),
+            'nav_badges' => $this->navBadges->countsForUser($user),
         ]);
     }
 
@@ -55,9 +67,12 @@ class TenantNotificationController extends Controller
         $notification?->markAsRead();
 
         if ($request->expectsJson()) {
+            $user = $request->user();
+
             return response()->json([
                 'ok' => true,
-                'unread_count' => $request->user()->unreadNotifications()->count(),
+                'unread_count' => $user->unreadNotifications()->count(),
+                'nav_badges' => $this->navBadges->countsForUser($user),
             ]);
         }
 
@@ -66,11 +81,14 @@ class TenantNotificationController extends Controller
 
     public function markAllRead(Request $request): JsonResponse
     {
-        $request->user()->unreadNotifications->markAsRead();
+        $request->user()->unreadNotifications()->update(['read_at' => now()]);
+
+        $user = $request->user();
 
         return response()->json([
             'ok' => true,
             'unread_count' => 0,
+            'nav_badges' => $this->navBadges->countsForUser($user),
         ]);
     }
 }

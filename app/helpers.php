@@ -99,3 +99,41 @@ if (! function_exists('tenant_list_per_page')) {
         return max(1, (int) config('tenant_panel.list_per_page', 15));
     }
 }
+
+if (! function_exists('tenant_admin_unviewed_row_class')) {
+    /**
+     * Yellow highlight class for admin list rows not yet opened (CI is_viewed parity).
+     */
+    function tenant_admin_unviewed_row_class(object $record): string
+    {
+        return app(\App\Services\AdminRecordViewService::class)->isUnviewed($record)
+            ? 'tc-row-unviewed'
+            : '';
+    }
+}
+
+if (! function_exists('tenant_layout_flags')) {
+    /**
+     * Per-request flags for slimming tenant panel assets without changing page behavior.
+     *
+     * @return array{settings_extras: bool}
+     */
+    function tenant_layout_flags(): array
+    {
+        static $flags = null;
+
+        if ($flags !== null) {
+            return $flags;
+        }
+
+        $settingsPatterns = config('tenant_assets.settings_route_patterns', []);
+        $productsFormPatterns = config('tenant_assets.products_form_route_patterns', []);
+
+        $flags = [
+            'settings_extras' => $settingsPatterns !== [] && request()->routeIs(...$settingsPatterns)
+                || ($productsFormPatterns !== [] && request()->routeIs(...$productsFormPatterns)),
+        ];
+
+        return $flags;
+    }
+}

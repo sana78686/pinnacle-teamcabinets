@@ -1,27 +1,21 @@
-@extends('layouts.light.master')
-@section('title', 'Shipping Quote Details')
+@extends('layouts.tenant.master')
+@section('title', 'View Shipping Quote')
 
 @section('breadcrumb-title')
-    <h2>Shipping Quote<span> Details</span></h2>
+    <h2>View Shipping Quote</h2>
 @endsection
 
 @section('breadcrumb-items')
     <li class="breadcrumb-item"><a href="{{ route('tenant_shipping_quotes_index') }}">Shipping Quotes</a></li>
-    <li class="breadcrumb-item active">Details</li>
+    <li class="breadcrumb-item active">View</li>
 @endsection
 
 @section('content')
-@include('tenants.partials.workspace-record-detail', [
-    'record' => $record,
-    'recordLabel' => $recordLabel,
-    'nameRowLabel' => $nameRowLabel,
-    'recordName' => $recordName,
-    'billName' => $billName,
-    'shipName' => $shipName,
-    'catalogLabel' => $catalogLabel,
-    'doorLabel' => $doorLabel,
-    'rooms' => $rooms,
-    'listRoute' => $listRoute,
-    'editRoute' => $editRoute,
-])
+    @include('tenants.quotes.partials.shipping-quote-admin-show', [
+        'quoteView' => array_merge($userView, [
+            'showAdminForm' => false,
+            'canProceedToCheckout' => $canProceedToCheckout,
+            'proceedCheckoutRoute' => $proceedCheckoutRoute,
+        ]),
+    ])
 @endsection

@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\SalesTaxCounty;
+use App\Models\State;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 
 class OrderWorkspaceCheckoutService
 {
@@ -83,16 +85,188 @@ class OrderWorkspaceCheckoutService
     /**
      * CI getPaymentCharges() — tenant tax_values (legacy site_config keys).
      *
-     * @return array{fuel_percent: float, credit_card_percent: float, debit_card_percent: float, ach_charge: float}
+     * @return array{fuel_percent: float, credit_card_percent: float, debit_card_flat: float, ach_charge: float}
      */
     public function paymentFeeConfig(): array
     {
         return [
             'fuel_percent' => (float) (tax_value('fuel_charges_value', 0) ?? 0),
             'credit_card_percent' => (float) (tax_value('credit_card_charges', 0) ?? 0),
-            'debit_card_percent' => (float) (tax_value('debit_card_charges', 0) ?? 0),
+            'debit_card_flat' => (float) (tax_value('debit_card_charges', 0) ?? 0),
             'ach_charge' => (float) (tax_value('ach_pay_charges', 0) ?? 0),
         ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function usStateOptions(): array
+    {
+        if (! Schema::hasTable('states')) {
+            return ['Florida', 'Alabama', 'Georgia'];
+        }
+
+        return State::query()
+            ->where('country_id', 233)
+            ->orderBy('name')
+            ->pluck('name')
+            ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function floridaCountyOptions(): array
+    {
+        if (! Schema::hasTable('sales_tax_counties')) {
+            return [];
+        }
+
+        return SalesTaxCounty::query()
+            ->orderBy('counties')
+            ->pluck('counties')
+            ->all();
+    }
+
+    public function salesTaxPercentForLocation(string $state, string $county, User $user): float
+    {
+        if ((int) ($user->is_taxable_user ?? 0) === 1) {
+            return 0.0;
+        }
+
+        $stateNorm = strtolower(trim($state));
+
+        if ($stateNorm === 'florida' || $stateNorm === 'fl') {
+            $county = trim($county);
+            if ($county !== '' && Schema::hasTable('sales_tax_counties')) {
+                $row = SalesTaxCounty::query()->where('counties', $county)->first();
+                if ($row && (float) $row->tax > 0) {
+                    return (float) $row->tax;
+                }
+            }
+
+            return 7.0;
+        }
+
+        return (float) (tax_value('sales_tax_percentage', 0) ?? 0);
+    }
+
+    /**
+     * CI "You save" amounts vs credit-card fee baseline.
+     *
+     * @return array{credit: float, debit: float, ach: float, cash: float}
+     */
+    public function paymentSavings(
+        float $subTotal,
+        float $assembleTotal,
+        float $salesTaxPercent,
+        float $shippingCost = 0.0,
+    ): array {
+        $fees = $this->paymentFeeConfig();
+        $fuelAmount = round($subTotal * ($fees['fuel_percent'] / 100), 2);
+        $salesTaxAmount = round($subTotal * ($salesTaxPercent / 100), 2);
+        $prePayment = $subTotal + $assembleTotal + $fuelAmount + $salesTaxAmount + $shippingCost;
+        $creditFee = $fees['credit_card_percent'] > 0
+            ? round($prePayment * ($fees['credit_card_percent'] / 100), 2)
+            : 0.0;
+
+        return [
+            'credit' => 0.0,
+            'debit' => max(0, round($creditFee - $fees['debit_card_flat'], 2)),
+            'ach' => max(0, round($creditFee - $fees['ach_charge'], 2)),
+            'cash' => $creditFee,
+        ];
+    }
+
+    public function resolvePaymentLabel(string $creditOrNot, ?string $cashMethod = null): string
+    {
+        return match ($creditOrNot) {
+            'by_credit_card' => 'Credit Card',
+            'by_debit_card' => 'Debit Card',
+            'pay_ach' => 'ACH',
+            'not_credit_card_and_ach' => match (strtolower((string) $cashMethod)) {
+                'wire transfer', 'wire' => 'Wire Transfer',
+                default => 'Cash',
+            },
+            default => 'Check',
+        };
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function validateCheckout(Request $request): array
+    {
+        $paymentType = (string) $request->input('credit_or_not_credit_card', 'by_credit_card');
+
+        $rules = [
+            'credit_or_not_credit_card' => ['required', Rule::in([
+                'by_credit_card', 'by_debit_card', 'pay_ach', 'not_credit_card_and_ach',
+            ])],
+            'bill_to_name' => 'required|string|max:255',
+            'bill_to_address' => 'required|string|max:500',
+            'bill_to_city' => 'required|string|max:120',
+            'bill_to_state' => 'required|string|max:120',
+            'bill_to_county' => 'required|string|max:120',
+            'bill_to_country' => 'required|string|max:120',
+            'bill_to_zip' => 'required|string|max:20',
+            'bill_to_email' => 'required|email|max:255',
+            'bill_to_phone' => 'required|string|max:40',
+            'ship_to_name' => 'required|string|max:255',
+            'ship_to_address' => 'required|string|max:500',
+            'ship_city' => 'required|string|max:120',
+            'ship_state' => 'required|string|max:120',
+            'ship_county' => 'required|string|max:120',
+            'ship_country' => 'required|string|max:120',
+            'ship_zip' => 'required|string|max:20',
+            'ship_to_email' => 'required|email|max:255',
+            'ship_to_phone' => 'required|string|max:40',
+            'updated_sales_tax' => 'nullable|numeric|min:0|max:100',
+            'custom_all_cart_total' => 'nullable|numeric|min:0',
+        ];
+
+        if ($paymentType === 'by_credit_card') {
+            $rules += [
+                'checkout_fname' => 'required|string|max:120',
+                'checkout_lname' => 'required|string|max:120',
+                'checkout_address' => 'required|string|max:500',
+                'checkout_city' => 'required|string|max:120',
+                'checkout_state' => 'required|string|max:120',
+                'checkout_zipcode' => 'required|string|max:20',
+                'card_number' => 'required|string|max:24',
+                'expiry_date' => ['required', 'regex:/^\d{2}\/\d{2}$/'],
+                'cvv_number' => 'required|string|max:8',
+                'membership_agree' => 'accepted',
+            ];
+        } elseif ($paymentType === 'by_debit_card') {
+            $rules += [
+                'debit_checkout_fname' => 'required|string|max:120',
+                'debit_checkout_lname' => 'required|string|max:120',
+                'debit_checkout_address' => 'required|string|max:500',
+                'debit_checkout_city' => 'required|string|max:120',
+                'debit_checkout_state' => 'required|string|max:120',
+                'debit_checkout_zipcode' => 'required|string|max:20',
+                'debit_card_number' => 'required|string|max:24',
+                'debit_expiry_date' => ['required', 'regex:/^\d{2}\/\d{2}$/'],
+                'debit_cvv_number' => 'required|string|max:8',
+                'membership_agree' => 'accepted',
+            ];
+        } elseif ($paymentType === 'pay_ach') {
+            $rules += [
+                'ach_checkout_fname' => 'required|string|max:120',
+                'ach_checkout_lname' => 'required|string|max:120',
+                'ach_checkout_address' => 'required|string|max:500',
+                'ach_checkout_city' => 'required|string|max:120',
+                'ach_checkout_state' => 'required|string|max:120',
+                'ach_checkout_zipcode' => 'required|string|max:20',
+                'account_number' => 'required|string|max:30',
+                'route_number' => 'required|string|max:15',
+            ];
+        } else {
+            $rules['payment_method'] = ['required', Rule::in(['cash', 'wire transfer', 'wire'])];
+        }
+
+        return $request->validate($rules);
     }
 
     /**
@@ -113,20 +287,22 @@ class OrderWorkspaceCheckoutService
 
         $prePayment = $subTotal + $assembleTotal + $fuelAmount + $salesTaxAmount + $shippingCost;
 
-        $cardPercent = 0.0;
+        $cardChargeAmount = 0.0;
+        $debitChargeAmount = 0.0;
         $achCharge = 0.0;
+        $cardPercent = 0.0;
         $method = strtolower($paymentMethod);
 
         if (str_contains($method, 'credit')) {
             $cardPercent = $fees['credit_card_percent'];
+            $cardChargeAmount = $cardPercent > 0 ? round($prePayment * ($cardPercent / 100), 2) : 0.0;
         } elseif (str_contains($method, 'debit')) {
-            $cardPercent = $fees['debit_card_percent'];
+            $debitChargeAmount = $fees['debit_card_flat'];
         } elseif ($method === 'ach') {
             $achCharge = $fees['ach_charge'];
         }
 
-        $cardChargeAmount = $cardPercent > 0 ? round($prePayment * ($cardPercent / 100), 2) : 0.0;
-        $grandTotal = round($prePayment + $cardChargeAmount + $achCharge, 2);
+        $grandTotal = round($prePayment + $cardChargeAmount + $debitChargeAmount + $achCharge, 2);
 
         return [
             'fuel_percent' => $fees['fuel_percent'],
@@ -135,9 +311,11 @@ class OrderWorkspaceCheckoutService
             'sales_tax_amount' => $salesTaxAmount,
             'credit_card_percent' => $cardPercent,
             'credit_card_charges' => $cardChargeAmount,
+            'debit_card_charges' => $debitChargeAmount,
             'ach_charges' => $achCharge,
             'amount_before_tax' => round($subTotal + $assembleTotal + $fuelAmount + $shippingCost, 2),
             'grand_total' => $grandTotal,
+            'payment_fee' => $cardChargeAmount + $debitChargeAmount + $achCharge,
         ];
     }
 
@@ -238,6 +416,114 @@ class OrderWorkspaceCheckoutService
         }
 
         return $ciRooms;
+    }
+
+    /**
+     * Normalize workspace rooms from modern or legacy CI JSON into [{room_name, products: [...]}].
+     *
+     * @param  array<mixed>  $rooms
+     * @return array<int, array{room_name: string, products: array<int, array<string, mixed>>}>
+     */
+    public function normalizeRoomsFromStorage(array $rooms): array
+    {
+        if ($rooms === []) {
+            return [];
+        }
+
+        if ($this->isCiRoomMap($rooms)) {
+            return $this->ciRoomMapToModern($rooms);
+        }
+
+        $normalized = [];
+        foreach ($rooms as $room) {
+            if (! is_array($room)) {
+                continue;
+            }
+            if (isset($room['product_sku']) && is_array($room['product_sku'])) {
+                $roomName = (string) ($room['room_name'] ?? 'Room');
+                $normalized = array_merge($normalized, $this->ciRoomMapToModern([$roomName => $room]));
+
+                continue;
+            }
+            $products = $room['products'] ?? [];
+            if (! is_array($products) || $products === []) {
+                continue;
+            }
+            $normalized[] = [
+                'room_name' => (string) ($room['room_name'] ?? 'Room'),
+                'products' => $products,
+            ];
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param  array<mixed>  $rooms
+     */
+    protected function isCiRoomMap(array $rooms): bool
+    {
+        if (array_is_list($rooms)) {
+            return false;
+        }
+
+        foreach ($rooms as $val) {
+            if (is_array($val) && isset($val['product_sku']) && is_array($val['product_sku'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $rooms
+     * @return array<int, array{room_name: string, products: array<int, array<string, mixed>>}>
+     */
+    protected function ciRoomMapToModern(array $rooms): array
+    {
+        $out = [];
+
+        foreach ($rooms as $roomName => $val) {
+            if (! is_array($val)) {
+                continue;
+            }
+            $skus = $val['product_sku'] ?? [];
+            if (! is_array($skus) || $skus === []) {
+                continue;
+            }
+
+            $products = [];
+            $count = count($skus);
+            for ($i = 0; $i < $count; $i++) {
+                $qty = max(1, (int) ($val['product_quantity'][$i] ?? 1));
+                $unit = (float) ($val['product_cost'][$i] ?? 0);
+                $totPrice = (float) preg_replace('/[^\d.]/', '', (string) ($val['product_tot_price'][$i] ?? ''));
+                $productId = (int) ($val['product_ids'][$i] ?? $val['add_pro_ids_room_wise'][$i] ?? 0);
+
+                $products[] = [
+                    'product_id' => $productId > 0 ? $productId : null,
+                    'sku' => (string) ($skus[$i] ?? ''),
+                    'quantity' => $qty,
+                    'weight' => (float) ($val['product_weight'][$i] ?? 0),
+                    'cost' => $unit,
+                    'line_total' => $totPrice > 0 ? $totPrice : round($unit * $qty, 2),
+                    'description' => (string) ($val['product_cabinets_description'][$i] ?? $val['product_name'][$i] ?? $skus[$i] ?? ''),
+                    'assemble_cost' => (float) ($val['product_assemble_cost'][$i] ?? 0),
+                    'checkbox_val1' => ($val['checkbox_val1'][$i] ?? '0') === '1' || ($val['checkbox_val1'][$i] ?? 0) == 1,
+                    'checkbox_val2' => ($val['checkbox_val2'][$i] ?? '0') === '1' || ($val['checkbox_val2'][$i] ?? 0) == 1,
+                ];
+            }
+
+            if ($products !== []) {
+                $out[] = [
+                    'room_name' => (string) $roomName,
+                    'products' => $products,
+                ];
+            }
+        }
+
+        return $out;
     }
 
     /**

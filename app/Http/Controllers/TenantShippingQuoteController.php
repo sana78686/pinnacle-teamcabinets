@@ -67,7 +67,42 @@ class TenantShippingQuoteController extends Controller
             ]);
         }
 
-        return view('tenants.representative_modals.quotes.show_shipping_quotes', $this->detailViewData($record));
+        return view('tenants.representative_modals.quotes.show_shipping_quotes', [
+            'userView' => $this->shippingAdminView->viewData($record),
+            'canProceedToCheckout' => $this->shippingAdminView->canProceedToCheckout($record),
+            'proceedCheckoutRoute' => route('tenant_shipping_quotes_proceed_checkout', $record->id),
+        ]);
+    }
+
+    public function proceedToCheckout(string $id): RedirectResponse
+    {
+        $record = ShippingQuote::query()->with('user')->findOrFail($id);
+
+        if (! $this->recordWorkspace->userMayAccess($record, Auth::user())) {
+            abort(403);
+        }
+
+        if (! $this->shippingAdminView->canProceedToCheckout($record)) {
+            return redirect()
+                ->route('tenant_shipping_quotes_show', $record->id)
+                ->with('error', 'Shipping charges are not ready yet. Please wait for an administrator to complete your quote.');
+        }
+
+        try {
+            $session = $this->shippingAdminView->buildCheckoutSession($record, Auth::user());
+        } catch (\InvalidArgumentException $e) {
+            return redirect()
+                ->route('tenant_shipping_quotes_show', $record->id)
+                ->with('error', $e->getMessage());
+        }
+
+        session([
+            'workspace_checkout' => $session['payload'],
+            'cart_data' => $session['cartData'],
+            'shipping_quote_checkout_id' => $record->id,
+        ]);
+
+        return redirect()->route('tenant_order_workspace_checkout');
     }
 
     public function updateShippingCosts(Request $request, string $id): RedirectResponse

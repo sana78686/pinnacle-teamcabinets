@@ -37,7 +37,7 @@
             <li class="tc-nav-has-children {{ request()->routeIs('tenant_order_*') ? 'tc-nav-active' : '' }}" data-nav-module="orders">
                 <a href="#">
                     <i data-feather="shopping-cart"></i><span>Orders</span>
-                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['orders'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="orders" @if ((int) ($tcNavBadges['orders'] ?? 0) <= 0) hidden @endif aria-hidden="true"></span>
+                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['orders'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="orders" {{ (int) ($tcNavBadges['orders'] ?? 0) <= 0 ? 'hidden' : '' }} aria-hidden="true"></span>
                 </a>
                 @include('layouts.tenant.partials.nav-dropdown', [
                     'title' => 'Orders',
@@ -47,13 +47,16 @@
                     ],
                 ])
             </li>
-            <li class="tc-nav-has-children {{ request()->routeIs('tenant_claim_*') ? 'tc-nav-active' : '' }}">
-                <a href="#"><i data-feather="alert-circle"></i><span>Claims</span></a>
+            <li class="tc-nav-has-children {{ request()->routeIs('tenant_claim_*') ? 'tc-nav-active' : '' }}" data-nav-module="claims">
+                <a href="#">
+                    <i data-feather="alert-circle"></i><span>Claims</span>
+                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['claims'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="claims" {{ (int) ($tcNavBadges['claims'] ?? 0) <= 0 ? 'hidden' : '' }} aria-hidden="true"></span>
+                </a>
                 @include('layouts.tenant.partials.nav-dropdown', [
                     'title' => 'Claims',
                     'items' => [
-                        ['url' => '#', 'icon' => 'plus-circle', 'label' => 'Create Claim'],
-                        ['url' => route('tenant_claim_index'), 'icon' => 'list', 'label' => 'Claims List'],
+                        ['url' => route('tenant_claim_create'), 'icon' => 'plus-circle', 'label' => 'Create Claim'],
+                        ['url' => route('tenant_claim_index'), 'icon' => 'list', 'label' => 'Claims List', 'badge_key' => 'claims_list'],
                     ],
                 ])
             </li>
@@ -72,30 +75,15 @@
                     <i data-feather="settings"></i><span>Settings</span>
                 </a>
             </li>
-            <li class="tc-nav-has-children {{ request()->routeIs('tenant_stock_check_*') ? 'tc-nav-active' : '' }}" data-nav-module="stock_check">
-                <a href="#">
-                    <i data-feather="layers"></i><span>Stock Check</span>
-                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['stock_check'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="stock_check" @if ((int) ($tcNavBadges['stock_check'] ?? 0) <= 0) hidden @endif aria-hidden="true"></span>
-                </a>
-                @include('layouts.tenant.partials.nav-dropdown', [
-                    'title' => 'Stock Check',
-                    'items' => [
-                        ['url' => route('tenant_order_workspace'), 'icon' => 'plus-circle', 'label' => 'Create Stock Check'],
-                        ['url' => route('tenant_stock_check_index'), 'icon' => 'list', 'label' => 'Stock Check List', 'badge_key' => 'stock_check_list'],
-                    ],
-                ])
-            </li>
             <li class="tc-nav-has-children {{ request()->routeIs(['tenant_quotes_*', 'tenant_shipping_quotes_*']) ? 'tc-nav-active' : '' }}" data-nav-module="quotes">
                 <a href="#">
                     <i data-feather="file-text"></i><span>Quotes</span>
-                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['quotes'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="quotes" @if ((int) ($tcNavBadges['quotes'] ?? 0) <= 0) hidden @endif aria-hidden="true"></span>
+                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['quotes'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="quotes" {{ (int) ($tcNavBadges['quotes'] ?? 0) <= 0 ? 'hidden' : '' }} aria-hidden="true"></span>
                 </a>
                 @include('layouts.tenant.partials.nav-dropdown', [
                     'title' => 'Quotes',
                     'items' => [
-                        ['url' => route('tenant_order_workspace'), 'icon' => 'plus-circle', 'label' => 'Create Quote'],
                         ['url' => route('tenant_quotes_index'), 'icon' => 'list', 'label' => 'Quotes List', 'badge_key' => 'quotes_list'],
-                        ['url' => route('tenant_order_workspace'), 'icon' => 'truck', 'label' => 'Create Shipping Quote'],
                         ['url' => route('tenant_shipping_quotes_index'), 'icon' => 'list', 'label' => 'Shipping Quotes List', 'badge_key' => 'shipping_quotes_list'],
                     ],
                 ])

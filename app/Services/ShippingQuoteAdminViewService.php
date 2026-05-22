@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\ProductCatalog;
 use App\Models\ShippingQuote;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 class ShippingQuoteAdminViewService
 {
@@ -24,17 +26,140 @@ class ShippingQuoteAdminViewService
         $totals = $this->totalsFromRecord($record);
         $palletUnit = app(TaxValuesService::class)->getFloat('pallet_cost', OrderWorkspaceShippingService::PALLET_COST);
 
+        $assembleYes = in_array($record->assemble_cabinets_check ?? '', ['yes', '1', 1], true);
+
         return array_merge($addresses, $totals, [
             'record' => $record,
             'quoteName' => $this->quoteDisplayName($record),
             'companyName' => $user?->company_name ?: 'N/A',
             'lines' => $lines,
+            'assembleYes' => $assembleYes,
+            'isShippingQuote' => true,
             'palletUnitCost' => $palletUnit,
             'deliveryLabel' => $this->deliveryLabel($record),
             'unloadLabel' => $this->unloadLabel($record),
             'listRoute' => 'tenant_shipping_quotes_index',
             'updateRoute' => route('tenant_shipping_quotes_update_costs', $record->id),
+            'showAdminForm' => true,
         ]);
+    }
+
+    public function canProceedToCheckout(ShippingQuote $record): bool
+    {
+        return $record->shipping_status === 'yes'
+            && (float) ($record->shipping_cost ?? 0) > 0
+            && (float) ($record->grand_total_cost ?? 0) > 0;
+    }
+
+    /**
+     * @return array{payload: array<string, mixed>, cartData: array<string, mixed>}
+     */
+    public function buildCheckoutSession(ShippingQuote $record, User $user): array
+    {
+        if (! $this->canProceedToCheckout($record)) {
+            throw new \InvalidArgumentException('Shipping quote is not ready for checkout.');
+        }
+
+        $record->loadMissing(['user.country', 'user.state']);
+        $assembleYes = in_array($record->assemble_cabinets_check, ['yes', '1', 1], true);
+        $shippingCost = (float) ($record->shipping_cost ?? 0);
+        $subTotal = (float) ($record->sub_total_cost ?? 0);
+        $assembleTotal = (float) ($record->sub_total_assemble_cost ?? 0);
+        $weight = (float) ($record->sub_total_weight ?? 0);
+
+        $payload = [
+            'job_name' => $record->job_name,
+            'rooms' => $record->rooms ?? [],
+            'assemble' => $assembleYes ? 'yes' : 'no',
+            'shipping_status' => 'yes',
+            'comment' => $record->comment,
+            'quote_name' => $record->quote_name,
+            'user' => $user,
+            'totals' => [
+                'sub_total_cost' => $subTotal,
+                'sub_total_weight' => $weight,
+                'sub_total_assemble_cost' => $assembleTotal,
+                'grand_total_cost' => (float) ($record->grand_total_cost ?? 0),
+            ],
+            'shipping_cost' => $shippingCost,
+            'product_catalog_id' => $record->product_catalog_id,
+            'door_color_id' => $record->door_color_id,
+            'product_img_src' => $record->product_img_src,
+            'product_img_name' => $record->product_img_name,
+            'shipping_quote_id' => $record->id,
+            'delivery_cost' => (float) ($record->delivery_cost ?? 0),
+            'liftgate_cost' => (float) ($record->liftgate_cost ?? 0),
+            'unload_cost' => (float) ($record->unload_cost ?? 0),
+            'pallets_cost' => (float) ($record->pallets_cost ?? 0),
+            'miscellaneous_cost' => (float) ($record->miscellaneous_cost ?? 0),
+        ];
+
+        $catalogName = $record->product_catalog_id
+            ? (ProductCatalog::query()->whereKey($record->product_catalog_id)->value('name') ?? '')
+            : '';
+
+        $roomRequest = Request::create('/', 'GET', [
+            'product_img_name' => $record->product_img_name,
+            'catalogue_name' => $catalogName,
+            'catalog_id' => $record->product_catalog_id,
+        ]);
+
+        $cartData = array_merge($this->checkout->billShipAddresses($user), [
+            'user_id' => $user->id,
+            'job_name' => $record->job_name,
+            'order_comment' => $record->comment ?? '',
+            'is_assemble' => $assembleYes ? 1 : 2,
+            'assemble_cabinets_check' => $assembleYes ? 'yes' : 'no',
+            'room_data' => json_encode($this->checkout->buildCiRoomData($record->rooms ?? [], $roomRequest)),
+            'cart_product_weight' => number_format($weight, 2).' lbs',
+            'all_cart_total' => number_format($subTotal, 2, '.', ''),
+            'catalogue' => $record->product_catalog_id,
+            'product_img_src' => $record->product_img_src ?? '',
+            'product_img_name' => $record->product_img_name ?? '',
+            'is_shipping_quote' => 1,
+            'order_shipping_cost' => $shippingCost,
+            'shipping_charges_arr' => json_encode($this->shippingChargesBreakdown($record)),
+            'shipping_quote_id' => $record->id,
+            'stock_check_shipping_type' => 0,
+        ]);
+
+        return ['payload' => $payload, 'cartData' => $cartData];
+    }
+
+    /**
+     * @return array<string, float>
+     */
+    protected function shippingChargesBreakdown(ShippingQuote $record): array
+    {
+        $lines = [];
+        $pallets = (float) ($record->pallets_cost ?? 0);
+        if ($pallets > 0) {
+            $count = (int) ($record->total_pallets ?? 1);
+            $lines['Pallets(Total Pallets = '.$count.')'] = $pallets;
+        }
+        $delivery = (float) ($record->delivery_cost ?? 0);
+        if ($delivery > 0) {
+            $lines[$this->deliveryLabel($record) === 'Commercial'
+                ? 'Delivery Charges(Commercial)'
+                : 'Delivery Charges(Residential)'] = $delivery;
+        }
+        $liftgate = (float) ($record->liftgate_cost ?? 0);
+        if ($liftgate > 0) {
+            $lines['Liftgate Charges'] = $liftgate;
+        }
+        $unload = (float) ($record->unload_cost ?? 0);
+        if ($unload > 0) {
+            $label = $this->unloadLabel($record) === 'By Hand'
+                ? 'Unload Charges(By Hand)'
+                : 'Unload Charges(By Forklift)';
+            $lines[$label] = $unload;
+        }
+        $misc = (float) ($record->miscellaneous_cost ?? 0);
+        if ($misc > 0) {
+            $lines['Miscellneous Charges'] = $misc;
+        }
+
+        return $lines;
     }
 
     /**
@@ -81,6 +206,7 @@ class ShippingQuoteAdminViewService
      */
     protected function buildLineItems(array $rooms): array
     {
+        $rooms = $this->checkout->normalizeRoomsFromStorage($rooms);
         $productIds = [];
         foreach ($rooms as $room) {
             foreach ($room['products'] ?? [] as $line) {
@@ -102,6 +228,7 @@ class ShippingQuoteAdminViewService
                 $unit = (float) ($line['cost'] ?? 0);
                 $weight = (float) ($line['weight'] ?? 0);
                 $assemble = (float) ($line['assemble_cost'] ?? 0);
+                $lineTotal = (float) ($line['line_total'] ?? 0);
                 $product = $products->get((int) ($line['product_id'] ?? 0));
 
                 if ($unit <= 0 && $product) {
@@ -113,15 +240,20 @@ class ShippingQuoteAdminViewService
                 if ($assemble <= 0 && $product) {
                     $assemble = (float) preg_replace('/[^\d.]/', '', (string) $product->assemble_cost);
                 }
+                if ($lineTotal <= 0) {
+                    $lineTotal = round($unit * $qty, 2);
+                }
 
+                $sku = $line['sku'] ?? $product?->sku ?? '—';
+                $description = $line['description'] ?? $line['label'] ?? $product?->description ?? $sku;
                 $lines[] = [
                     'room_name' => $room['room_name'] ?? '—',
-                    'sku' => $line['sku'] ?? $product?->sku ?? '—',
-                    'cabinet_name' => $line['label'] ?? $product?->label ?? '—',
-                    'description' => $product?->description ?? $line['label'] ?? '—',
+                    'sku' => $sku,
+                    'cabinet_name' => $sku,
+                    'description' => $description,
                     'weight' => $weight,
                     'unit_price' => $unit,
-                    'line_total' => round($unit * $qty, 2),
+                    'line_total' => $lineTotal,
                     'quantity' => $qty,
                     'assemble_cost' => round($assemble * $qty, 2),
                     'check_yellow' => ! empty($line['checkbox_val1']),

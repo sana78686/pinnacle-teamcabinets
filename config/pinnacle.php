@@ -150,6 +150,32 @@ return [
         ],
     ],
 
+    /**
+     * Marketing page visuals — use image when file exists under public/, else CSS color block.
+     */
+    'visuals' => [
+        'hero' => [
+            'path' => 'assets/pinnacle/hero-kitchen.jpg',
+            'label' => 'Cabinet showroom',
+            'gradient' => 'linear-gradient(145deg, #0c2340 0%, #1e4976 45%, #3d6b9a 100%)',
+        ],
+        'showcase_dealer' => [
+            'path' => 'assets/pinnacle/showcase-dealer.jpg',
+            'label' => 'Dealer catalog',
+            'gradient' => 'linear-gradient(145deg, #2a4a6b 0%, #4a7ab0 50%, #c5a028 100%)',
+        ],
+        'showcase_catalog' => [
+            'path' => 'assets/pinnacle/showcase-catalog.jpg',
+            'label' => 'Product catalog',
+            'gradient' => 'linear-gradient(145deg, #1a3352 0%, #2d5a87 60%, #8b7355 100%)',
+        ],
+        'flagship_logo' => [
+            'path' => 'assets/logo/team_cabinets.jpg',
+            'label' => 'Team Cabinets',
+            'gradient' => 'linear-gradient(160deg, #0c2340, #1e4976)',
+        ],
+    ],
+
     'what_we_sell' => [
         [
             'title' => 'Branded dealer website',

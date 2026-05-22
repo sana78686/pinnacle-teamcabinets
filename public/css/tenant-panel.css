@@ -1034,6 +1034,28 @@
     border-color: #1e7e34;
 }
 
+/* Quote / shipping quote show — CI layout */
+.tc-quote-show__header-wrap .table th,
+.tc-quote-show__lines thead th {
+    font-size: 0.8125rem;
+    background-color: #e9ecef;
+    color: #212529;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.tc-quote-show__meta-above-table {
+    font-size: 0.9375rem;
+}
+
+.tc-quote-show__footer {
+    padding: 0.5rem 0 1rem;
+}
+
+.tc-quote-show__footer p {
+    max-width: 100%;
+}
+
 .tc-sq-admin__form .form-label {
     font-size: 0.8rem;
 }

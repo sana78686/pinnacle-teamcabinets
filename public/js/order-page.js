@@ -34,7 +34,6 @@
             quote: pageAttr('store-quote-url'),
             shipping: pageAttr('store-shipping-url'),
             stock: pageAttr('store-stock-url'),
-            process: pageAttr('store-process-url'),
         },
     };
 
@@ -564,9 +563,15 @@
         if (data.redirect) {
             if (opts.newTab) {
                 window.open(data.redirect, '_blank');
-            } else {
-                window.location.href = data.redirect;
+                return;
             }
+            if (data.message && typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'success', title: 'Saved', text: data.message }).then(function () {
+                    window.location.href = data.redirect;
+                });
+                return;
+            }
+            window.location.href = data.redirect;
             return;
         }
         if (data.message && typeof Swal !== 'undefined') {
@@ -817,20 +822,6 @@
             .fail(showError);
     });
 
-    $('#btn-process-order').on('click', function () {
-        if (!validateCart()) return;
-        postAction(cfg.urls.process, {
-            catalog_id: cfg.catalogId,
-            product_img_name: $('.product_img_name').val(),
-            product_img_src: $('.product_img_src').val(),
-            catalogue_name: $('input[name="catalogue_name"]').val(),
-            cus_rep_id: $('input[name="cus_rep_id"]').val(),
-            cus_parent_id: $('input[name="cus_parent_id"]').val(),
-        })
-            .done(handleSaveResponse)
-            .fail(showError);
-    });
-
     function showError(xhr) {
         let msg = 'Could not save.';
         if (xhr.responseJSON) {
@@ -865,11 +856,18 @@
     // Restore saved cart_data (Laravel room_data[] or legacy CI keyed room_data)
     const saved = pageJson('saved-cart');
     const savedRooms = saved ? roomsFromSaved(saved) : [];
+    if (saved) {
+        if (saved.order_comment != null && String(saved.order_comment).length) {
+            $('#ow-comment').val(saved.order_comment);
+        }
+    }
     if (saved && savedRooms.length) {
         restoring = true;
         if (saved.job_name) $('#ow-job-name').val(saved.job_name);
         syncJobNameGate();
-        if (saved.order_comment) $('#ow-comment').val(saved.order_comment);
+        if (saved.order_comment != null && String(saved.order_comment).length) {
+            $('#ow-comment').val(saved.order_comment);
+        }
         if (saved.is_assemble) {
             const assembleVal = saved.is_assemble === 1 || saved.is_assemble === '1' ? 'yes' : saved.is_assemble;
             $('input[name="assemble_cabinets_check"][value="' + assembleVal + '"]').prop('checked', true);

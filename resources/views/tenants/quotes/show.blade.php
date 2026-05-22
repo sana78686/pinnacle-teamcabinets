@@ -11,17 +11,5 @@
 @endsection
 
 @section('content')
-@include('tenants.partials.workspace-record-detail', [
-    'record' => $record,
-    'recordLabel' => $recordLabel,
-    'nameRowLabel' => $nameRowLabel,
-    'recordName' => $recordName,
-    'billName' => $billName,
-    'shipName' => $shipName,
-    'catalogLabel' => $catalogLabel,
-    'doorLabel' => $doorLabel,
-    'rooms' => $rooms,
-    'listRoute' => $listRoute,
-    'editRoute' => $editRoute,
-])
+    @include('tenants.quotes.partials.quote-workspace-show', $quoteView)
 @endsection

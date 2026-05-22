@@ -76,7 +76,7 @@ class QuoteWorkspaceService
             'cart_product_weight' => $this->formatWeight($record->sub_total_weight),
             'all_cart_total' => (float) ($record->grand_total_cost ?? $record->sub_total_cost ?? 0),
             'is_assemble' => $record->assemble_cabinets_check ?? 'no',
-            'order_comment' => $this->plainComment($record),
+            'order_comment' => $this->workspaceCommentForCart($record),
             'door_label' => $record->product_img_name,
             'door_image' => $record->product_img_src,
         ]);
@@ -173,11 +173,54 @@ class QuoteWorkspaceService
         return $out;
     }
 
-    protected function plainComment(Model $record): string
+    /**
+     * Comment text for the workspace cart field when reopening a saved quote/shipping quote.
+     * Strips a leading quote-name line only when extra user notes follow; otherwise keeps the
+     * stored comment so the edit view matches what the show page displays.
+     */
+    public function workspaceCommentForCart(Model $record): string
     {
-        $comment = (string) ($record->comment ?? '');
+        $original = trim((string) ($record->comment ?? ''));
+        if ($original === '') {
+            return '';
+        }
 
-        return trim(preg_replace('/^(Quote|Shipping quote):\s*.+?(?:\n\n|\n|$)/is', '', $comment) ?? $comment);
+        $stripped = $this->stripQuoteMetadataFromComment($record, $original);
+
+        return $stripped !== '' ? $stripped : $original;
+    }
+
+    protected function stripQuoteMetadataFromComment(Model $record, string $comment): string
+    {
+        $quoteName = trim((string) ($record->quote_name ?? ''));
+
+        if ($quoteName !== '') {
+            $prefixes = [
+                'Quote: '.$quoteName,
+                'Shipping quote: '.$quoteName,
+                'Quote:'.$quoteName,
+                'Shipping quote:'.$quoteName,
+            ];
+            foreach ($prefixes as $prefix) {
+                if (str_starts_with($comment, $prefix)) {
+                    $comment = trim(substr($comment, strlen($prefix)));
+                    $comment = ltrim($comment, "\r\n");
+
+                    break;
+                }
+            }
+        }
+
+        if (preg_match('/^(?:Quote|Shipping quote):/iu', $comment)) {
+            $comment = trim((string) preg_replace(
+                '/^(?:Quote|Shipping quote):\s*.+?(?:\r?\n\r?\n|\r?\n|$)/iu',
+                '',
+                $comment,
+                1
+            ));
+        }
+
+        return $comment;
     }
 
     protected function formatWeight(mixed $weight): string

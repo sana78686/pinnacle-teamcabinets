@@ -21,11 +21,6 @@
 
 <div class="p-2 mt-0 card-header no-border">
     {{-- <h5>Best Selling Stock Check</h5> --}}
-    <a href="" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
-        title="Create a new Shipping Quotes in the system">
-        <i class="icofont icofont-plus"></i> Create Shipping Quotes
-    </a>
-
     <a   href="{{ route('tenant_deleted_quotes_list') }}" class="btn btn-success btn-sm" data-toggle="tooltip" title="Restore a previously deleted Shipping Quotes">
         <i class="icofont icofont-spinner-alt-3"></i> Restore Shipping Quotes
     </a>

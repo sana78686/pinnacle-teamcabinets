@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Quote;
 use App\Services\AdminRecordViewService;
 use App\Services\OrderWorkspaceService;
+use App\Services\QuoteShowViewService;
 use App\Services\QuoteWorkspaceService;
 use App\Services\TenantNavBadgeService;
 use App\Support\TenantListPaginator;
@@ -62,7 +63,7 @@ class TenantQuotesController extends Controller
         return $this->recordWorkspace->restoreToWorkspace($quote, Auth::user());
     }
 
-    public function show(string $id, AdminRecordViewService $adminView): View
+    public function show(string $id, AdminRecordViewService $adminView, QuoteShowViewService $quoteShow): View
     {
         $quote = Quote::query()->with('user')->findOrFail($id);
 
@@ -72,25 +73,13 @@ class TenantQuotesController extends Controller
 
         $adminView->markViewed($quote, Auth::user());
 
-        $data = [
-            'record' => $quote,
-            'recordLabel' => 'Quote',
-            'nameRowLabel' => 'Quote name',
-            'recordName' => $this->recordWorkspace->displayRecordName($quote),
-            'catalogLabel' => $this->recordWorkspace->catalogLabel($quote),
-            'doorLabel' => $quote->product_img_name ?? '—',
-            'billName' => $this->recordWorkspace->billName($quote),
-            'shipName' => $this->recordWorkspace->shipName($quote),
-            'rooms' => $quote->rooms ?? [],
-            'listRoute' => 'tenant_quotes_index',
-            'editRoute' => 'tenant_quotes_edit',
-        ];
-
         $view = Auth::user()->hasRole('Admin')
             ? 'tenants.quotes.show'
             : 'tenants.representative_modals.quotes.show';
 
-        return view($view, $data);
+        return view($view, [
+            'quoteView' => $quoteShow->viewDataForQuote($quote),
+        ]);
     }
 
     public function destroy(string $id): RedirectResponse

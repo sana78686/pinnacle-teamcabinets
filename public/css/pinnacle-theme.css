@@ -152,8 +152,8 @@ a:hover { color: var(--pn-gold); }
 }
 .pn-hero::before {
     content: ''; position: absolute; inset: 0;
-    background: url('../assets/pinnacle/hero-kitchen.jpg') center/cover no-repeat;
-    opacity: 0.22;
+    background: linear-gradient(145deg, rgba(12, 35, 64, 0.5) 0%, rgba(30, 73, 118, 0.35) 50%, rgba(197, 160, 40, 0.12) 100%);
+    opacity: 0.55;
 }
 .pn-hero::after {
     content: ''; position: absolute; inset: 0;
@@ -188,7 +188,7 @@ a:hover { color: var(--pn-gold); }
     overflow: hidden; box-shadow: var(--pn-shadow-lg);
     border: 1px solid rgba(255,255,255,0.12);
 }
-.pn-hero__visual img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+.pn-hero__visual .pn-visual { width: 100%; }
 .pn-hero__float {
     position: absolute; bottom: 1rem; left: 1rem; right: 1rem;
     display: flex; gap: 0.75rem; flex-wrap: wrap;
@@ -295,8 +295,8 @@ a:hover { color: var(--pn-gold); }
     min-height: 220px; background: rgba(0,0,0,0.2);
     display: flex; align-items: center; justify-content: center; padding: 2rem;
 }
-.pn-flagship__media img { max-height: 120px; width: auto; border-radius: 8px; object-fit: contain; }
-.pn-flagship__media img.pn-flagship__logo--light { filter: brightness(0) invert(1); opacity: 0.9; }
+.pn-flagship__media .pn-visual { width: 100%; max-width: 280px; min-height: 140px; }
+.pn-flagship__media .pn-visual img { max-height: 120px; width: auto; margin: 0 auto; display: block; object-fit: contain; border-radius: 8px; }
 
 /* Steps */
 .pn-steps { display: grid; gap: 2rem; }
@@ -400,7 +400,57 @@ a:hover { color: var(--pn-gold); }
     border-radius: var(--pn-radius-lg); overflow: hidden;
     box-shadow: var(--pn-shadow-lg); border: 1px solid var(--pn-border);
 }
-.pn-img-panel img { width: 100%; aspect-ratio: 16/10; object-fit: cover; }
+.pn-img-panel .pn-visual { width: 100%; }
+
+/* Marketing visuals — image when present, color block when missing */
+.pn-visual {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: var(--pn-visual-aspect, 4/3);
+    overflow: hidden;
+    border-radius: inherit;
+    background: var(--pn-visual-bg, linear-gradient(145deg, #0c2340 0%, #2d5a87 100%));
+}
+.pn-visual--auto { aspect-ratio: auto; min-height: 140px; }
+.pn-visual--contain { display: flex; align-items: center; justify-content: center; }
+.pn-visual__fill {
+    position: absolute;
+    inset: 0;
+    background: var(--pn-visual-bg);
+}
+.pn-visual__label {
+    position: absolute;
+    left: 50%;
+    bottom: 1rem;
+    transform: translateX(-50%);
+    padding: 0.35rem 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.92);
+    background: rgba(7, 22, 40, 0.45);
+    border-radius: 100px;
+    white-space: nowrap;
+    z-index: 1;
+}
+.pn-visual img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.pn-visual--contain img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 120px;
+    object-fit: contain;
+}
+.pn-visual--hero { min-height: 220px; }
+.pn-visual--showcase_dealer,
+.pn-visual--showcase_catalog { min-height: 180px; }
 
 /* ─── Auth (register / admin login) ─── */
 .pn-auth-body { display: flex; flex-direction: column; min-height: 100vh; }
@@ -436,8 +486,9 @@ a:hover { color: var(--pn-gold); }
 }
 .pn-auth-aside::before {
     content: ''; position: absolute; inset: 0;
-    background: url('../assets/pinnacle/hero-kitchen.jpg') center/cover;
-    opacity: 0.2;
+    background: linear-gradient(145deg, rgba(197, 160, 40, 0.15) 0%, transparent 45%),
+        linear-gradient(160deg, #071628 0%, #1e4976 100%);
+    opacity: 0.85;
 }
 .pn-auth-aside > * { position: relative; z-index: 1; }
 .pn-auth-aside h1 { margin: 0 0 0.75rem; font-size: 1.75rem; font-weight: 700; line-height: 1.2; }

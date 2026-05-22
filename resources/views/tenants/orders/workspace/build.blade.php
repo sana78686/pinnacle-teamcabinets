@@ -17,14 +17,13 @@
     data-store-quote-url="{{ route('tenant_order_workspace_quote') }}"
     data-store-shipping-url="{{ route('tenant_order_workspace_shipping_quote') }}"
     data-store-stock-url="{{ route('tenant_order_workspace_stock_check') }}"
-    data-store-process-url="{{ route('tenant_order_workspace_process') }}"
     data-csrf="{{ csrf_token() }}"
-    data-saved-cart="{{ json_encode($savedCart ?? null) }}">
+    data-saved-cart='@json($savedCart)'>
 
     {{-- Door styles — portal pill tabs (like Settings subnav) --}}
     <nav class="ow-door-strip tc-wd-subnav" role="listbox" aria-label="Door style">
-        <a href="{{ route('tenant_order_workspace') }}" class="ow-door-strip__back" title="Back to catalogs">
-            <i class="fa fa-arrow-left"></i> Catalogs
+        <a href="{{ route('tenant_dashboard') }}" class="ow-door-strip__back" title="Portal home">
+            <i class="fa fa-home" aria-hidden="true"></i> Portal Home
         </a>
         @foreach ($doorColors as $doorOption)
             <button type="button"
@@ -182,7 +181,7 @@
                     <div class="ow-comment-toolbar mb-2">
                         <div class="ow-comment-toolbar__row">
                             <label for="ow-comment" class="ow-comment-toolbar__label">Comment</label>
-                            <textarea name="order_comment" id="ow-comment" class="form-control order_comment ow-comment-toolbar__input" rows="1" maxlength="200" placeholder="Optional"></textarea>
+                            <textarea name="order_comment" id="ow-comment" class="form-control order_comment ow-comment-toolbar__input" rows="1" maxlength="200" placeholder="Optional">{{ old('order_comment', $savedCart['order_comment'] ?? '') }}</textarea>
                         </div>
                     </div>
 
@@ -208,7 +207,6 @@
                         <button type="button" class="btn btn-light btn-sm" id="btn-save-quote">Save Quote</button>
                         <button type="button" class="btn btn-light btn-sm" id="btn-shipping-quote">Shipping Quote</button>
                         <button type="button" class="btn btn-light btn-sm" id="btn-stock-check">Stock Check</button>
-                        <button type="button" class="btn btn-primary btn-sm" id="btn-process-order">Process Order</button>
                     </div>
                     </div>
                 </form>
@@ -225,5 +223,5 @@
 @endsection
 
 @section('script')
-<script src="{{ asset('js/order-page.js') }}?v=15"></script>
+<script src="{{ asset('js/order-page.js') }}?v=18"></script>
 @endsection

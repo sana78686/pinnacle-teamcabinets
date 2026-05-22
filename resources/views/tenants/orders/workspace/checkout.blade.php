@@ -1,242 +1,247 @@
-@extends('layouts.tenant.master')
+@extends('layouts.tenant.standalone')
 
 @section('title', 'Checkout')
+
+@section('style')
+<link rel="stylesheet" href="{{ asset('css/checkout-page.css') }}?v=3">
+@endsection
 
 @section('content')
 @php
     $rooms = json_decode($cartData['room_data'] ?? '{}', true) ?: [];
     $fees = $feeConfig ?? [];
     $totals = $checkoutTotals ?? [];
+    $savings = $paymentSavings ?? [];
+    $colSpan = ($assembleYes ?? false) ? 8 : 7;
+    $shipState = old('ship_state', $cartData['ship_to_state'] ?? '');
+    $shipCounty = old('ship_county', $cartData['ship_to_county'] ?? '');
+    $isFlShip = in_array(strtolower($shipState), ['florida', 'fl'], true);
 @endphp
-<div class="container-fluid">
-    <div class="tc-card p-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-            <div>
-                <h1 class="h4 mb-1">Checkout</h1>
-                <p class="text-muted mb-0">Review your order, shipping, tax, and payment (CI <code>cart_checkout_product</code>).</p>
-            </div>
-            <a href="{{ route('tenant_order_workspace') }}" class="btn btn-light btn-sm">Back to catalogs</a>
-        </div>
 
-        @if ($errors->any())
-            <div class="alert alert-danger">{{ $errors->first() }}</div>
+<div class="ow-page ow-page--fullscreen tc-checkout-page">
+    @include('tenants.orders.workspace.partials.workspace-standalone-bar', [
+        'backUrl' => $backToCartUrl ?? route('tenant_order_workspace'),
+        'backLabel' => 'Back To Cart',
+        'backDisabled' => $backToCartDisabled ?? false,
+    ])
+
+    <div class="container-fluid tc-checkout ow-checkout-main">
+    @include('partial.message')
+
+    @if ($errors->any())
+        <div class="alert alert-danger">{{ $errors->first() }}</div>
+    @endif
+
+    <form method="post" action="{{ route('tenant_order_workspace_checkout_submit') }}" id="ow-checkout-form" novalidate>
+        @csrf
+        <input type="hidden" name="room_data" value="{{ $cartData['room_data'] ?? '' }}">
+        <input type="hidden" name="job_name" value="{{ $cartData['job_name'] ?? '' }}">
+        <input type="hidden" name="order_comment" value="{{ $cartData['order_comment'] ?? '' }}">
+        <input type="hidden" name="total_fuel_charges_for_order" id="ow-fuel-total-input" value="{{ $totals['fuel_amount'] ?? 0 }}">
+        <input type="hidden" name="updated_sales_tax" id="ow-sales-tax-input" value="{{ $salesTaxPercent }}">
+        <input type="hidden" name="custom_all_cart_total" id="ow-grand-total-input" value="{{ $totals['grand_total'] ?? 0 }}">
+        @if ($isShippingQuote ?? false)
+            <input type="hidden" name="is_shipping_quote" value="{{ $cartData['is_shipping_quote'] ?? 1 }}">
+            <input type="hidden" name="order_shipping_cost" value="{{ $shippingCost }}">
         @endif
-        @if (session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
-        @endif
 
-        <form method="post" action="{{ route('tenant_order_workspace_checkout_submit') }}" id="ow-checkout-form">
-            @csrf
-            <input type="hidden" name="total_fuel_charges_for_order" id="ow-fuel-total-input" value="{{ $totals['fuel_amount'] ?? 0 }}">
-            <input type="hidden" name="updated_sales_tax" id="ow-sales-tax-input" value="{{ $salesTaxPercent }}">
-            <input type="hidden" name="custom_all_cart_total" id="ow-grand-total-input" value="{{ $totals['grand_total'] ?? 0 }}">
+        <div class="row">
+            {{-- Left: Cart + addresses (CI col-lg-6) --}}
+            <div class="col-lg-7 tc-checkout__main-col">
+                <div class="tc-checkout__cart-card">
+                    <div class="tc-checkout__cart-head">
+                        <h2>Cart</h2>
+                    </div>
+                    <div class="tc-checkout__cart-body">
+                        <div class="tc-checkout__job">Job Name: {{ $cartData['job_name'] }}</div>
 
-            <div class="row">
-                <div class="col-lg-7">
-                    <h5 class="mb-2">Job: {{ $cartData['job_name'] }}</h5>
-                    @if (! empty($payload['comment']))
-                        <p class="text-muted small">Comment: {{ $payload['comment'] }}</p>
-                    @endif
-
-                    <div class="table-responsive mb-3">
-                        <table class="table table-bordered table-sm">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>Check</th>
-                                    <th>Name</th>
-                                    <th>Description</th>
-                                    <th>Wt</th>
-                                    <th>Unit</th>
-                                    <th>Total</th>
-                                    <th>Qty</th>
-                                    @if ($assembleYes)<th>Assemble</th>@endif
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($rooms as $roomName => $room)
-                                    <tr class="table-secondary"><th colspan="{{ $assembleYes ? 8 : 7 }}">{{ $roomName }}</th></tr>
-                                    @php $n = count($room['product_sku'] ?? []); @endphp
-                                    @for ($i = 0; $i < $n; $i++)
-                                        <tr>
-                                            <td>
-                                                <input type="checkbox" disabled {{ ($room['checkbox_val1'][$i] ?? '0') == '1' ? 'checked' : '' }}>
-                                                <input type="checkbox" disabled {{ ($room['checkbox_val2'][$i] ?? '0') == '1' ? 'checked' : '' }}>
-                                            </td>
-                                            <td>{{ $room['product_name'][$i] ?? $room['product_sku'][$i] }}</td>
-                                            <td>{{ $room['product_cabinets_description'][$i] ?? '' }}</td>
-                                            <td>{{ $room['product_weight'][$i] ?? 0 }} lbs</td>
-                                            <td>${{ number_format((float) ($room['product_cost'][$i] ?? 0), 2) }}</td>
-                                            <td>${{ number_format((float) (($room['product_cost'][$i] ?? 0) * ($room['product_quantity'][$i] ?? 1)), 2) }}</td>
-                                            <td>{{ $room['product_quantity'][$i] ?? 1 }}</td>
-                                            @if ($assembleYes)
-                                                <td>${{ number_format((float) ($room['product_assemble_cost'][$i] ?? 0), 2) }}</td>
-                                            @endif
-                                        </tr>
-                                    @endfor
-                                @endforeach
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <th colspan="3">Subtotal</th>
-                                    <th>{{ number_format($weight, 2) }} lbs</th>
-                                    <th></th>
-                                    <th>${{ number_format($subTotal, 2) }}</th>
-                                    <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
-                                </tr>
-                                <tr>
-                                    <th colspan="5">Fuel surcharge ({{ $fees['fuel_percent'] ?? 0 }}%)</th>
-                                    <th id="ow-fuel-amt">${{ number_format($totals['fuel_amount'] ?? 0, 2) }}</th>
-                                    <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
-                                </tr>
-                                @if ($assembleYes)
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm tc-checkout-table mb-0">
+                                <thead>
                                     <tr>
-                                        <th colspan="5">Cabinetry assembly</th>
-                                        <th>${{ number_format($assembleTotal, 2) }}</th>
-                                        <th colspan="2"></th>
+                                        <th>Double Check Work</th>
+                                        <th>Cabinet Name</th>
+                                        <th>Cabinet Description</th>
+                                        <th class="text-end">Weight</th>
+                                        <th class="text-end">Unit Price</th>
+                                        <th class="text-end">Total Price</th>
+                                        <th class="text-end">Qty</th>
+                                        @if ($assembleYes)<th class="text-end">Assemble Cost</th>@endif
                                     </tr>
-                                @endif
-                                <tr>
-                                    <th colspan="5">Shipping</th>
-                                    <td colspan="2">
-                                        <label class="d-block"><input type="radio" name="self_ship" value="pickup" checked> I will pick up my order</label>
-                                        <label class="d-block"><input type="radio" name="self_ship" value="quote"> Provide shipping amount via email/phone</label>
-                                        <p class="text-danger small mb-0">NOTE: Shipping charges are independent from this order unless quoted.</p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th colspan="5">Sales tax ({{ $salesTaxPercent }}%)</th>
-                                    <th id="ow-sales-tax">${{ number_format($totals['sales_tax_amount'] ?? 0, 2) }}</th>
-                                    <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
-                                </tr>
-                                <tr id="ow-card-fee-row" style="display:{{ ($totals['credit_card_charges'] ?? 0) > 0 ? '' : 'none' }}">
-                                    <th colspan="5">Payment processing fee</th>
-                                    <th id="ow-card-fee-amt">${{ number_format($totals['credit_card_charges'] ?? 0, 2) }}</th>
-                                    <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
-                                </tr>
-                                <tr id="ow-ach-fee-row" style="display:{{ ($totals['ach_charges'] ?? 0) > 0 ? '' : 'none' }}">
-                                    <th colspan="5">ACH fee</th>
-                                    <th id="ow-ach-fee-amt">${{ number_format($totals['ach_charges'] ?? 0, 2) }}</th>
-                                    <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
-                                </tr>
-                                <tr class="font-weight-bold">
-                                    <th colspan="5">Estimated total</th>
-                                    <th id="ow-grand-total">${{ number_format($totals['grand_total'] ?? 0, 2) }}</th>
-                                    <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
-                                </tr>
-                            </tfoot>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach ($rooms as $roomName => $room)
+                                        <tr class="table-light"><th colspan="{{ $colSpan }}">{{ $roomName }}</th></tr>
+                                        @php $n = count($room['product_sku'] ?? []); @endphp
+                                        @for ($i = 0; $i < $n; $i++)
+                                            <tr>
+                                                <td>
+                                                    <span class="tc-checkout-checks">
+                                                        <span class="tc-checkout-check tc-checkout-check--yellow{{ ($room['checkbox_val1'][$i] ?? '0') == '1' ? ' is-on' : '' }}"></span>
+                                                        <span class="tc-checkout-check tc-checkout-check--green{{ ($room['checkbox_val2'][$i] ?? '0') == '1' ? ' is-on' : '' }}"></span>
+                                                    </span>
+                                                </td>
+                                                <td>{{ $room['product_sku'][$i] ?? '' }}</td>
+                                                <td>{{ $room['product_cabinets_description'][$i] ?? '' }}</td>
+                                                <td class="text-end">{{ $room['product_weight'][$i] ?? 0 }} lbs</td>
+                                                <td class="text-end">${{ number_format((float) ($room['product_cost'][$i] ?? 0), 2) }}</td>
+                                                <td class="text-end">${{ number_format((float) (($room['product_cost'][$i] ?? 0) * ($room['product_quantity'][$i] ?? 1)), 2) }}</td>
+                                                <td class="text-end">{{ $room['product_quantity'][$i] ?? 1 }}</td>
+                                                @if ($assembleYes)
+                                                    <td class="text-end">${{ number_format((float) ($room['product_assemble_cost'][$i] ?? 0), 2) }}</td>
+                                                @endif
+                                            </tr>
+                                        @endfor
+                                    @endforeach
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3">Sub Total</th>
+                                        <th class="text-end">{{ number_format($weight, 2) }} lbs</th>
+                                        <th></th>
+                                        <th class="text-end">${{ number_format($subTotal, 2) }}</th>
+                                        <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="3">Fuel Charges (<span id="ow-fuel-percent">{{ $fees['fuel_percent'] ?? 0 }}</span>%)</th>
+                                        <td class="text-end">—</td>
+                                        <td></td>
+                                        <th class="text-end" id="ow-fuel-amt">${{ number_format($totals['fuel_amount'] ?? 0, 2) }}</th>
+                                        <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                    </tr>
+                                    @if ($assembleYes)
+                                        <tr>
+                                            <th colspan="5">Cabinetry Assembly Cost</th>
+                                            <th class="text-end">${{ number_format($assembleTotal, 2) }}</th>
+                                            <th colspan="2"></th>
+                                        </tr>
+                                    @endif
+                                    @if (($isShippingQuote ?? false) && ! empty($shippingBreakdown))
+                                        <tr><th colspan="{{ $colSpan }}">Shipping Charges</th></tr>
+                                        @foreach ($shippingBreakdown as $label => $amount)
+                                            @if ((float) $amount > 0)
+                                                <tr>
+                                                    <th colspan="5">{{ $label }}</th>
+                                                    <th class="text-end">${{ number_format((float) $amount, 2) }}</th>
+                                                    <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                                </tr>
+                                            @endif
+                                        @endforeach
+                                    @elseif (($isShippingQuote ?? false) && ($shippingCost ?? 0) > 0)
+                                        <tr>
+                                            <th colspan="5">Shipping Charges</th>
+                                            <th class="text-end">${{ number_format($shippingCost, 2) }}</th>
+                                            <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                        </tr>
+                                    @else
+                                        <tr>
+                                            <th colspan="3">Shipping Charges</th>
+                                            <td colspan="{{ $colSpan - 3 }}">
+                                                <label class="d-block mb-1"><input type="radio" name="self_ship" value="I will pick up my order"> I will pick up my order</label>
+                                                <label class="d-block mb-1"><input type="radio" name="self_ship" value="Provide me with shipping amount via email/phone" checked> Provide me with shipping amount via email/phone</label>
+                                                <p class="text-danger small mb-0">NOTE: Shipping charges are independently from this order.</p>
+                                            </td>
+                                        </tr>
+                                    @endif
+                                    <tr>
+                                        <th colspan="3">
+                                            Sales Tax (<span id="ow-tax-percent">{{ $salesTaxPercent }}%</span>)
+                                            <p class="tc-checkout-tax-note">NOTE: 'Sales Tax' will be calculated as per your Ship To 'County'.</p>
+                                        </th>
+                                        <td class="text-end">—</td>
+                                        <td></td>
+                                        <th class="text-end" id="ow-sales-tax">${{ number_format($totals['sales_tax_amount'] ?? 0, 2) }}</th>
+                                        <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                    </tr>
+                                    <tr id="ow-credit-fee-row">
+                                        <th colspan="5"><span id="ow-payment-fee-label">Credit Card Charges ({{ $fees['credit_card_percent'] ?? 0 }}%)</span></th>
+                                        <th class="text-end" id="ow-payment-fee-amt">${{ number_format($totals['credit_card_charges'] ?? 0, 2) }}</th>
+                                        <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                    </tr>
+                                    <tr id="ow-debit-fee-row" style="display:none">
+                                        <th colspan="5">Debit Card Charges</th>
+                                        <th class="text-end" id="ow-debit-fee-amt">${{ number_format($totals['debit_card_charges'] ?? 0, 2) }}</th>
+                                        <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                    </tr>
+                                    <tr id="ow-ach-fee-row" style="display:none">
+                                        <th colspan="5">ACH Charges</th>
+                                        <th class="text-end" id="ow-ach-fee-amt">${{ number_format($totals['ach_charges'] ?? 0, 2) }}</th>
+                                        <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                    </tr>
+                                    <tr class="table-active">
+                                        <th colspan="3">Grand Total</th>
+                                        <th class="text-end">{{ number_format($weight, 2) }} lbs</th>
+                                        <th></th>
+                                        <th class="text-end" id="ow-grand-total">${{ number_format($totals['grand_total'] ?? 0, 2) }}</th>
+                                        <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        @if (! empty($cartData['order_comment']))
+                            <div class="tc-checkout__comment"><strong>Comment:</strong> {{ $cartData['order_comment'] }}</div>
+                        @endif
                     </div>
                 </div>
 
-                <div class="col-lg-5">
-                    <div class="tc-card p-3 mb-3" style="background:#f8fafc;">
-                        <h5 class="h6">Bill to</h5>
-                        <div class="form-group mb-2">
-                            <label class="small">Name</label>
-                            <input type="text" name="bill_to_name" class="form-control form-control-sm" value="{{ old('bill_to_name', $cartData['bill_to_name']) }}" required>
-                        </div>
-                        <div class="form-group mb-2">
-                            <label class="small">Address</label>
-                            <input type="text" name="bill_to_address" class="form-control form-control-sm" value="{{ old('bill_to_address', $cartData['bill_to_address']) }}">
-                        </div>
-                        <div class="row">
-                            <div class="col-6 form-group mb-2">
-                                <label class="small">City</label>
-                                <input type="text" name="bill_to_city" class="form-control form-control-sm" value="{{ old('bill_to_city', $cartData['bill_to_city']) }}">
-                            </div>
-                            <div class="col-6 form-group mb-2">
-                                <label class="small">County</label>
-                                <input type="text" name="bill_to_county" class="form-control form-control-sm" value="{{ old('bill_to_county', $cartData['bill_to_county']) }}">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6 form-group mb-2">
-                                <label class="small">State</label>
-                                <input type="text" name="bill_to_state" class="form-control form-control-sm" value="{{ old('bill_to_state', $cartData['bill_to_state']) }}">
-                            </div>
-                            <div class="col-6 form-group mb-2">
-                                <label class="small">Zip</label>
-                                <input type="text" name="bill_to_zip" class="form-control form-control-sm" value="{{ old('bill_to_zip', $cartData['bill_to_zipcode']) }}">
-                            </div>
-                        </div>
-                        <div class="form-group mb-2">
-                            <label class="small">Email</label>
-                            <input type="email" name="bill_to_email" class="form-control form-control-sm" value="{{ old('bill_to_email', $cartData['bill_to_email']) }}" required>
-                        </div>
-                        <div class="form-group mb-0">
-                            <label class="small">Phone</label>
-                            <input type="text" name="bill_to_phone" class="form-control form-control-sm" value="{{ old('bill_to_phone', $cartData['bill_to_phone']) }}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="tc-checkout-address">
+                            <h3>Bill To</h3>
+                            @include('tenants.orders.workspace.partials.checkout-address-fields', ['prefix' => 'bill', 'data' => $cartData])
                         </div>
                     </div>
-
-                    <div class="tc-card p-3 mb-3" style="background:#f8fafc;">
-                        <h5 class="h6">Ship to</h5>
-                        <label class="small d-block mb-2"><input type="checkbox" id="ow-same-as-bill" checked> Same as bill to</label>
-                        <div id="ow-ship-fields" style="display:none">
-                            <div class="form-group mb-2">
-                                <input type="text" name="ship_to_name" class="form-control form-control-sm" placeholder="Name" value="{{ old('ship_to_name', $cartData['ship_to_name']) }}">
-                            </div>
-                            <div class="form-group mb-2">
-                                <input type="text" name="ship_to_address" class="form-control form-control-sm" placeholder="Address" value="{{ old('ship_to_address', $cartData['ship_to_address']) }}">
-                            </div>
-                            <div class="row">
-                                <div class="col-6"><input type="text" name="ship_city" class="form-control form-control-sm mb-2" placeholder="City" value="{{ old('ship_city', $cartData['ship_to_city']) }}"></div>
-                                <div class="col-6"><input type="text" name="ship_county" class="form-control form-control-sm mb-2" placeholder="County" value="{{ old('ship_county', $cartData['ship_to_county']) }}"></div>
-                            </div>
-                            <div class="row">
-                                <div class="col-6"><input type="text" name="ship_state" class="form-control form-control-sm mb-2" placeholder="State" value="{{ old('ship_state', $cartData['ship_to_state']) }}"></div>
-                                <div class="col-6"><input type="text" name="ship_zip" class="form-control form-control-sm mb-2" placeholder="Zip" value="{{ old('ship_zip', $cartData['ship_to_zipcode']) }}"></div>
-                            </div>
+                    <div class="col-md-6">
+                        <div class="tc-checkout-address">
+                            <h3>Ship To</h3>
+                            @include('tenants.orders.workspace.partials.checkout-address-fields', [
+                                'prefix' => 'ship',
+                                'data' => $cartData,
+                                'isShip' => true,
+                                'states' => $states,
+                                'floridaCounties' => $floridaCounties,
+                                'shipState' => $shipState,
+                                'shipCounty' => $shipCounty,
+                                'isFlShip' => $isFlShip,
+                            ])
                         </div>
-                    </div>
-
-                    <div class="tc-card p-3">
-                        <h5 class="h6 mb-3">Payment method</h5>
-                        <label class="d-block"><input type="radio" name="payment_method" value="Check" checked required> Check</label>
-                        <label class="d-block"><input type="radio" name="payment_method" value="Purchase Order" required> Purchase Order</label>
-                        <label class="d-block"><input type="radio" name="payment_method" value="Credit Card" required> Credit Card</label>
-                        <label class="d-block"><input type="radio" name="payment_method" value="Debit Card" required> Debit Card</label>
-                        <label class="d-block"><input type="radio" name="payment_method" value="ACH" required> ACH</label>
-
-                        <div id="ow-panel-card" class="ow-pay-panel mt-3" style="display:none">
-                            <input type="text" name="card_number" class="form-control form-control-sm mb-2" placeholder="Card number">
-                            <input type="text" name="expiry_date" class="form-control form-control-sm mb-2" placeholder="MM/YY">
-                            <input type="text" name="cvv_number" class="form-control form-control-sm mb-2" placeholder="CVV">
-                            <input type="text" name="checkout_fname" class="form-control form-control-sm mb-2" placeholder="Name on card">
-                            <input type="text" name="checkout_address" class="form-control form-control-sm mb-2" placeholder="Billing address">
-                            <div class="row">
-                                <div class="col-4"><input type="text" name="checkout_city" class="form-control form-control-sm" placeholder="City"></div>
-                                <div class="col-4"><input type="text" name="checkout_state" class="form-control form-control-sm" placeholder="State"></div>
-                                <div class="col-4"><input type="text" name="checkout_zipcode" class="form-control form-control-sm" placeholder="Zip"></div>
-                            </div>
-                        </div>
-                        <div id="ow-panel-ach" class="ow-pay-panel mt-3" style="display:none">
-                            <input type="text" name="account_number" class="form-control form-control-sm mb-2" placeholder="Account number">
-                            <input type="text" name="route_number" class="form-control form-control-sm mb-2" placeholder="Routing number">
-                            <input type="text" name="ach_checkout_fname" class="form-control form-control-sm mb-2" placeholder="Account holder name">
-                        </div>
-
-                        <button type="submit" class="btn btn-primary btn-block mt-3">Place order</button>
                     </div>
                 </div>
             </div>
-        </form>
+
+            {{-- Right: Payment methods (CI stacked boxes) --}}
+            <div class="col-lg-5 tc-checkout__pay-col">
+                @include('tenants.orders.workspace.partials.checkout-payment-credit', ['savings' => $savings, 'cartData' => $cartData])
+                @include('tenants.orders.workspace.partials.checkout-payment-debit', ['savings' => $savings])
+                @include('tenants.orders.workspace.partials.checkout-payment-ach', ['savings' => $savings])
+                @include('tenants.orders.workspace.partials.checkout-payment-cash', ['savings' => $savings])
+            </div>
+        </div>
+    </form>
     </div>
 </div>
 
+<div class="tc-checkout__loading" id="ow-checkout-loading" aria-hidden="true">
+    <span>Please wait — processing your order…</span>
+</div>
+@endsection
+
+@section('script')
 <script>
     window.owCheckout = {
         subTotal: {{ json_encode($subTotal) }},
         assembleTotal: {{ json_encode($assembleTotal) }},
+        shippingCost: {{ json_encode($shippingCost ?? 0) }},
         fuelPercent: {{ json_encode($fees['fuel_percent'] ?? 0) }},
         salesTaxPercent: {{ json_encode($salesTaxPercent) }},
         creditCardPercent: {{ json_encode($fees['credit_card_percent'] ?? 0) }},
-        debitCardPercent: {{ json_encode($fees['debit_card_percent'] ?? 0) }},
+        debitCardFlat: {{ json_encode($fees['debit_card_flat'] ?? 0) }},
         achCharge: {{ json_encode($fees['ach_charge'] ?? 0) }},
+        salesTaxUrl: @json(route('tenant_order_workspace_checkout_sales_tax')),
+        floridaCounties: @json($floridaCounties ?? []),
+        shipCounty: @json($shipCounty),
     };
-    document.getElementById('ow-same-as-bill')?.addEventListener('change', function () {
-        document.getElementById('ow-ship-fields').style.display = this.checked ? 'none' : 'block';
-    });
 </script>
-<script src="{{ asset('js/checkout-page.js') }}?v=1"></script>
+<script src="{{ asset('js/checkout-page.js') }}?v=3"></script>
 @endsection

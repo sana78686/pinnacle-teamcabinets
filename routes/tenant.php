@@ -249,6 +249,7 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
           Route::post('orders/workspace/print', [TenantCreateOrderController::class, 'storePrint'])->name('tenant_order_workspace_print');
           Route::post('orders/workspace/process', [TenantCreateOrderController::class, 'storeProcess'])->name('tenant_order_workspace_process');
           Route::get('orders/workspace/checkout', [TenantCreateOrderController::class, 'checkout'])->name('tenant_order_workspace_checkout');
+          Route::get('orders/workspace/checkout/sales-tax', [TenantCreateOrderController::class, 'checkoutSalesTax'])->name('tenant_order_workspace_checkout_sales_tax');
           Route::post('orders/workspace/checkout', [TenantCreateOrderController::class, 'checkoutSubmit'])->name('tenant_order_workspace_checkout_submit');
           Route::get('orders/workspace/{id}/print', [TenantCreateOrderController::class, 'printOrder'])->name('tenant_order_workspace_print_page');
           Route::get('orders/workspace/catalog/{catalog}/doors', [TenantCreateOrderController::class, 'doors'])->name('tenant_order_workspace_doors');
@@ -287,10 +288,6 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
             Route::post('/cart/clearCart', [TenantSessionCartController::class, 'clearCart'])->name('cart.clearCart');
             Route::post('/cart/saveTotals', [TenantSessionCartController::class, 'saveTotals'])->name('cart.saveTotals');
             Route::get('/cart/getCart', [TenantSessionCartController::class, 'getCart'])->name('cart.getCart');
-            Route::post('/stock-check/store', [TenantStockCheckController::class, 'store'])->name('stock_check.store');
-
-
-
            /*** claims Routes */
 
          Route::get('claims/index', [TenantClaimController::class, 'index'])->name('tenant_claim_index');
@@ -479,7 +476,6 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
           /*** Stock Check page Routes */
 
           Route::get('stock_check/index', [TenantStockCheckController::class, 'index'])->name('tenant_stock_check_index');
-          Route::post('stock_check', [TenantStockCheckController::class, 'store'])->name('tenant_stock_check_store');
           Route::get('stock_check/{id}/edit', [TenantStockCheckController::class, 'edit'])->name('tenant_stock_check_edit');
           Route::get('stock_check/{id}/show', [TenantStockCheckController::class, 'show'])->name('tenant_stock_check_show');
           Route::put('stock_check/{id}', [TenantStockCheckController::class, 'update'])->name('tenant_stock_check_update');
@@ -504,6 +500,7 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
         Route::post('shipping_quotes', [TenantShippingQuoteController::class, 'store'])->name('tenant_shipping_quotes_store');
         Route::get('shipping_quotes/{id}/edit', [TenantShippingQuoteController::class, 'edit'])->name('tenant_shipping_quotes_edit');
         Route::get('shipping_quotes/{id}/show', [TenantShippingQuoteController::class, 'show'])->name('tenant_shipping_quotes_show');
+        Route::post('shipping_quotes/{id}/proceed-checkout', [TenantShippingQuoteController::class, 'proceedToCheckout'])->name('tenant_shipping_quotes_proceed_checkout');
         Route::put('shipping_quotes/{id}/shipping-costs', [TenantShippingQuoteController::class, 'updateShippingCosts'])->name('tenant_shipping_quotes_update_costs');
         Route::delete('shipping_quotes/{id}', [TenantShippingQuoteController::class, 'destroy'])->name('tenant_shipping_quotes_destroy');
         Route::get('shipping_quotes/deleted/quotes_list', [TenantQuotesController::class, 'deleted_shipping_quotes_list'])->name('tenant_deleted_shipping_quotes_list');

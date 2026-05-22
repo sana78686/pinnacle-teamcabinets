@@ -20,7 +20,11 @@
                 </div>
             </div>
             <div class="pn-hero__visual">
-                <img src="{{ asset('assets/pinnacle/hero-kitchen.jpg') }}" alt="Modern kitchen with custom cabinets" width="600" height="450" fetchpriority="high" decoding="async">
+                @include('pinnacle.partials.visual', [
+                    'variant' => 'hero',
+                    'alt' => 'Modern kitchen with custom cabinets',
+                    'loading' => 'eager',
+                ])
                 <div class="pn-hero__float">
                     <div class="pn-hero__chip"><strong>Website</strong> Public catalog &amp; quotes</div>
                     <div class="pn-hero__chip"><strong>Panel</strong> Orders &amp; dealers</div>
@@ -77,7 +81,11 @@
         </div>
         <div style="display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
             <div class="pn-img-panel">
-                <img src="{{ asset('assets/pinnacle/showcase-dealer.jpg') }}" alt="Dealer browsing cabinet catalog" loading="lazy" decoding="async">
+                @include('pinnacle.partials.visual', [
+                    'variant' => 'showcase_dealer',
+                    'alt' => 'Dealer browsing cabinet catalog',
+                    'aspect' => '16/10',
+                ])
             </div>
             <div>
                 <div class="pn-mockup" style="margin-bottom:1rem">
@@ -109,7 +117,12 @@
                 </div>
             </div>
             <div class="pn-flagship__media">
-                <img src="{{ asset('assets/logo/team_cabinets.jpg') }}" alt="Team Cabinets">
+                @include('pinnacle.partials.visual', [
+                    'variant' => 'flagship_logo',
+                    'alt' => $pinnacle['flagship_tenant']['name'],
+                    'aspect' => 'auto',
+                    'class' => 'pn-visual--contain',
+                ])
             </div>
         </article>
     </div>

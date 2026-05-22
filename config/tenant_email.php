@@ -8,8 +8,8 @@ return [
     */
     'partials' => [
         'invoice' => 'emails.tenant.ci.partials.invoice_email',
-        'claims' => 'emails.tenant.ci.partials.claims_email',
-        'user_claims' => 'emails.tenant.ci.partials.user_claims_email',
+        'claims' => 'emails.tenant.partials.claims_body',
+        'user_claims' => 'emails.tenant.partials.claims_body',
         'stock_check_warehouse' => 'emails.tenant.ci.partials.stock_check_email_to_warehouse',
         'stock_check_quote' => 'emails.tenant.ci.partials.email_stock_check_quote_data',
         'shipping_quote' => 'emails.tenant.ci.partials.email_shipping_quote_data',

@@ -11,6 +11,7 @@ use App\Models\ProductCatalog;
 use App\Models\ProductSection;
 use App\Models\TaxValues;
 use App\Services\AdminRecordViewService;
+use App\Services\ClaimWorkspaceService;
 use App\Services\QuoteWorkspaceService;
 use App\Services\TenantNavBadgeService;
 use App\Support\TenantListPaginator;
@@ -268,7 +269,7 @@ $data['door_id'] = $door_id;
     /**
      * Display the specified resource.
      */
-    public function show(string $id, AdminRecordViewService $adminView): View
+    public function show(string $id, AdminRecordViewService $adminView, ClaimWorkspaceService $claims): View
     {
         $order = Order::query()->with('user')->findOrFail($id);
 
@@ -277,6 +278,7 @@ $data['door_id'] = $door_id;
         }
 
         $adminView->markViewed($order, Auth::user());
+        $canClaim = $claims->orderEligibleForClaim($order);
 
         $data = [
             'record' => $order,
@@ -290,6 +292,9 @@ $data['door_id'] = $door_id;
             'rooms' => $order->rooms ?? [],
             'listRoute' => 'tenant_order_list',
             'editRoute' => null,
+            'canClaim' => $canClaim,
+            'showClaimDisabled' => ! $canClaim,
+            'claimLines' => $canClaim ? $claims->buildClaimLineOptions($order) : [],
         ];
 
         $view = Auth::user()->hasRole('Admin')

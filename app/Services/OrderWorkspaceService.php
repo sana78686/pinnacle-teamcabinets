@@ -91,10 +91,18 @@ class OrderWorkspaceService
             ]);
         }
 
-        $comment = $validated['comment'] ?? null;
-        if (! empty($validated['quote_name'])) {
-            $comment = trim('Quote: '.$validated['quote_name'].($comment ? "\n".$comment : ''));
+        $comment = isset($validated['comment']) ? trim((string) $validated['comment']) : '';
+        $quoteName = trim($validated['quote_name'] ?? '');
+        if ($quoteName !== '') {
+            $prefix = 'Quote: '.$quoteName;
+            if ($comment === '') {
+                $comment = $prefix;
+            } elseif (! str_starts_with($comment, $prefix)
+                && ! preg_match('/^(?:Quote|Shipping quote):/iu', $comment)) {
+                $comment = trim($prefix."\n".$comment);
+            }
         }
+        $comment = $comment !== '' ? $comment : null;
 
         return [
             'job_name' => $validated['job_name'],

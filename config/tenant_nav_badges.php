@@ -8,6 +8,7 @@ return [
         'orders' => ['orders_list'],
         'quotes' => ['quotes_list', 'shipping_quotes_list'],
         'stock_check' => ['stock_check_list'],
+        'claims' => ['claims_list'],
     ],
 
     'list_keys' => [
@@ -15,5 +16,6 @@ return [
         'quotes_list',
         'shipping_quotes_list',
         'stock_check_list',
+        'claims_list',
     ],
 ];

@@ -101,4 +101,16 @@
             </tbody>
         </table>
     </div>
+
+    @if (! empty($canClaim) && ! empty($record))
+        @include('tenants.claims.partials.claim-modal', [
+            'order' => $record,
+            'claimLines' => $claimLines ?? [],
+        ])
+    @elseif (! empty($showClaimDisabled) && ! empty($record))
+        <div class="text-end mt-3 pt-3 border-top">
+            <button type="button" class="btn btn-secondary btn-sm" disabled title="Available when order is paid/completed">Claim</button>
+            <span class="text-muted small ms-2">Claims open after order is paid/completed.</span>
+        </div>
+    @endif
 </div>

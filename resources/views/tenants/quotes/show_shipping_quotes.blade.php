@@ -11,7 +11,9 @@
 @endsection
 
 @section('content')
-    @include('tenants.quotes.partials.shipping-quote-admin-show', $adminView)
+    @include('tenants.quotes.partials.shipping-quote-admin-show', [
+        'quoteView' => array_merge($adminView, ['showAdminForm' => true]),
+    ])
 @endsection
 
 @section('script')

@@ -137,3 +137,18 @@ if (! function_exists('tenant_layout_flags')) {
         return $flags;
     }
 }
+
+if (! function_exists('pinnacle_public_asset_url')) {
+    /** Resolved public asset URL when the file exists on disk, otherwise null. */
+    function pinnacle_public_asset_url(?string $relativePath): ?string
+    {
+        if ($relativePath === null || $relativePath === '') {
+            return null;
+        }
+
+        $relativePath = ltrim(str_replace('\\', '/', $relativePath), '/');
+        $fullPath = public_path($relativePath);
+
+        return is_file($fullPath) ? asset($relativePath) : null;
+    }
+}

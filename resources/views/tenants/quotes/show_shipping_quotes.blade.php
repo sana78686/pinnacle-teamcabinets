@@ -17,5 +17,5 @@
 @endsection
 
 @section('script')
-<script src="{{ asset('js/shipping-quote-admin.js') }}?v=1"></script>
+<script src="{{ tenant_static_asset('js/shipping-quote-admin.js') }}?v=1"></script>
 @endsection

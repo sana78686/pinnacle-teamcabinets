@@ -3,7 +3,7 @@
 @section('title', 'Checkout')
 
 @section('style')
-<link rel="stylesheet" href="{{ asset('css/checkout-page.css') }}?v=3">
+<link rel="stylesheet" href="{{ tenant_static_asset('css/checkout-page.css') }}?v=3">
 @endsection
 
 @section('content')
@@ -243,5 +243,5 @@
         shipCounty: @json($shipCounty),
     };
 </script>
-<script src="{{ asset('js/checkout-page.js') }}?v=3"></script>
+<script src="{{ tenant_static_asset('js/checkout-page.js') }}?v=3"></script>
 @endsection

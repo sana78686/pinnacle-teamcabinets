@@ -176,5 +176,5 @@
 @endsection
 
 @section('setting_script')
-<script src="{{ asset('js/tenant-website-faqs.js') }}?v=1"></script>
+<script src="{{ tenant_static_asset('js/tenant-website-faqs.js') }}?v=1"></script>
 @endsection

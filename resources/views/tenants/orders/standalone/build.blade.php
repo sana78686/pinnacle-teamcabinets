@@ -188,5 +188,5 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/create-order.js') }}?v=6"></script>
+<script src="{{ tenant_static_asset('js/create-order.js') }}?v=6"></script>
 @endpush

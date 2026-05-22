@@ -67,8 +67,8 @@ if (! function_exists('central_mail')) {
     }
 }
 
-if (! function_exists('tenant_panel_asset_is_local')) {
-    function tenant_panel_asset_is_local(): bool
+if (! function_exists('tenant_static_asset_is_local')) {
+    function tenant_static_asset_is_local(): bool
     {
         if (app()->environment('local')) {
             return true;
@@ -80,26 +80,34 @@ if (! function_exists('tenant_panel_asset_is_local')) {
     }
 }
 
-if (! function_exists('tenant_panel_asset')) {
+if (! function_exists('tenant_static_asset')) {
     /**
-     * Tenant Poco panel + storefront static files.
-     * Live: https://{host}/public/{path} — never asset() (Stancl → /tenancy/assets/).
-     * Local: normal asset() when using artisan serve / public docroot.
+     * All tenant-host static files (panel, auth, storefront) on live.
+     * https://{tenant-host}/public/{path} — asset() breaks (tenancy or missing /public/).
      */
-    function tenant_panel_asset(string $path): string
+    function tenant_static_asset(string $path): string
     {
         $path = ltrim($path, '/');
 
-        if (tenant_panel_asset_is_local()) {
-            return asset($path);
-        }
-
-        $configured = config('tenant_assets.use_public_prefix');
-        if ($configured === false) {
+        if (tenant_static_asset_is_local()) {
             return asset($path);
         }
 
         return rtrim(Request::getSchemeAndHttpHost(), '/').'/public/'.$path;
+    }
+}
+
+if (! function_exists('tenant_panel_asset_is_local')) {
+    function tenant_panel_asset_is_local(): bool
+    {
+        return tenant_static_asset_is_local();
+    }
+}
+
+if (! function_exists('tenant_panel_asset')) {
+    function tenant_panel_asset(string $path): string
+    {
+        return tenant_static_asset($path);
     }
 }
 
@@ -121,7 +129,7 @@ if (! function_exists('tenant_asset')) {
      */
     function tenant_asset(string $path): string
     {
-        return tenant_panel_asset($path);
+        return tenant_static_asset($path);
     }
 }
 

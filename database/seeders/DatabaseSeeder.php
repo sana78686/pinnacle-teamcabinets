@@ -22,8 +22,8 @@ class DatabaseSeeder extends Seeder
         $this->call(PermissionTableSeeder::class);
         $this->call(TenantRoleSeeder::class);
 
-        // Countries / states / cities (world.sql)
-        $this->call(ImportSQLSeeder::class);
+        // US country (233) + states — fast. Full world: php artisan geo:import-world
+        $this->call(UsGeoSeeder::class);
 
         // Super-admin login for pinnacle.apimstec.com
         $this->call(CreateAdminUserSeeder::class);

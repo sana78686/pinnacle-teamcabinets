@@ -3,7 +3,7 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Setup checklist (§5.2)</h5>
-            <span class="badge bg-primary">{{ $onboardingProgress ?? '' }}</span>
+            <span class="badge rounded-pill tc-onboard-badge">{{ $onboardingProgress ?? '' }}</span>
         </div>
         <div class="card-body p-0">
             <ul class="list-group list-group-flush">
@@ -18,7 +18,7 @@
                             <strong class="ms-1">{{ $step['label'] }}</strong>
                             <div class="small text-muted">{{ $step['hint'] }}</div>
                         </div>
-                        <a href="{{ route($step['route']) }}" class="btn btn-sm {{ $step['done'] ? 'btn-light' : 'btn-primary' }}">
+                        <a href="{{ route($step['route']) }}" class="btn btn-sm tc-pn-btn {{ $step['done'] ? 'tc-pn-btn--outline' : 'tc-pn-btn--navy' }}">
                             {{ $step['done'] ? 'Review' : 'Configure' }}
                         </a>
                     </li>

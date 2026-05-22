@@ -2626,3 +2626,154 @@
     width: 18px;
     height: 18px;
 }
+
+/* —— Dashboard & Pinnacle buttons (tenant panel) —— */
+.tc-panel-shell .page-body .btn-primary,
+.tc-panel-shell .page-body .btn-primary:focus {
+    background-color: var(--pn-navy, #0c2340) !important;
+    border-color: var(--pn-navy, #0c2340) !important;
+    color: #fff !important;
+}
+
+.tc-panel-shell .page-body .btn-primary:hover,
+.tc-panel-shell .page-body .btn-primary:active {
+    background-color: var(--pn-slate, #1a4a7a) !important;
+    border-color: var(--pn-slate, #1a4a7a) !important;
+    color: #fff !important;
+}
+
+.tc-pn-btn {
+    font-weight: 600;
+    border-radius: 8px;
+    transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.tc-pn-btn--navy {
+    background: var(--pn-navy, #0c2340) !important;
+    border: 1px solid var(--pn-navy, #0c2340) !important;
+    color: #fff !important;
+}
+
+.tc-pn-btn--navy:hover,
+.tc-pn-btn--navy:focus {
+    background: var(--pn-slate, #1a4a7a) !important;
+    border-color: var(--pn-slate, #1a4a7a) !important;
+    color: #fff !important;
+}
+
+.tc-pn-btn--outline {
+    background: #fff !important;
+    border: 1px solid var(--pn-border, #e2e8f0) !important;
+    color: var(--pn-navy, #0c2340) !important;
+}
+
+.tc-pn-btn--outline:hover,
+.tc-pn-btn--outline:focus {
+    background: var(--pn-cream, #f7f5f0) !important;
+    border-color: var(--pn-slate, #1a4a7a) !important;
+    color: var(--pn-navy, #0c2340) !important;
+}
+
+.tc-onboard-badge {
+    background: var(--pn-navy, #0c2340) !important;
+    color: #fff !important;
+    font-weight: 600;
+}
+
+/* Dashboard stat cards — same palette as Pinnacle admin general-widget */
+.tc-panel-shell .general-widget .gradient-primary {
+    background: linear-gradient(135deg, var(--pn-navy, #0c2340) 0%, var(--pn-slate, #1a4a7a) 100%) !important;
+}
+
+.tc-panel-shell .general-widget .gradient-secondary {
+    background: linear-gradient(135deg, var(--pn-slate, #1a4a7a) 0%, #2d5a87 100%) !important;
+}
+
+.tc-panel-shell .general-widget .gradient-info {
+    background: linear-gradient(135deg, #1a4a7a 0%, var(--pn-navy, #0c2340) 100%) !important;
+}
+
+.tc-panel-shell .general-widget .gradient-warning {
+    background: linear-gradient(135deg, var(--pn-gold, #c5a028) 0%, var(--pn-gold-light, #e4c65a) 100%) !important;
+}
+
+.tc-panel-shell .general-widget .gradient-warning .m-0,
+.tc-panel-shell .general-widget .gradient-warning h4,
+.tc-panel-shell .general-widget .gradient-warning .counter,
+.tc-panel-shell .general-widget .gradient-warning .align-self-center svg {
+    color: var(--pn-navy, #0c2340) !important;
+}
+
+.tc-panel-shell .general-widget .gradient-primary .m-0,
+.tc-panel-shell .general-widget .gradient-primary h4,
+.tc-panel-shell .general-widget .gradient-secondary .m-0,
+.tc-panel-shell .general-widget .gradient-secondary h4,
+.tc-panel-shell .general-widget .gradient-info .m-0,
+.tc-panel-shell .general-widget .gradient-info h4,
+.tc-panel-shell .general-widget .card .m-0:not(.text-white),
+.tc-panel-shell .general-widget .card h4 {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.tc-panel-shell .tc-dash-widgets .card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--pn-shadow, 0 4px 24px rgba(12, 35, 64, 0.08));
+}
+
+.tc-panel-shell .tc-dash-stat-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+.tc-panel-shell .tc-dash-stat-link:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.tc-panel-shell .tc-dash-stat-link:hover .card {
+    box-shadow: var(--pn-shadow-lg, 0 20px 50px rgba(12, 35, 64, 0.15));
+    transform: translateY(-2px);
+}
+
+.tc-panel-shell .tc-dash-stat-link .card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tc-panel-shell .tc-dash-widgets .static-top-widget .align-self-center i,
+.tc-panel-shell .tc-dash-widgets .static-top-widget .align-self-center svg {
+    width: 28px;
+    height: 28px;
+    opacity: 0.9;
+}
+
+.tc-panel-shell .tc-dash-widgets .static-top-widget h4 {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.tc-panel-shell .tc-dash-widgets .static-top-widget .m-0 {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: none;
+}
+
+.tc-panel-shell .tc-dash-card {
+    border: 1px solid var(--pn-border, #e2e8f0);
+    border-radius: 12px;
+    box-shadow: var(--pn-shadow, 0 4px 24px rgba(12, 35, 64, 0.08));
+}
+
+.tc-panel-shell .tc-dash-card .card-header {
+    background: #fff;
+    border-bottom: 1px solid var(--pn-border, #e2e8f0);
+    padding: 1rem 1.25rem;
+}
+
+.tc-panel-shell .tc-dash-card__title {
+    font-size: 1rem !important;
+    font-weight: 700;
+    color: var(--pn-navy, #0c2340);
+}

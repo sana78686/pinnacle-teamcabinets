@@ -1,44 +1,38 @@
 @php
-    $company = tenant('company_name') ?? tenant('name') ?? config('app.name');
+    $aboutUrl = $sfAboutPage
+        ? route('cms.page', $sfAboutPage->slug)
+        : route('cms.page', 'about');
+    $blogUrl = $sfBlogPage ? route('cms.page', $sfBlogPage->slug) : null;
+    $contactUrl = $sfContactPage
+        ? route('cms.page', $sfContactPage->slug)
+        : ($sfShowContact ? route('cms.page', 'contact') : route('cms.page').'#hz-contact');
     $phone = $settings?->phone ?? null;
-    $aboutPage = $aboutPage ?? \App\Models\Page::findAboutPage();
-    $blogPage = $blogPage ?? \App\Models\Page::findBlogPage();
-    $contactPage = $contactPage ?? \App\Models\Page::findContactPage();
-    $reservedSlugs = ['about', 'about-us', 'blog', 'contact', 'contact-us'];
-    $navPages = \App\Models\Page::query()
-        ->where('status', 'published')
-        ->whereNull('parent_id')
-        ->whereNotIn('slug', $reservedSlugs)
-        ->where('show_in_menu', true)
-        ->orderBy('order_no')
-        ->limit(6)
-        ->get();
-    $aboutUrl = $aboutPage ? route('cms.page', $aboutPage->slug) : route('cms.page').'#hz-difference';
-    $blogUrl = $blogPage ? route('cms.page', $blogPage->slug) : route('cms.page');
 @endphp
 <header class="hz-header hz-header--dark">
     <div class="hz-container hz-header__inner">
         <a href="{{ route('cms.page') }}" class="hz-logo">
-            @if (!empty($settings?->logo))
-                <img src="{{ asset($settings->logo) }}" alt="{{ $company }}">
+            @if ($sfLogoUrl)
+                <img src="{{ $sfLogoUrl }}" alt="{{ $sfCompany }}">
             @else
-                <span class="hz-logo__badge">{{ $company }}</span>
+                <span class="hz-logo__badge">{{ $sfCompany }}</span>
             @endif
         </a>
         <nav class="hz-nav" aria-label="Main">
             <a href="{{ route('cms.page') }}">Home</a>
-            <a href="{{ $aboutUrl }}">About</a>
+            @if ($sfShowAbout)
+                <a href="{{ $aboutUrl }}">About</a>
+            @endif
             <a href="{{ route('cms.page') }}#hz-catalog-lines">Cabinetry lines</a>
             <a href="{{ route('cms.page') }}#hz-steps">Become a partner</a>
-            <a href="{{ $blogUrl }}">Blog</a>
-            @foreach ($navPages as $navPage)
-                <a href="{{ route('cms.page', $navPage->slug) }}">{{ $navPage->title }}</a>
+            @if ($blogUrl)
+                <a href="{{ $blogUrl }}">Articles</a>
+            @endif
+            @foreach ($sfMenuPages as $navItem)
+                <a href="{{ $navItem['url'] }}">{{ $navItem['label'] }}</a>
             @endforeach
             <a href="{{ route('cms.page') }}#hz-faq">FAQs</a>
-            @if ($contactPage)
-                <a href="{{ route('cms.page', $contactPage->slug) }}">Contact</a>
-            @else
-                <a href="{{ route('cms.page') }}#hz-contact">Contact</a>
+            @if ($sfShowContact)
+                <a href="{{ $contactUrl }}">Contact</a>
             @endif
         </nav>
         <div class="hz-header__cta">
@@ -56,16 +50,20 @@
     </div>
     <nav class="hz-mobile-nav hz-mobile-nav--dark" id="hz-mobile-nav" aria-label="Mobile">
         <a href="{{ route('cms.page') }}">Home</a>
-        <a href="{{ $aboutUrl }}">About</a>
+        @if ($sfShowAbout)
+            <a href="{{ $aboutUrl }}">About</a>
+        @endif
         <a href="{{ route('cms.page') }}#hz-catalog-lines">Cabinetry lines</a>
         <a href="{{ route('cms.page') }}#hz-steps">Become a partner</a>
-        <a href="{{ $blogUrl }}">Blog</a>
-        @foreach ($navPages as $navPage)
-            <a href="{{ route('cms.page', $navPage->slug) }}">{{ $navPage->title }}</a>
+        @if ($blogUrl)
+            <a href="{{ $blogUrl }}">Articles</a>
+        @endif
+        @foreach ($sfMenuPages as $navItem)
+            <a href="{{ $navItem['url'] }}">{{ $navItem['label'] }}</a>
         @endforeach
         <a href="{{ route('cms.page') }}#hz-faq">FAQs</a>
-        @if ($contactPage)
-            <a href="{{ route('cms.page', $contactPage->slug) }}">Contact</a>
+        @if ($sfShowContact)
+            <a href="{{ $contactUrl }}">Contact</a>
         @endif
         @if ($phone)
             <a href="tel:{{ preg_replace('/\D+/', '', $phone) }}">{{ $phone }}</a>

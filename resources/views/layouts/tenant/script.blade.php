@@ -45,27 +45,11 @@
     window.TENANT_PANEL_TOAST_IDS = @json(session('tenant_panel_toast_ids', []));
     window.TENANT_PANEL_TOAST_MESSAGES = @json(session('tenant_panel_toast_messages', []));
 </script>
-<script src="{{ $panelAsset('js/tenant-notifications.js') }}?v=6"></script>
+<script src="{{ $panelAsset('js/tenant-notifications.js') }}?v=7"></script>
 @if ($tcLayout['settings_extras'] ?? false)
 <script src="{{ $panelAsset('js/tenant-select2.js') }}?v=1"></script>
 @endif
 <script src="{{ $panelAsset('js/tenant-panel-search.js') }}?v=1"></script>
-<script>
-    document.getElementById('tc-pn-menu-btn')?.addEventListener('click', function () {
-        var menu = document.querySelector('.tc-tenant-nav .sm, .tc-compact-chrome .sm');
-        if (menu) {
-            menu.style.left = '0px';
-        }
-        this.setAttribute('aria-expanded', 'true');
-    });
-    document.querySelectorAll('.tc-tenant-nav .mobile-back').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var toggle = document.getElementById('tc-pn-menu-btn');
-            if (toggle) {
-                toggle.setAttribute('aria-expanded', 'false');
-            }
-        });
-    });
-</script>
+<script src="{{ $panelAsset('js/tenant-panel-mobile.js') }}?v=1"></script>
 @endauth
 <!-- Plugin used-->

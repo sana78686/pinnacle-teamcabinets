@@ -17,23 +17,33 @@
     <section class="tc-settings-section">
         <h3 class="tc-settings-section__title">Company</h3>
         <div class="row g-3">
-            <div class="col-md-4">
+            <div class="col-md-6 col-lg-3">
                 <div class="tc-field">
                     <label for="logo">Logo</label>
                     @if ($settings && $settings->logo)
-                        <img src="{{ asset($settings->logo) }}" alt="Logo" class="tc-settings-preview-img">
+                        <img src="{{ tenant_static_asset($settings->logo) }}" alt="Logo" class="tc-settings-preview-img">
                     @endif
-                    <input type="file" name="logo" id="logo" class="form-control">
+                    <input type="file" name="logo" id="logo" class="form-control" accept="image/*">
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="tc-field">
+                    <label for="favicon">Favicon</label>
+                    @if ($settings && $settings->favicon)
+                        <img src="{{ tenant_static_asset($settings->favicon) }}" alt="Favicon" class="tc-settings-preview-img" style="max-width:48px;">
+                    @endif
+                    <input type="file" name="favicon" id="favicon" class="form-control" accept="image/*">
+                    <small class="text-muted">Shown in browser tab on your public site (32×32 or 64×64 PNG recommended).</small>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
                 <div class="tc-field">
                     <label for="main_phone">Phone Number <span class="text-danger">*</span></label>
                     <input type="tel" id="main_phone" name="phone" class="form-control" placeholder="Enter phone number"
                         required value="{{ old('phone', $settings->phone ?? '') }}">
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6 col-lg-3">
                 <div class="tc-field">
                     <label for="main_email">Email <span class="text-danger">*</span></label>
                     <input type="email" id="main_email" name="email" class="form-control" placeholder="Enter email address"
@@ -78,6 +88,45 @@
                         <input type="email" name="newuser_email" id="newuser_email" class="form-control"
                             placeholder="Enter registration email" value="{{ old('newuser_email', $settings->newuser_email ?? '') }}">
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="tc-settings-section">
+        <h3 class="tc-settings-section__title">Public site SEO (default meta tags)</h3>
+        <p class="text-muted small mb-3">Used on the homepage and as fallbacks when a page has no custom meta. Open Graph image is used for social sharing.</p>
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="tc-field">
+                    <label for="site_meta_title">Default meta title</label>
+                    <input type="text" name="site_meta_title" id="site_meta_title" class="form-control"
+                        placeholder="Your Company — Wholesale RTA Cabinets"
+                        value="{{ old('site_meta_title', $settings->site_meta_title ?? '') }}">
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="tc-field">
+                    <label for="site_meta_description">Default meta description</label>
+                    <textarea name="site_meta_description" id="site_meta_description" class="form-control" rows="2"
+                        placeholder="Short description for search engines">{{ old('site_meta_description', $settings->site_meta_description ?? '') }}</textarea>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="tc-field">
+                    <label for="site_meta_keywords">Meta keywords</label>
+                    <input type="text" name="site_meta_keywords" id="site_meta_keywords" class="form-control"
+                        placeholder="RTA cabinets, wholesale, kitchen"
+                        value="{{ old('site_meta_keywords', $settings->site_meta_keywords ?? '') }}">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="tc-field">
+                    <label for="og_image">Open Graph image</label>
+                    @if ($settings && $settings->og_image)
+                        <img src="{{ tenant_static_asset($settings->og_image) }}" alt="OG" class="tc-settings-preview-img">
+                    @endif
+                    <input type="file" name="og_image" id="og_image" class="form-control" accept="image/*">
                 </div>
             </div>
         </div>

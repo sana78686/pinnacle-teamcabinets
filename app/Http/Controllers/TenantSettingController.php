@@ -27,7 +27,29 @@ class TenantSettingController extends Controller
      */
     public function index()
     {
-        return view('tenants.setting.manage_contact_us');
+        return redirect()->route('tenant_contact_page_settings');
+    }
+
+    public function contactPageSettings()
+    {
+        $settings = SiteSetting::first();
+
+        return view('tenants.setting.manage_contact_us', compact('settings'));
+    }
+
+    public function storeContactPageSettings(Request $request)
+    {
+        $request->validate([
+            'contact_sidebar_title' => 'nullable|string|max:255',
+            'map_embed_url' => 'nullable|string|max:5000',
+        ]);
+
+        $settings = SiteSetting::first() ?? new SiteSetting(['tenant_id' => tenant('id')]);
+        $settings->contact_sidebar_title = $request->contact_sidebar_title;
+        $settings->map_embed_url = $request->map_embed_url;
+        $settings->save();
+
+        return redirect()->back()->with('success', 'Contact page settings saved.');
     }
 
     /**
@@ -95,6 +117,11 @@ class TenantSettingController extends Controller
     // 🔹 Validate inputs
     $request->validate([
         'logo' => 'nullable|image|max:2048',
+        'favicon' => 'nullable|image|max:1024',
+        'og_image' => 'nullable|image|max:4096',
+        'site_meta_title' => 'nullable|string|max:255',
+        'site_meta_description' => 'nullable|string|max:1000',
+        'site_meta_keywords' => 'nullable|string|max:500',
         'banner_image' => 'nullable|image|max:4096',
         'aboutus_image' => 'nullable|image|max:4096',
         'phone' => 'required|string|max:20',
@@ -138,9 +165,18 @@ class TenantSettingController extends Controller
 
     // 🔹 Upload files
     $settings->logo = $uploadFile('logo', 'uploads/logos', $settings->logo);
-
+    foreach (['uploads/favicons', 'uploads/og'] as $uploadDir) {
+        if (! is_dir(public_path($uploadDir))) {
+            mkdir(public_path($uploadDir), 0755, true);
+        }
+    }
+    $settings->favicon = $uploadFile('favicon', 'uploads/favicons', $settings->favicon);
+    $settings->og_image = $uploadFile('og_image', 'uploads/og', $settings->og_image);
 
     // 🔹 Save text fields
+    $settings->site_meta_title = $request->site_meta_title;
+    $settings->site_meta_description = $request->site_meta_description;
+    $settings->site_meta_keywords = $request->site_meta_keywords;
     $settings->phone = $request->phone;
     $settings->contactus_phone = $request->contactus_phone;
     $settings->newuser_phone = $request->newuser_phone;

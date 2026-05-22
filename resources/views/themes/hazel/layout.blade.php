@@ -3,15 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', tenant('company_name') ?? tenant('name') ?? config('app.name'))</title>
-    <meta name="description" content="@yield('meta_description', 'Wholesale RTA cabinets for dealers, showrooms, and contractors.')">
+    @include('themes.hazel.partials.head-meta')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ tenant_static_asset('css/themes/hazel.css') }}?v=3">
+    <link rel="stylesheet" href="{{ tenant_static_asset('css/themes/hazel.css') }}?v=7">
+    <link rel="stylesheet" href="{{ tenant_static_asset('css/tenant-responsive.css') }}?v=1">
     @stack('head')
 </head>
 <body class="hz-body">
     @include('themes.hazel.partials.header')
-    <main>@yield('content')</main>
+    <main class="hz-main">@yield('content')</main>
     @include('themes.hazel.partials.footer')
     <script>
         document.getElementById('hz-menu-btn')?.addEventListener('click', function () {

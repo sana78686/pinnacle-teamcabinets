@@ -168,24 +168,65 @@
         }
     }
 
-    function showToast(item) {
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: item.type === 'success' ? 'success' : item.type === 'warning' ? 'warning' : 'info',
-                title: item.title,
-                text: item.message,
-                showConfirmButton: !!item.url,
-                confirmButtonText: item.url ? 'View' : undefined,
-                timer: 6000,
-                timerProgressBar: true,
-            }).then(function (result) {
-                if (result.isConfirmed && item.url) {
-                    window.location.href = item.url;
-                }
-            });
+    function normalizeToastType(type) {
+        if (type === 'success' || type === 'danger' || type === 'error' || type === 'warning') {
+            return type === 'danger' ? 'error' : type;
         }
+
+        return 'info';
+    }
+
+    function showToast(item) {
+        if (typeof Swal === 'undefined') {
+            return;
+        }
+
+        var icon = normalizeToastType(item.type);
+        if (icon === 'error') {
+            icon = 'error';
+        } else if (icon === 'warning') {
+            icon = 'warning';
+        } else if (icon === 'success') {
+            icon = 'success';
+        } else {
+            icon = 'info';
+        }
+
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: icon,
+            title: item.title || 'Notification',
+            text: item.message || '',
+            showConfirmButton: !!item.url,
+            confirmButtonText: item.url ? 'View' : undefined,
+            timer: item.url ? 8000 : 6000,
+            timerProgressBar: true,
+        }).then(function (result) {
+            if (result.isConfirmed && item.url) {
+                window.location.href = item.url;
+            }
+        });
+    }
+
+    /** Session flashes from login, logout, profile, workspace (no DB row required). */
+    function showBootToasts() {
+        var messages = window.TENANT_PANEL_TOAST_MESSAGES;
+        if (!messages || !messages.length) {
+            return;
+        }
+
+        messages.forEach(function (item) {
+            showToast({
+                id: 'boot-msg',
+                title: item.title || 'Notification',
+                message: item.message || '',
+                type: item.type || 'info',
+                url: item.url || null,
+            });
+        });
+
+        window.TENANT_PANEL_TOAST_MESSAGES = [];
     }
 
     function bootToastIds() {
@@ -240,6 +281,13 @@
                         });
                         if (bootItems.length) {
                             handleNewItems(bootItems);
+                        } else {
+                            var recentUnread = (data.notifications || []).filter(function (n) {
+                                return !n.read_at;
+                            }).slice(0, bootIds.length);
+                            if (recentUnread.length) {
+                                handleNewItems(recentUnread);
+                            }
                         }
                         window.TENANT_PANEL_TOAST_IDS = [];
                     }
@@ -272,7 +320,12 @@
             Notification.requestPermission();
         }
 
-        showBootToasts();
+        try {
+            showBootToasts();
+        } catch (e) {
+            console.warn('Tenant notifications boot toasts failed', e);
+        }
+
         poll(true);
         setInterval(function () { poll(false); }, pollIntervalMs);
 

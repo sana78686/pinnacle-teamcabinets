@@ -6,7 +6,7 @@
     $tcUserAvatar = $tcUser?->logo ? asset($tcUser->logo) : null;
     $tcUserInitials = $tcUser?->initials ?? 'U';
 @endphp
-<ul class="nav-menus tc-pn-nav-menus">
+<ul class="nav-menus tc-pn-nav-menus d-flex align-items-center flex-nowrap list-unstyled mb-0">
     @if (!empty($tcSubscriptionStatus) && $tcSubscriptionStatus === 'active' && !empty($tcTenant?->subscription_ends_at) && empty($tcShowTrialBanner))
         <li class="d-none d-md-flex align-items-center">
             <span class="badge badge-success f-12" role="status">

@@ -38,6 +38,9 @@ class HomeSettingsController extends Controller
         'faq_question.*' => 'nullable|string|max:500',
         'faq_answer' => 'nullable|array',
         'faq_answer.*' => 'nullable|string|max:5000',
+        'meta_title' => 'nullable|string|max:255',
+        'meta_description' => 'nullable|string|max:1000',
+        'meta_keywords' => 'nullable|string|max:500',
     ]);
 
     // 🔹 Fetch or create settings
@@ -79,6 +82,9 @@ class HomeSettingsController extends Controller
         $request->input('faq_question', []),
         $request->input('faq_answer', [])
     );
+    $settings->meta_title = $request->meta_title;
+    $settings->meta_description = $request->meta_description;
+    $settings->meta_keywords = $request->meta_keywords;
     // 🔹 Save all
     $settings->save();
 

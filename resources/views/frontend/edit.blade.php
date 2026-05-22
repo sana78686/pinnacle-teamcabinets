@@ -33,7 +33,7 @@
         </div>
     @endif
 
-    <form action="{{ route('pages.update', $page->id) }}" method="POST" class="tc-settings-form">
+    <form action="{{ route('pages.update', $page->id) }}" method="POST" class="tc-settings-form" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -73,6 +73,44 @@
             <label for="editor" class="form-label">Page Content</label>
             <textarea name="content" id="editor" class="form-control" rows="8">{{ old('content', $page->content) }}</textarea>
         </div>
+
+        <section class="tc-settings-section mb-4">
+            <h3 class="tc-settings-section__title">SEO &amp; social sharing</h3>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    @include('layouts.tenant.partials.settings-field', [
+                        'name' => 'meta_title',
+                        'label' => 'Meta title',
+                        'placeholder' => 'Page title for search engines',
+                        'value' => old('meta_title', $page->meta_title),
+                    ])
+                </div>
+                <div class="col-md-6">
+                    @include('layouts.tenant.partials.settings-field', [
+                        'name' => 'meta_keywords',
+                        'label' => 'Meta keywords',
+                        'placeholder' => 'keyword1, keyword2',
+                        'value' => old('meta_keywords', $page->meta_keywords),
+                    ])
+                </div>
+                <div class="col-12">
+                    <div class="tc-field">
+                        <label for="meta_description" class="form-label">Meta description</label>
+                        <textarea name="meta_description" id="meta_description" class="form-control" rows="2"
+                            placeholder="Short summary for Google and social previews">{{ old('meta_description', $page->meta_description) }}</textarea>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="tc-field">
+                        <label for="og_image" class="form-label">Open Graph image (optional)</label>
+                        @if ($page->og_image)
+                            <img src="{{ tenant_static_asset($page->og_image) }}" alt="" class="tc-settings-preview-img mb-2">
+                        @endif
+                        <input type="file" name="og_image" id="og_image" class="form-control" accept="image/*">
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <div class="row">
             <div class="col-md-4">

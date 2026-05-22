@@ -33,16 +33,22 @@ return [
             'active' => ['tenant_storefront_about', 'pages.edit'],
         ],
         [
-            'label' => 'Blog',
+            'label' => 'Articles',
             'route' => 'tenant_storefront_blog',
             'icon' => 'book-open',
             'active' => ['tenant_storefront_blog', 'pages.create', 'pages.edit'],
         ],
         [
-            'label' => 'Contact Us',
-            'route' => 'tenant_setting_manage_index',
+            'label' => 'Contact page',
+            'route' => 'tenant_contact_page_settings',
             'icon' => 'phone',
-            'active' => ['tenant_setting_manage_index', 'tenant_setting_manage_contact_*'],
+            'active' => ['tenant_contact_page_settings', 'tenant_contact_page_settings_store'],
+        ],
+        [
+            'label' => 'Contact inquiries',
+            'route' => 'tenant_contact_queries_index',
+            'icon' => 'mail',
+            'active' => ['tenant_contact_queries_*'],
         ],
     ],
 ];

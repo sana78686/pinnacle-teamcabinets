@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Notifications\PanelNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Mail + in-app panel notifications (CI parity).
@@ -23,28 +25,51 @@ class TenantNotificationService
      */
     public static function notifyOnLogin(User $user): array
     {
-        $countBefore = $user->notifications()->count();
+        if (! Schema::hasTable('notifications')) {
+            Log::warning('notifications table missing — run php artisan migrate on tenant DB');
 
-        $user->notify(new PanelNotification(
-            'Welcome back',
-            sprintf('Welcome back, %s! You are now logged in.', $user->name),
-            route('tenant_dashboard', [], false),
-            'success',
-            ['database'],
-            'auth',
-        ));
-
-        if (self::userIsAdmin($user) && ! SiteSetting::query()->exists()) {
-            $user->notify(self::welcomeNotification());
+            return [];
         }
 
-        $created = $user->notifications()->count() - $countBefore;
+        try {
+            $countBefore = $user->notifications()->count();
 
-        return $user->notifications()
-            ->latest()
-            ->take(max($created, 1))
-            ->pluck('id')
-            ->all();
+            $user->notify(new PanelNotification(
+                'Welcome back',
+                sprintf('Welcome back, %s! You are now logged in.', $user->name),
+                route('tenant_dashboard'),
+                'success',
+                ['database'],
+                'auth',
+            ));
+
+            if (self::userIsAdmin($user) && ! SiteSetting::query()->exists()) {
+                $user->notify(self::welcomeNotification());
+            }
+
+            $created = $user->notifications()->count() - $countBefore;
+
+            return $user->notifications()
+                ->latest()
+                ->take(max($created, 1))
+                ->pluck('id')
+                ->all();
+        } catch (\Throwable $e) {
+            Log::error('Login panel notification failed: '.$e->getMessage());
+
+            return [];
+        }
+    }
+
+    /** Toast payload for session flash after login (shows even if bell poll is slow). */
+    public static function loginWelcomeToast(User $user): array
+    {
+        return [
+            'title' => 'Welcome back',
+            'message' => sprintf('Welcome back, %s! You are now logged in.', $user->name),
+            'type' => 'success',
+            'url' => route('tenant_dashboard'),
+        ];
     }
 
     /** Admin bell after self-service registration (mail sent separately). */

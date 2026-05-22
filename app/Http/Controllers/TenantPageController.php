@@ -9,9 +9,12 @@ use App\Models\Page;
 use App\Models\ProductCatalog;
 use App\Models\SiteSetting;
 use App\Services\StorefrontPageService;
+use App\Services\StorefrontPresenterService;
 use App\Services\TenantFrontendThemeService;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class TenantPageController extends Controller
@@ -19,6 +22,7 @@ class TenantPageController extends Controller
     public function __construct(
         protected TenantFrontendThemeService $themes,
         protected StorefrontPageService $storefrontPages,
+        protected StorefrontPresenterService $storefront,
     ) {}
 
     public function index()
@@ -59,19 +63,75 @@ class TenantPageController extends Controller
     public function show($slug = null)
     {
         if (is_null($slug)) {
-            return view($this->themes->view('home'), $this->homePayload());
+            return view($this->themes->view('home'), array_merge($this->homePayload(), [
+                'seo' => $this->storefront->homeSeo(),
+            ]));
+        }
+
+        if ($this->storefront->isLegalSlug($slug)) {
+            $legal = $this->storefront->resolveLegalPage($slug);
+            if (! $legal) {
+                throw new NotFoundHttpException;
+            }
+
+            return view($this->themes->view('legal'), [
+                'legal' => $legal,
+                'hzBreadcrumbs' => $this->storefront->breadcrumbs([
+                    ['label' => $legal['title'], 'url' => null],
+                ]),
+                'seo' => $this->storefront->seo(
+                    title: $legal['title'],
+                    description: Str::limit(strip_tags($legal['html']), 160),
+                    canonical: route('cms.page', $slug),
+                ),
+            ]);
+        }
+
+        if ($this->storefront->isContactSlug($slug)) {
+            if (! $this->storefront->showContactNav()) {
+                throw new NotFoundHttpException;
+            }
+
+            $page = Page::with('parent')->where('slug', $slug)->where('status', 'published')->first()
+                ?? $this->storefront->contactPage();
+
+            return view($this->themes->view('contact'), [
+                'page' => $page,
+                'hzBreadcrumbs' => $this->storefront->breadcrumbs([
+                    ['label' => 'Contact', 'url' => null],
+                ]),
+                'seo' => $page
+                    ? $this->storefront->pageSeo($page)
+                    : $this->storefront->seo(title: 'Contact us', canonical: route('cms.page', $slug)),
+            ]);
+        }
+
+        if ($this->storefront->isAboutSlug($slug)) {
+            if (! $this->storefront->showAboutNav()) {
+                throw new NotFoundHttpException;
+            }
+
+            $page = Page::with('parent')->where('slug', $slug)->where('status', 'published')->first()
+                ?? $this->storefront->aboutPage();
+
+            return view($this->themes->view('about'), array_merge($this->homePayload(), [
+                'page' => $page,
+                'hzBreadcrumbs' => $this->storefront->breadcrumbs([
+                    ['label' => 'About', 'url' => null],
+                ]),
+                'seo' => $page && $this->storefront->pageIsVisible($page)
+                    ? $this->storefront->pageSeo($page)
+                    : $this->storefront->seo(title: 'About us', canonical: route('cms.page', $slug)),
+            ]));
         }
 
         $page = Page::with('parent')->where('slug', $slug)
             ->where('status', 'published')
             ->firstOrFail();
 
-        $doorstyles = DoorColors::query()->where('status', 1)->get();
-        $settings = SiteSetting::first();
-        $settingsCompleted = $settings && $settings->logo && $settings->phone && $settings->email && $settings->address;
-        $contactPage = Page::findContactPage();
-        $aboutPage = Page::findAboutPage();
-        $blogPage = Page::findBlogPage();
+        if (! $page->isBlogIndex() && ! $this->storefront->pageIsVisible($page)) {
+            throw new NotFoundHttpException;
+        }
 
         if ($page->isBlogIndex()) {
             $posts = $page->children()
@@ -79,27 +139,18 @@ class TenantPageController extends Controller
                 ->orderByDesc('created_at')
                 ->get();
 
-            return view($this->themes->view('blog'), compact(
-                'page',
-                'posts',
-                'settings',
-                'settingsCompleted',
-                'doorstyles',
-                'contactPage',
-                'aboutPage',
-                'blogPage'
-            ));
+            return view($this->themes->view('blog'), [
+                'page' => $page,
+                'posts' => $posts,
+                'seo' => $this->storefront->pageSeo($page),
+            ]);
         }
 
-        return view($this->themes->view('page'), compact(
-            'page',
-            'settings',
-            'settingsCompleted',
-            'doorstyles',
-            'contactPage',
-            'aboutPage',
-            'blogPage'
-        ));
+        return view($this->themes->view('page'), [
+            'page' => $page,
+            'hzBreadcrumbs' => $this->pageBreadcrumbs($page),
+            'seo' => $this->storefront->pageSeo($page),
+        ]);
     }
 
     public function editAbout(): RedirectResponse
@@ -115,6 +166,21 @@ class TenantPageController extends Controller
         $posts = $blogPage->children()->orderByDesc('created_at')->get();
 
         return view('frontend.blog_manage', compact('blogPage', 'posts'));
+    }
+
+    /** @return array<int, array{label: string, url: ?string}> */
+    protected function pageBreadcrumbs(Page $page): array
+    {
+        if ($page->isBlogPost() && ($blog = $this->storefront->blogPage())) {
+            return $this->storefront->breadcrumbs([
+                ['label' => $blog->title, 'url' => route('cms.page', $blog->slug)],
+                ['label' => $page->title, 'url' => null],
+            ]);
+        }
+
+        return $this->storefront->breadcrumbs([
+            ['label' => $page->title, 'url' => null],
+        ]);
     }
 
     /** @return array<string, mixed> */
@@ -183,9 +249,26 @@ class TenantPageController extends Controller
         $request->validate([
             'title' => 'required',
             'slug' => 'required|unique:pages,slug,'.$page->id,
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:1000',
+            'meta_keywords' => 'nullable|string|max:500',
+            'og_image' => 'nullable|image|max:4096',
         ]);
 
-        $page->update($request->all());
+        $data = $request->except(['og_image', '_token', '_method']);
+
+        if ($request->hasFile('og_image')) {
+            $dir = public_path('uploads/og');
+            if (! is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            $file = $request->file('og_image');
+            $filename = time().'_'.$file->getClientOriginalName();
+            $file->move($dir, $filename);
+            $data['og_image'] = 'uploads/og/'.$filename;
+        }
+
+        $page->update($data);
 
         return redirect()->route('pages.index')->with('success', 'Page updated successfully.');
     }

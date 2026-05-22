@@ -68,8 +68,8 @@
                 <div class="container-fluid">
                     @if (View::hasSection('breadcrumb-title') || View::hasSection('breadcrumb-items') || ! empty($tcFrontendUrl ?? null))
                         <div class="page-header tc-page-header-row pb-0 pt-1">
-                            <div class="row align-items-center">
-                                <div class="col-lg-6 main-header">
+                            <div class="row align-items-center g-2">
+                                <div class="col-12 col-lg-6 main-header">
                                     <div class="tc-page-header-heading">
                                         @hasSection('breadcrumb-title')
                                             @yield('breadcrumb-title')
@@ -86,8 +86,8 @@
                                     @endif
                                 </div>
                                 @hasSection('breadcrumb-items')
-                                    <div class="col-lg-6 breadcrumb-right">
-                                        <ol class="breadcrumb justify-content-lg-end mb-0">
+                                    <div class="col-12 col-lg-6 breadcrumb-right">
+                                        <ol class="breadcrumb justify-content-lg-end justify-content-start mb-0">
                                             <li class="breadcrumb-item"><a href="{{ route('tenant_dashboard') }}"><i class="pe-7s-home"></i></a></li>
                                             @yield('breadcrumb-items')
                                         </ol>

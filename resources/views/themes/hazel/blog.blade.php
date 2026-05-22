@@ -1,11 +1,11 @@
 @extends('themes.hazel.layout')
 
-@section('title', ($page->title ?? 'Blog').' — '.(tenant('company_name') ?? tenant('name')))
-
 @section('content')
+@include('themes.hazel.partials.breadcrumbs', ['items' => $hzBreadcrumbs ?? []])
+@include('themes.hazel.partials.page-head', ['title' => $page->title])
+
 <section class="hz-page-content">
     <div class="hz-container">
-        <h1>{{ $page->title }}</h1>
         @if (!empty($page->content))
             <div class="hz-page-body hz-page-body--intro">
                 {!! $page->content !!}

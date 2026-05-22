@@ -169,6 +169,33 @@
         </button>
     </section>
 
+    <section class="tc-settings-section">
+        <h3 class="tc-settings-section__title">Homepage SEO</h3>
+        <p class="text-muted small mb-3">Meta tags for your public homepage (overrides site-wide defaults when set).</p>
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="tc-field">
+                    <label for="meta_title">Home meta title</label>
+                    <input type="text" name="meta_title" id="meta_title" class="form-control"
+                        value="{{ old('meta_title', $settings->meta_title ?? '') }}">
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="tc-field">
+                    <label for="meta_description">Home meta description</label>
+                    <textarea name="meta_description" id="meta_description" class="form-control" rows="2">{{ old('meta_description', $settings->meta_description ?? '') }}</textarea>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="tc-field">
+                    <label for="meta_keywords">Home meta keywords</label>
+                    <input type="text" name="meta_keywords" id="meta_keywords" class="form-control"
+                        value="{{ old('meta_keywords', $settings->meta_keywords ?? '') }}">
+                </div>
+            </div>
+        </div>
+    </section>
+
     <div class="tc-settings-form-actions">
         <button type="submit" class="btn btn-primary">Save Settings</button>
     </div>

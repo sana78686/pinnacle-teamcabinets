@@ -1,53 +1,49 @@
 @extends('layouts.tenant.settings')
-@section('title', 'Contact-us Menu')
-
-@section('css')
-    <link rel="stylesheet" type="text/css" href="{{ route('/') }}/assets/main/css/select2.css">
-@endsection
-
-@section('style')
-@endsection
+@section('title', 'Contact page')
 
 @section('breadcrumb-items')
     <li class="breadcrumb-item">Settings</li>
     <li class="breadcrumb-item"><a href="{{ route('tenant_website_designing') }}">Website Designing</a></li>
-    <li class="breadcrumb-item active">Contact Us</li>
+    <li class="breadcrumb-item active">Contact page</li>
 @endsection
 
 @section('setting_content')
 @include('layouts.tenant.partials.website-designing-nav')
 
-    <div class="row g-3 tc-settings-form-row">
-
-        <div class="col-md-4 ">
-            <div class="form-group">
-                <strong>Meta Title  &nbsp;<span class="txt-danger">*</span></strong>
-                <input class="form-control" name="" id="" type="text" placeholder="" required autofocus>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="form-group">
-                <strong>Meta Keywords &nbsp;<span class="txt-danger">*</span></strong>
-                <input class="form-control" name="" id="" type="text" placeholder="" required autofocus>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <strong>Meta Description &nbsp;<span class="txt-danger">*</span></strong>
-                <input type="text" name="name" placeholder="Name" class="form-control" required autofocus>
-            </div>
-        </div>
-
-        <div class="col-12 tc-settings-form-actions">
-            <button type="submit" class="mt-2 mb-3 btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk"></i>
-             Contact us</button>
-        </div>
+<div class="tc-settings-toolbar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+        <h5 class="mb-1 tc-settings-form-title">Contact page</h5>
+        <p class="mb-0 text-muted tc-field-hint">Sidebar title and map shown on your public contact page. Phone, email, and address come from Site Settings.</p>
     </div>
-@endsection
+    <a href="{{ route('tenant_contact_queries_index') }}" class="btn btn-primary btn-sm">View inquiries</a>
+</div>
 
-@section('setting_script')
+@include('partial.message')
 
-    <script src="{{ route('/') }}/assets/main/js/select2/select2.full.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/select2/select2-custom.js"></script>
+<form class="tc-settings-form" method="post" action="{{ route('tenant_contact_page_settings_store') }}">
+    @csrf
+    <section class="tc-settings-section">
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="tc-field">
+                    <label for="contact_sidebar_title">Sidebar heading</label>
+                    <input type="text" name="contact_sidebar_title" id="contact_sidebar_title" class="form-control"
+                        placeholder="Need Assistance?"
+                        value="{{ old('contact_sidebar_title', $settings->contact_sidebar_title ?? 'Need Assistance?') }}">
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="tc-field">
+                    <label for="map_embed_url">Google Maps embed</label>
+                    <textarea name="map_embed_url" id="map_embed_url" class="form-control" rows="4"
+                        placeholder="Paste iframe HTML from Google Maps → Share → Embed a map">{{ old('map_embed_url', $settings->map_embed_url ?? '') }}</textarea>
+                    <small class="text-muted">Optional. Shown below the contact form on your storefront.</small>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="tc-settings-form-actions">
+        <button type="submit" class="btn btn-primary">Save contact page</button>
+    </div>
+</form>
 @endsection

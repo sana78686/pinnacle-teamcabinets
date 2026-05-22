@@ -1,14 +1,12 @@
 @extends('themes.hazel.layout')
 
-@section('title', (tenant('company_name') ?? tenant('name')).' — Wholesale Cabinets')
-
 @section('content')
 @php
     $company = tenant('company_name') ?? tenant('name') ?? 'Your business';
     $hazelDefaults = config('tenant_hazel_home');
     $heroTitle = $homesettings?->benner_title ?? 'Premium Wholesale RTA Cabinets for Dealers & Contractors';
     $heroLead = $homesettings?->benner_description ?? 'Equipping showrooms, installers, and multi-family builders with high-quality, real-wood cabinetry. Protected wholesale pricing and reliable shipping from our warehouses to your job site.';
-    $heroBg = !empty($bennersection?->banner_image) ? asset($bennersection->banner_image) : null;
+    $heroBg = !empty($bennersection?->banner_image) ? $sf->publicAsset($bennersection->banner_image) : null;
     $aboutTitle = $homesettings?->aboutus_title ?? 'The '.$company.' difference: built for the trade';
     $aboutBody = $homesettings?->aboutus_description ?? 'For over a decade we have supported successful showrooms and multi-family renovations across the USA. We offer uncompromised, furniture-grade quality at true wholesale rates.';
     $cards = $cardsection ? [
@@ -22,9 +20,8 @@
     ];
     $qualityItems = $hazelDefaults['quality'] ?? [];
     $faqs = ! empty($faqs ?? null) ? $faqs : ($hazelDefaults['faqs'] ?? []);
-    $contactPage = $contactPage ?? null;
-    $aboutPage = $aboutPage ?? \App\Models\Page::findAboutPage();
-    $aboutPageUrl = $aboutPage ? route('cms.page', $aboutPage->slug) : null;
+    $aboutPageUrl = $sfAboutPage ? route('cms.page', $sfAboutPage->slug) : ($sfShowAbout ? route('cms.page', 'about') : null);
+    $contactUrl = $sfContactPage ? route('cms.page', $sfContactPage->slug) : ($sfShowContact ? route('cms.page', 'contact') : null);
     $defaultBrands = $hazelDefaults['brands'] ?? [];
     $catalogRows = isset($catalogs) ? $catalogs->filter(fn ($c) => $c->doorColors && $c->doorColors->count() > 0) : collect();
 @endphp
@@ -49,7 +46,7 @@
                 @foreach ($catalogRows->take(6) as $catalog)
                     <div class="hz-brand">
                         @if ($catalog->image)
-                            <img src="{{ asset($catalog->image) }}" alt="{{ $catalog->name }}">
+                            <img src="{{ $sf->publicAsset($catalog->image) }}" alt="{{ $catalog->name }}">
                         @else
                             <span class="hz-brand__name">{{ $catalog->name }}</span>
                         @endif
@@ -89,7 +86,7 @@
 <section class="hz-section hz-section--cream">
     <div class="hz-container hz-about">
         <div class="hz-about__img">
-            <img src="{{ asset($aboutussection->aboutus_image) }}" alt="{{ $aboutTitle }}">
+            <img src="{{ $sf->publicAsset($aboutussection->aboutus_image) }}" alt="{{ $aboutTitle }}">
         </div>
         <div>
             <h2 class="hz-section__title hz-section__title--left">Uncompromising quality inside and out</h2>
@@ -126,7 +123,7 @@
                 <div class="hz-catalog-row">
                     <div class="hz-catalog-row__brand">
                         @if ($catalog->image)
-                            <img src="{{ asset($catalog->image) }}" alt="{{ $catalog->name }}">
+                            <img src="{{ $sf->publicAsset($catalog->image) }}" alt="{{ $catalog->name }}">
                         @endif
                         <h3>{{ $catalog->name }}</h3>
                     </div>
@@ -135,7 +132,7 @@
                             <article class="hz-finish-card">
                                 @if (!empty($door->image))
                                     <div class="hz-finish-card__img">
-                                        <img src="{{ asset($door->image) }}" alt="{{ $door->product_label }}">
+                                        <img src="{{ $sf->publicAsset($door->image) }}" alt="{{ $door->product_label }}">
                                     </div>
                                 @else
                                     <div class="hz-finish-card__img hz-finish-card__img--placeholder"></div>
@@ -153,7 +150,7 @@
                     @foreach ($doorstyles as $door)
                         <article class="hz-finish-card">
                             @if (!empty($door->image))
-                                <div class="hz-finish-card__img"><img src="{{ asset($door->image) }}" alt="{{ $door->product_label }}"></div>
+                                <div class="hz-finish-card__img"><img src="{{ $sf->publicAsset($door->image) }}" alt="{{ $door->product_label }}"></div>
                             @else
                                 <div class="hz-finish-card__img hz-finish-card__img--placeholder"></div>
                             @endif
@@ -210,8 +207,8 @@
         <div>
             <h2>Built for multi-family renovations</h2>
             <p>Scaling a multi-unit project requires volume-ready inventory, consistent supply, and streamlined logistics. We tailor fulfillment for apartment builds and commercial developments.</p>
-            @if ($contactPage)
-                <a href="{{ route('cms.page', $contactPage->slug) }}" class="hz-btn hz-btn--gold">Contact us</a>
+            @if ($contactUrl)
+                <a href="{{ $contactUrl }}" class="hz-btn hz-btn--gold">Contact us</a>
             @else
                 <a href="{{ route('cms.page') }}#hz-contact" class="hz-btn hz-btn--gold">Contact us</a>
             @endif

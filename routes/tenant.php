@@ -128,6 +128,10 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
 
 
          Route::get('/dashboard', [TenantController::class, 'tenant_dashboard'])->name('tenant_dashboard');
+         Route::post('/dashboard/order-tracker', [\App\Http\Controllers\TenantDashboardTrackerController::class, 'update'])
+             ->name('tenant_dashboard_tracker_update');
+         Route::post('/dashboard/order-tracker/viewed', [\App\Http\Controllers\TenantDashboardTrackerController::class, 'markViewed'])
+             ->name('tenant_dashboard_tracker_viewed');
          Route::get('/panel-search', \App\Http\Controllers\TenantPanelSearchController::class)->name('tenant_panel_search');
          Route::view('coming-soon', 'errors.coming-soon')->name('coming_soon');
 
@@ -375,6 +379,11 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
           Route::get('setting/home-setting', [HomeSettingsController::class, 'index'])->name('tenant_home_setting_index');
           Route::post('setting/home-setting-store', [HomeSettingsController::class, 'home_setting_store'])->name('tenant_home_setting_srore');
           Route::get('setting/index', [TenantSettingController::class, 'index'])->name('tenant_setting_manage_index');
+          Route::get('setting/contact-page', [TenantSettingController::class, 'contactPageSettings'])->name('tenant_contact_page_settings');
+          Route::post('setting/contact-page', [TenantSettingController::class, 'storeContactPageSettings'])->name('tenant_contact_page_settings_store');
+          Route::get('setting/contact-queries', [\App\Http\Controllers\TenantContactQueryController::class, 'index'])->name('tenant_contact_queries_index');
+          Route::get('setting/contact-queries/{contactQuery}', [\App\Http\Controllers\TenantContactQueryController::class, 'show'])->name('tenant_contact_queries_show');
+          Route::delete('setting/contact-queries/{contactQuery}', [\App\Http\Controllers\TenantContactQueryController::class, 'destroy'])->name('tenant_contact_queries_destroy');
           Route::get('setting/create', [TenantSettingController::class, 'create'])->name('tenant_setting_manage_create');
           Route::get('setting/manage_home', [TenantSettingController::class, 'manage_site_settings'])->name('tenant_site_setting');
           Route::post('setting/manage_home_store', [TenantSettingController::class, 'store_site_settings'])->name('tenant_site_settings_store');

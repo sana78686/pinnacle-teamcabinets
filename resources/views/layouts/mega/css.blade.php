@@ -28,3 +28,4 @@
 <link rel="stylesheet" type="text/css" href="{{asset('assets/main/css/responsive.css')}}">
 <link rel="stylesheet" href="{{ asset('css/admin-list.css') }}?v=1">
 <link rel="stylesheet" href="{{ asset('css/admin-theme.css') }}?v=2">
+<link rel="stylesheet" href="{{ asset('css/admin-responsive.css') }}?v=1">

@@ -97,7 +97,8 @@ public function postLogin(Request $request)
         $toastIds = TenantNotificationService::notifyOnLogin($user);
 
         return redirect()->route('tenant_dashboard')
-            ->with('tenant_panel_toast_ids', $toastIds);
+            ->with('tenant_panel_toast_ids', $toastIds)
+            ->with('tenant_panel_toast_messages', [TenantNotificationService::loginWelcomeToast($user)]);
     }
 
     return redirect()->back()
@@ -241,7 +242,9 @@ public function postLogin(Request $request)
         $request->session()->regenerateToken();
         Session::flush();
         Auth::logout();
-        return redirect()->route('tenant_login');
+
+        return redirect()->route('tenant_login')
+            ->with('success', 'You have been logged out successfully.');
     }
 
     public function forgot_username()

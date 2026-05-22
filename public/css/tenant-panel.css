@@ -2680,84 +2680,122 @@
     font-weight: 600;
 }
 
-/* Dashboard stat cards — same palette as Pinnacle admin general-widget */
-.tc-panel-shell .general-widget .gradient-primary {
-    background: linear-gradient(135deg, var(--pn-navy, #0c2340) 0%, var(--pn-slate, #1a4a7a) 100%) !important;
+/* Dashboard — white metric widgets (readable, information-first) */
+.tc-panel-shell .tc-dash-page__lead {
+    font-size: 0.875rem !important;
+    color: #64748b;
+    margin: 0;
 }
 
-.tc-panel-shell .general-widget .gradient-secondary {
-    background: linear-gradient(135deg, var(--pn-slate, #1a4a7a) 0%, #2d5a87 100%) !important;
-}
-
-.tc-panel-shell .general-widget .gradient-info {
-    background: linear-gradient(135deg, #1a4a7a 0%, var(--pn-navy, #0c2340) 100%) !important;
-}
-
-.tc-panel-shell .general-widget .gradient-warning {
-    background: linear-gradient(135deg, var(--pn-gold, #c5a028) 0%, var(--pn-gold-light, #e4c65a) 100%) !important;
-}
-
-.tc-panel-shell .general-widget .gradient-warning .m-0,
-.tc-panel-shell .general-widget .gradient-warning h4,
-.tc-panel-shell .general-widget .gradient-warning .counter,
-.tc-panel-shell .general-widget .gradient-warning .align-self-center svg {
-    color: var(--pn-navy, #0c2340) !important;
-}
-
-.tc-panel-shell .general-widget .gradient-primary .m-0,
-.tc-panel-shell .general-widget .gradient-primary h4,
-.tc-panel-shell .general-widget .gradient-secondary .m-0,
-.tc-panel-shell .general-widget .gradient-secondary h4,
-.tc-panel-shell .general-widget .gradient-info .m-0,
-.tc-panel-shell .general-widget .gradient-info h4,
-.tc-panel-shell .general-widget .card .m-0:not(.text-white),
-.tc-panel-shell .general-widget .card h4 {
-    color: rgba(255, 255, 255, 0.95);
-}
-
-.tc-panel-shell .tc-dash-widgets .card {
-    border: none;
+.tc-panel-shell .tc-metric-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    background: #fff;
+    border: 1px solid var(--pn-border, #e8ecf1);
     border-radius: 12px;
-    box-shadow: var(--pn-shadow, 0 4px 24px rgba(12, 35, 64, 0.08));
+    padding: 1rem 1.125rem;
+    min-height: 100%;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.tc-panel-shell .tc-dash-stat-link {
+.tc-panel-shell .tc-metric-card--link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.tc-panel-shell .tc-metric-card--link:hover {
+    text-decoration: none;
+    color: inherit;
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+}
+
+.tc-panel-shell .tc-metric-card__icon {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tc-panel-shell .tc-metric-card__icon svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 2px;
+}
+
+.tc-panel-shell .tc-metric-card__icon--orange {
+    background: #fff7ed;
+    color: #ea580c;
+}
+
+.tc-panel-shell .tc-metric-card__icon--amber {
+    background: #fffbeb;
+    color: #d97706;
+}
+
+.tc-panel-shell .tc-metric-card__icon--green {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.tc-panel-shell .tc-metric-card__icon--blue {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.tc-panel-shell .tc-metric-card__icon--purple {
+    background: #f5f3ff;
+    color: #7c3aed;
+}
+
+.tc-panel-shell .tc-metric-card__icon--teal {
+    background: #f0fdfa;
+    color: #0d9488;
+}
+
+.tc-panel-shell .tc-metric-card__icon--navy {
+    background: #eef2f6;
+    color: var(--pn-navy, #0c2340);
+}
+
+.tc-panel-shell .tc-metric-card__icon--slate {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.tc-panel-shell .tc-metric-card__body {
+    min-width: 0;
+    flex: 1;
+}
+
+.tc-panel-shell .tc-metric-card__label {
     display: block;
-    text-decoration: none;
-    color: inherit;
-}
-
-.tc-panel-shell .tc-dash-stat-link:hover {
-    text-decoration: none;
-    color: inherit;
-}
-
-.tc-panel-shell .tc-dash-stat-link:hover .card {
-    box-shadow: var(--pn-shadow-lg, 0 20px 50px rgba(12, 35, 64, 0.15));
-    transform: translateY(-2px);
-}
-
-.tc-panel-shell .tc-dash-stat-link .card {
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.tc-panel-shell .tc-dash-widgets .static-top-widget .align-self-center i,
-.tc-panel-shell .tc-dash-widgets .static-top-widget .align-self-center svg {
-    width: 28px;
-    height: 28px;
-    opacity: 0.9;
-}
-
-.tc-panel-shell .tc-dash-widgets .static-top-widget h4 {
-    font-size: 1.5rem;
-    font-weight: 700;
-}
-
-.tc-panel-shell .tc-dash-widgets .static-top-widget .m-0 {
-    font-size: 0.8125rem;
+    font-size: 0.8125rem !important;
     font-weight: 600;
-    letter-spacing: 0.02em;
-    text-transform: none;
+    color: #64748b;
+    line-height: 1.3 !important;
+    margin-bottom: 0.2rem;
+}
+
+.tc-panel-shell .tc-metric-card__value {
+    font-size: 1.625rem !important;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2 !important;
+    letter-spacing: -0.02em;
+}
+
+.tc-panel-shell .tc-metric-card__hint {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem !important;
+    color: #94a3b8;
+    line-height: 1.35 !important;
 }
 
 .tc-panel-shell .tc-dash-card {
@@ -2775,5 +2813,312 @@
 .tc-panel-shell .tc-dash-card__title {
     font-size: 1rem !important;
     font-weight: 700;
+    color: #0f172a;
+}
+
+.tc-panel-shell .tc-dash-card__sub {
+    font-size: 0.8125rem !important;
+    color: #64748b;
+    line-height: 1.4 !important;
+}
+
+.tc-panel-shell .tc-dash-page {
+    padding-top: 0.25rem;
+}
+
+.tc-panel-shell .tc-dash-badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.6875rem !important;
+    font-weight: 600;
+    text-transform: capitalize;
     color: var(--pn-navy, #0c2340);
+    background: #eef2f6;
+    border-radius: 6px;
+}
+
+/* Compact store setup (dashboard sidebar) */
+.tc-panel-shell .tc-dash-setup__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: #fff;
+    border-bottom: 1px solid var(--pn-border, #e2e8f0);
+    padding: 1rem 1.25rem;
+}
+
+.tc-panel-shell .tc-dash-setup__sub {
+    font-size: 0.75rem !important;
+    color: var(--pn-text-muted, #64748b);
+    margin-top: 0.2rem;
+}
+
+.tc-panel-shell .tc-dash-setup__progress {
+    height: 6px;
+    background: #eef2f6;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.tc-panel-shell .tc-dash-setup__progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--pn-navy, #0c2340), var(--pn-slate, #1a4a7a));
+    border-radius: 999px;
+    transition: width 0.3s ease;
+}
+
+.tc-panel-shell .tc-dash-setup__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.tc-panel-shell .tc-dash-setup__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.tc-panel-shell .tc-dash-setup__item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.tc-panel-shell .tc-dash-setup__item:first-child {
+    padding-top: 0;
+}
+
+.tc-panel-shell .tc-dash-setup__status svg {
+    width: 18px;
+    height: 18px;
+    color: #cbd5e1;
+}
+
+.tc-panel-shell .tc-dash-setup__item.is-done .tc-dash-setup__status svg {
+    color: #16a34a;
+}
+
+.tc-panel-shell .tc-dash-setup__body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tc-panel-shell .tc-dash-setup__label {
+    font-size: 0.8125rem !important;
+    font-weight: 600;
+    color: var(--pn-navy, #0c2340);
+    line-height: 1.3;
+}
+
+.tc-panel-shell .tc-dash-setup__action {
+    font-size: 0.75rem !important;
+    font-weight: 600;
+    color: var(--pn-slate, #1a4a7a);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.tc-panel-shell .tc-dash-setup__action:hover {
+    color: var(--pn-gold, #c5a028);
+    text-decoration: underline;
+}
+
+.tc-panel-shell .tc-dash-setup__footer {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.75rem !important;
+    color: var(--pn-text-muted, #64748b);
+    background: #f8fafc;
+    border-top: 1px solid var(--pn-border, #e2e8f0);
+    padding: 0.85rem 1.25rem;
+}
+
+.tc-panel-shell .tc-dash-setup__footer svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: var(--pn-slate, #1a4a7a);
+}
+
+.tc-panel-shell .tc-dash-setup__footer--ok {
+    color: #166534;
+    background: #f0fdf4;
+}
+
+.tc-panel-shell .tc-dash-setup__footer--ok svg {
+    color: #16a34a;
+}
+
+@media (max-width: 991.98px) {
+    .tc-panel-shell .tc-dash-setup {
+        margin-top: 0.5rem;
+    }
+}
+
+/* Order tracker — compact table + expandable details (no horizontal scroll) */
+.tc-panel-shell .tc-dash-tracker-wrap {
+    overflow-x: visible;
+}
+
+.tc-panel-shell .tc-dash-tracker__table {
+    width: 100% !important;
+    font-size: 0.8125rem !important;
+}
+
+.tc-panel-shell .tc-dash-tracker__table thead th {
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+    font-weight: 600;
+    font-size: 0.8125rem !important;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.tc-panel-shell .tc-dash-tracker__table tbody td {
+    vertical-align: middle;
+}
+
+.tc-panel-shell .tc-tracker-col-order {
+    min-width: 8rem;
+}
+
+.tc-panel-shell .tc-tracker-col-actions {
+    width: 4.5rem;
+}
+
+.tc-panel-shell .tc-tracker-meta {
+    font-size: 0.75rem !important;
+    color: #64748b;
+    line-height: 1.35 !important;
+    margin-top: 0.15rem;
+}
+
+.tc-panel-shell .tc-tracker-customer {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.tc-panel-shell .tc-dash-tracker__table .form-select-sm {
+    min-width: 5.5rem;
+    max-width: 100%;
+    font-size: 0.8125rem !important;
+}
+
+.tc-panel-shell .tc-tracker-yn {
+    min-width: 4.25rem !important;
+    margin: 0 auto;
+}
+
+.tc-panel-shell .tc-tracker-margin-badge {
+    display: inline-block;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.8125rem !important;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.tc-panel-shell .tc-tracker-margin-badge.is-positive {
+    background: #16a34a;
+}
+
+.tc-panel-shell .tc-tracker-margin-badge.is-negative {
+    background: #dc2626;
+}
+
+.tc-panel-shell .tc-tracker-toggle {
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+}
+
+.tc-panel-shell .tc-tracker-toggle__icon {
+    width: 18px;
+    height: 18px;
+}
+
+.tc-panel-shell .tc-tracker-toggle.is-open {
+    background: #eef2f6;
+}
+
+.tc-panel-shell .tc-tracker-detail-row > td {
+    border-top: none !important;
+    background: #f8fafc;
+}
+
+.tc-panel-shell .tc-tracker-detail-panel {
+    padding: 1rem 1.25rem 1.25rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.tc-panel-shell .tc-tracker-field-label {
+    display: block;
+    font-size: 0.6875rem !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    margin-bottom: 0.35rem;
+}
+
+.tc-panel-shell .tc-tracker-field-value {
+    font-size: 0.875rem !important;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.tc-panel-shell .tc-tracker-detail-panel .form-control-sm {
+    font-size: 0.8125rem !important;
+}
+
+@media (max-width: 767.98px) {
+    .tc-panel-shell .tc-dash-tracker__table thead {
+        display: none;
+    }
+
+    .tc-panel-shell .tc-dash-tracker__table .tc-tracker-row {
+        display: block;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .tc-panel-shell .tc-dash-tracker__table .tc-tracker-row > td {
+        display: block;
+        width: 100% !important;
+        border: none;
+        padding: 0.5rem 1rem;
+        text-align: left !important;
+    }
+
+    .tc-panel-shell .tc-dash-tracker__table .tc-tracker-row > td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+    }
+
+    .tc-panel-shell .tc-tracker-col-actions {
+        padding-bottom: 0.75rem !important;
+    }
+
+    .tc-panel-shell .tc-tracker-detail-row {
+        display: block !important;
+    }
+
+    .tc-panel-shell .tc-tracker-detail-row > td {
+        display: block;
+        padding: 0 !important;
+    }
 }

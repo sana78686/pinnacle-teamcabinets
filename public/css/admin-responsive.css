@@ -1,0 +1,77 @@
+/**
+ * Pinnacle super-admin (mega layout) — mobile / tablet
+ */
+
+@media (max-width: 991.98px) {
+    .page-wrapper .page-body {
+        margin-left: 0 !important;
+        padding: 0.75rem;
+    }
+
+    .page-wrapper .page-main-header {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    .page-wrapper .page-header .row > [class*="col-"] {
+        width: 100%;
+        max-width: 100%;
+        flex: 0 0 100%;
+    }
+
+    .page-wrapper .breadcrumb-right .breadcrumb {
+        justify-content: flex-start !important;
+        margin-top: 0.5rem;
+    }
+
+    .page-wrapper .main-header h2,
+    .page-wrapper .main-header h1 {
+        font-size: 1.25rem;
+    }
+
+    .page-wrapper .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .page-wrapper .card .card-header {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .page-wrapper .card .card-header .btn {
+        flex: 1 1 auto;
+    }
+
+    .page-wrapper .dataTables_wrapper .dataTables_length,
+    .page-wrapper .dataTables_wrapper .dataTables_filter {
+        text-align: left;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-wrapper .dataTables_wrapper .dataTables_filter input {
+        width: 100% !important;
+        max-width: 100%;
+    }
+
+    .page-wrapper .form-control,
+    .page-wrapper .form-select {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .page-wrapper .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .page-wrapper .logo-wrapper img {
+        max-height: 48px !important;
+        height: auto !important;
+    }
+
+    .page-wrapper .card .card-header .btn {
+        width: 100%;
+    }
+}

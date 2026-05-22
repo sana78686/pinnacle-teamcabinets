@@ -37,13 +37,13 @@
             <div class="page-body">
                <div class="container-fluid">
                   <div class="page-header">
-                     <div class="row">
-                        <div class="col-lg-6 main-header">
+                     <div class="row g-2">
+                        <div class="col-12 col-lg-6 main-header">
                           @yield('breadcrumb-title')
                           <h6 class="mb-0">admin panel</h6>
                         </div>
-                        <div class="col-lg-6 breadcrumb-right">
-                           <ol class="breadcrumb">
+                        <div class="col-12 col-lg-6 breadcrumb-right">
+                           <ol class="breadcrumb justify-content-lg-end justify-content-start mb-0">
                               <li class="breadcrumb-item"><a href="{{route('/')}}"><i class="pe-7s-home"></i></a></li>
                               @yield('breadcrumb-items')
                            </ol>

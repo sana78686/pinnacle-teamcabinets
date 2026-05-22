@@ -373,10 +373,41 @@ while (
     {
         if (Auth::user()->hasRole('Admin')) {
             $onboarding = app(\App\Services\TenantOnboardingService::class);
+            $tracker = app(\App\Services\TenantOrderTrackerService::class);
+            $perPage = max(5, min(50, (int) request('tracker_per_page', 10)));
+            $search = strtolower(trim((string) request('tracker_search', '')));
+            $allRows = $tracker->trackerRows();
+            if ($search !== '') {
+                $allRows = $allRows->filter(function ($row) use ($search) {
+                    $hay = strtolower(implode(' ', [
+                        $row['customer'] ?? '',
+                        $row['job_name'] ?? '',
+                        $row['order_number'] ?? '',
+                        (string) ($row['sc_id'] ?? ''),
+                        $row['created_at'] ?? '',
+                    ]));
+
+                    return str_contains($hay, $search);
+                })->values();
+            }
+            $page = max(1, (int) request('tracker_page', 1));
+            $trackerRows = new \Illuminate\Pagination\LengthAwarePaginator(
+                $allRows->forPage($page, $perPage)->values(),
+                $allRows->count(),
+                $perPage,
+                $page,
+                ['path' => request()->url(), 'pageName' => 'tracker_page']
+            );
+            $trackerRows->appends(request()->except('tracker_page'));
 
             return view('tenants.dashboard', [
                 'stats' => $dashboard->adminStats(),
-                'recentOrders' => $dashboard->recentOrders(5),
+                'recentOrders' => $dashboard->recentOrders(10),
+                'trackerRows' => $trackerRows,
+                'trackerPerPage' => $perPage,
+                'trackerSearch' => request('tracker_search', ''),
+                'trackerStatuses' => $tracker->stockCheckStatuses(),
+                'fuelChargePercent' => $tracker->fuelChargePercent(),
                 'onboardingSteps' => $onboarding->steps(),
                 'onboardingProgress' => $onboarding->completedCount().' / '.$onboarding->totalSteps(),
                 'dealerReady' => $onboarding->isReadyForDealers(),

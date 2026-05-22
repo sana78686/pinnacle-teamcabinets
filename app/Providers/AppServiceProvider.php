@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\TenantFrontendThemeService;
+use App\View\Composers\StorefrontComposer;
 use App\View\Composers\TenantFrontendThemeComposer;
 use App\View\Composers\TenantPanelComposer;
 use Illuminate\Pagination\Paginator;
@@ -66,6 +67,8 @@ class AppServiceProvider extends ServiceProvider
             'themes.*',
             'frontend.superusers.*',
         ], TenantFrontendThemeComposer::class);
+
+        View::composer('themes.*', StorefrontComposer::class);
 
         if (! config('app.debug')) {
             \Illuminate\Support\Facades\DB::disableQueryLog();

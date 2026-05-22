@@ -11,8 +11,9 @@
     <meta name="keywords"
         content="admin template, Poco admin template, dashboard template, flat admin template, responsive admin template, web app">
     <meta name="author" content="pixelstrap">
-    <link rel="icon" href="{{ tenant_panel_asset('assets/logo/pinnacle-favicon.png') }}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ tenant_panel_asset('assets/logo/pinnacle-favicon.png') }}" type="image/x-icon">
+    @include('layouts.tenant.partials.panel-asset-fn')
+    <link rel="icon" href="{{ $panelAsset('assets/logo/pinnacle-favicon.png') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ $panelAsset('assets/logo/pinnacle-favicon.png') }}" type="image/x-icon">
     <title>{{ config('app.name', 'Laravel') }} - @yield('title')</title>
     @include('layouts.tenant.css')
     <style>

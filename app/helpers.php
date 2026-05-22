@@ -67,34 +67,35 @@ if (! function_exists('central_mail')) {
     }
 }
 
-if (! function_exists('tenant_panel_asset_use_public_prefix')) {
-    /**
-     * Tenant Poco panel + storefront theme: static files live under /public/ on live
-     * when the web root is the project folder (not Laravel's public/ directory).
-     */
-    function tenant_panel_asset_use_public_prefix(): bool
+if (! function_exists('tenant_panel_asset_is_local')) {
+    function tenant_panel_asset_is_local(): bool
     {
-        $configured = config('tenant_assets.use_public_prefix');
-        if ($configured !== null) {
-            return (bool) $configured;
+        if (app()->environment('local')) {
+            return true;
         }
 
         $host = Request::getHost();
 
-        return ! (str_contains($host, 'localhost') || str_contains($host, '127.0.0.1'));
+        return str_contains($host, 'localhost') || str_contains($host, '127.0.0.1');
     }
 }
 
 if (! function_exists('tenant_panel_asset')) {
     /**
-     * Shared static assets (Poco panel CSS/JS, storefront theme CSS).
-     * Builds /public/... directly — never uses asset() (Stancl maps that to /tenancy/assets/).
+     * Tenant Poco panel + storefront static files.
+     * Live: https://{host}/public/{path} — never asset() (Stancl → /tenancy/assets/).
+     * Local: normal asset() when using artisan serve / public docroot.
      */
     function tenant_panel_asset(string $path): string
     {
         $path = ltrim($path, '/');
 
-        if (! tenant_panel_asset_use_public_prefix()) {
+        if (tenant_panel_asset_is_local()) {
+            return asset($path);
+        }
+
+        $configured = config('tenant_assets.use_public_prefix');
+        if ($configured === false) {
             return asset($path);
         }
 
@@ -113,7 +114,11 @@ if (! function_exists('dynamic_url')) {
 }
 
 if (! function_exists('tenant_asset')) {
-    /** @deprecated Use tenant_panel_asset() in panel/storefront layouts only. */
+    /**
+     * App helper for panel static files. Not Stancl's tenant_asset() (that route is /tenancy/assets/).
+     *
+     * @deprecated Use tenant_panel_asset() or $panelAsset in Blade.
+     */
     function tenant_asset(string $path): string
     {
         return tenant_panel_asset($path);

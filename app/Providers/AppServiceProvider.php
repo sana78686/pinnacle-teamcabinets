@@ -26,6 +26,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Tenant hosts boot Stancl tenancy; asset() can become /tenancy/assets/ (broken).
+        // Central Pinnacle (pinnacle.apimstec.com) never boots tenancy — asset() stays /assets/...
+        $host = request()->getHost();
+        $centralHosts = config('tenancy.central_domains', []);
+        if ($host !== '' && ! in_array($host, $centralHosts, true)) {
+            config(['tenancy.filesystem.asset_helper_tenancy' => false]);
+        }
+
         Paginator::useBootstrapFive();
 
         Schema::defaultStringLength(191);

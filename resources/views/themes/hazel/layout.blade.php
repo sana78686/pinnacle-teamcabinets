@@ -6,7 +6,8 @@
     <title>@yield('title', tenant('company_name') ?? tenant('name') ?? config('app.name'))</title>
     <meta name="description" content="@yield('meta_description', 'Wholesale RTA cabinets for dealers, showrooms, and contractors.')">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ tenant_panel_asset('css/themes/hazel.css') }}?v=3">
+    @include('layouts.tenant.partials.panel-asset-fn')
+    <link rel="stylesheet" href="{{ $panelAsset('css/themes/hazel.css') }}?v=3">
     @stack('head')
 </head>
 <body class="hz-body">

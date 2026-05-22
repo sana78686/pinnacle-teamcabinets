@@ -109,6 +109,11 @@ class TenancyServiceProvider extends ServiceProvider
 
         // Tenancy middleware is applied on routes/tenant.php only.
         // Global prepending ran DB/domain checks on every central (Pinnacle) page.
+
+        // Panel CSS/JS must use /public/... on live; never rewrite asset() to /tenancy/assets/.
+        Event::listen(Events\TenancyInitialized::class, function (): void {
+            config(['tenancy.filesystem.asset_helper_tenancy' => false]);
+        });
     }
 
     protected function bootEvents()

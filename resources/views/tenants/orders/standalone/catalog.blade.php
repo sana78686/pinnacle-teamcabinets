@@ -3,17 +3,12 @@
 @section('title', 'Select Catalog')
 
 @section('content')
-<div class="co-shell ow-page--fullscreen">
-    <header class="ow-minibar">
-        <a href="{{ route('tenant_dashboard') }}" class="ow-minibar__back" title="Back to panel">
-            <i class="fa-solid fa-arrow-left"></i> Back
-        </a>
-        <span class="ow-minibar__title">Create order</span>
-        <span class="ow-minibar__step">Select catalog</span>
-    </header>
-
-    <main class="co-main">
-        <p class="co-note">Select a product catalog to begin. Click <strong>View PDF</strong> when a catalog PDF is available.</p>
+<div class="co-shell ow-page--fullscreen tc-order-workspace">
+    <main class="co-main container-fluid">
+        <p class="mb-3">
+            <a href="{{ route('tenant_dashboard') }}" class="ow-door-strip__back"><i class="fa fa-arrow-left"></i> Back to panel</a>
+        </p>
+        <p class="ow-hint mb-3">Select a product catalog to begin. Click <strong>View PDF</strong> when a catalog PDF is available.</p>
 
         <div class="co-catalog-grid">
             @forelse ($catalogs as $catalog)

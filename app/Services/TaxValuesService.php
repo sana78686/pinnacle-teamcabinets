@@ -8,15 +8,45 @@ use Illuminate\Support\Facades\Auth;
 class TaxValuesService
 {
     /** @return array<string, array{label: string, default: string}> */
-    public static function feeKeys(): array
+    public static function paymentFeeKeys(): array
     {
         return [
-            'fuel_charges_value' => ['label' => 'Fuel surcharge (%)', 'default' => '0'],
+            'fuel_charges_value' => ['label' => 'Fuel surcharge (%)', 'default' => '2'],
             'credit_card_charges' => ['label' => 'Credit card charges (%)', 'default' => '3'],
             'debit_card_charges' => ['label' => 'Debit card charges (%)', 'default' => '0.5'],
             'ach_pay_charges' => ['label' => 'ACH charges ($)', 'default' => '10.00'],
-            'sales_tax_percentage' => ['label' => 'Fallback sales tax (%) — used when QuickBooks tax is unavailable', 'default' => '0'],
+            'sales_tax_percentage' => ['label' => 'Fallback sales tax (%) — used when county lookup is unavailable', 'default' => '0'],
         ];
+    }
+
+    /** @return array<string, array{label: string, default: string}> */
+    public static function shippingFeeKeys(): array
+    {
+        return [
+            'commercial_delivery_charge' => ['label' => 'Commercial delivery charge ($)', 'default' => '75'],
+            'liftgate_charge' => ['label' => 'Liftgate charge ($)', 'default' => '150'],
+            'unload_charge' => ['label' => 'Unload charge ($) — waived for residential by-hand', 'default' => '150'],
+            'pallet_cost' => ['label' => 'Pallet cost ($ per pallet)', 'default' => '30'],
+        ];
+    }
+
+    /** @return array<string, array{label: string, default: string}> */
+    public static function paytraceKeys(): array
+    {
+        return [
+            'paytrace_username' => ['label' => 'Paytrace API username', 'default' => ''],
+            'paytrace_password' => ['label' => 'Paytrace API password', 'default' => ''],
+        ];
+    }
+
+    /** @return array<string, array{label: string, default: string}> */
+    public static function feeKeys(): array
+    {
+        return array_merge(
+            self::paymentFeeKeys(),
+            self::shippingFeeKeys(),
+            self::paytraceKeys()
+        );
     }
 
     public function ensureDefaults(): void
@@ -35,13 +65,26 @@ class TaxValuesService
                 ]
             );
         }
+
+        app(SalesTaxCountiesService::class)->ensureFloridaDefaults();
     }
 
     public function get(string $key, ?string $default = null): ?string
     {
         $row = TaxValues::query()->where('option_key', $key)->first();
+        $metaDefault = self::feeKeys()[$key]['default'] ?? null;
 
-        return $row?->option_value ?? $default;
+        return $row?->option_value ?? $default ?? $metaDefault;
+    }
+
+    public function getFloat(string $key, float $fallback = 0.0): float
+    {
+        $raw = $this->get($key);
+        if ($raw === null || $raw === '') {
+            return $fallback;
+        }
+
+        return (float) $raw;
     }
 
     public function set(string $key, string $value, ?string $label = null): void

@@ -1,0 +1,68 @@
+/**
+ * Order workspace — force Team Cabinets tenant portal look (overrides Poco purple theme)
+ */
+.tc-order-workspace {
+    --ow-navy: #0c2340;
+    --ow-slate: #1a4a7a;
+    --ow-border: #e8ebf2;
+    --ow-muted: #64748b;
+    --ow-text: #242934;
+}
+
+.tc-order-workspace,
+.tc-order-workspace .ow-page {
+    font-family: Nunito, sans-serif;
+    font-size: 14px;
+    color: var(--ow-text);
+}
+
+/* Portal primary buttons (navy — not theme purple) */
+.tc-order-workspace .btn-primary,
+.tc-order-workspace .btn-primary:focus,
+.tc-order-workspace .btn-primary:active,
+.tc-order-workspace .btn-info,
+.tc-order-workspace .btn-info:focus,
+.tc-order-workspace .btn-info:active {
+    background-color: var(--ow-slate) !important;
+    border-color: var(--ow-slate) !important;
+    color: #fff !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+}
+
+.tc-order-workspace .btn-primary:hover,
+.tc-order-workspace .btn-info:hover {
+    background-color: var(--ow-navy) !important;
+    border-color: var(--ow-navy) !important;
+    color: #fff !important;
+}
+
+.tc-order-workspace .btn-light,
+.tc-order-workspace .btn-light:focus {
+    background: #fff !important;
+    border: 1px solid var(--ow-border) !important;
+    color: var(--ow-muted) !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+}
+
+.tc-order-workspace .btn-light:hover {
+    border-color: #b8c5d6 !important;
+    color: var(--ow-slate) !important;
+    background: #f8fafc !important;
+}
+
+.tc-order-workspace .btn-sm {
+    padding: 0.35rem 0.75rem !important;
+    line-height: 1.35 !important;
+}
+
+/* Links */
+.tc-order-workspace a:not(.btn) {
+    color: var(--ow-slate);
+}
+
+.tc-order-workspace a:not(.btn):hover {
+    color: var(--ow-navy);
+}

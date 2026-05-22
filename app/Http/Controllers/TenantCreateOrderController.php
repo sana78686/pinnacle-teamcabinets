@@ -10,15 +10,16 @@ use App\Models\ProductSection;
 use App\Models\Quote;
 use App\Models\ShippingQuote;
 use App\Models\StockCheckRequest;
-use App\Mail\StockCheckAdminMail;
-use App\Mail\StockCheckUserMail;
 use App\Services\OrderCartPersistenceService;
+use App\Services\OrderPricingService;
+use App\Services\OrderWorkspaceCheckoutService;
+use App\Services\OrderWorkspaceNotificationService;
 use App\Services\OrderWorkspaceService;
+use App\Services\PaytracePaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -27,6 +28,10 @@ class TenantCreateOrderController extends Controller
     public function __construct(
         protected OrderWorkspaceService $workspace,
         protected OrderCartPersistenceService $cartPersistence,
+        protected OrderPricingService $pricing,
+        protected OrderWorkspaceCheckoutService $checkout,
+        protected OrderWorkspaceNotificationService $notifications,
+        protected PaytracePaymentService $paytrace,
     ) {}
 
     public function catalog(): View
@@ -56,6 +61,14 @@ class TenantCreateOrderController extends Controller
     public function build(int $catalogId, Request $request): View|RedirectResponse
     {
         $catalog = ProductCatalog::query()->where('status', 1)->findOrFail($catalogId);
+        $user = $request->user()->load('roles');
+
+        if (! $this->pricing->userMayAccessCatalog($user, $catalog->id)) {
+            return redirect()
+                ->route('tenant_order_workspace')
+                ->with('error', 'You do not have access to this catalog.');
+        }
+
         $doorColors = DoorColors::query()
             ->where('product_catalog_id', $catalog->id)
             ->where('status', 1)
@@ -71,14 +84,15 @@ class TenantCreateOrderController extends Controller
         $door = $doorColors->firstWhere('id', (int) $request->query('door'))
             ?? $doorColors->first();
 
-        $user = $request->user();
+        $pricingContext = $this->pricing->contextFor($user, $catalog->id, $door->id);
 
         return view('tenants.orders.workspace.build', [
             'catalog' => $catalog,
             'door' => $door,
             'doorColors' => $doorColors,
-            'sections' => $this->productSectionsFor($catalog, $door),
-            'savedCart' => $user ? $this->cartPersistence->load($user->id, $catalog->id) : null,
+            'sections' => $this->productSectionsFor($catalog, $door, $user),
+            'savedCart' => $this->cartPersistence->load($user->id, $catalog->id),
+            'pricingContext' => $pricingContext,
             'shippingPopup' => other_page_content('shipping_pop_up'),
             'stockShippingPopup' => other_page_content('stock_check_shipping_pop_up'),
             'shipTerms' => tax_value('ship_quote_terms_and_condition', ''),
@@ -89,13 +103,14 @@ class TenantCreateOrderController extends Controller
     {
         $catalog = ProductCatalog::query()->where('status', 1)->findOrFail($catalogId);
         $door = DoorColors::query()->findOrFail($doorId);
-        $sections = $this->productSectionsFor($catalog, $door);
+        $user = $request->user()->load('roles');
+        $sections = $this->productSectionsFor($catalog, $door, $user);
 
         if ($request->filled('sku')) {
             $term = $request->sku;
-            $sections = $sections->map(function (ProductSection $section) use ($term, $catalog, $door) {
+            $sections = $sections->map(function (ProductSection $section) use ($term) {
                 $filtered = $section->products->filter(function (Product $p) use ($term) {
-                    return stripos($p->sku, $term) !== false || stripos($p->label, $term) !== false;
+                    return stripos((string) $p->sku, $term) !== false || stripos((string) $p->label, $term) !== false;
                 });
                 $clone = clone $section;
                 $clone->setRelation('products', $filtered->values());
@@ -149,7 +164,11 @@ class TenantCreateOrderController extends Controller
     {
         try {
             $payload = $this->workspace->parsePayload($request);
-            session(['workspace_checkout' => $payload]);
+            $cartData = $this->checkout->buildSessionCartData($payload, $request);
+            session([
+                'workspace_checkout' => $payload,
+                'cart_data' => $cartData,
+            ]);
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => collect($e->errors())->flatten()->first() ?? 'Validation failed.',
@@ -162,11 +181,171 @@ class TenantCreateOrderController extends Controller
         ]);
     }
 
-    public function checkout(Request $request): View
+    public function checkout(Request $request): View|RedirectResponse
     {
-        $payload = session('workspace_checkout', []);
+        $cartData = session('cart_data', []);
+        if (empty($cartData['job_name'])) {
+            return redirect()
+                ->route('tenant_order_workspace')
+                ->with('error', 'Your checkout session expired. Please build the cart again.');
+        }
 
-        return view('tenants.orders.workspace.checkout', ['payload' => $payload]);
+        $payload = session('workspace_checkout', []);
+        $user = $request->user()->load(['country', 'state']);
+        $salesTaxPercent = $this->checkout->salesTaxPercent($user);
+        $feeConfig = $this->checkout->paymentFeeConfig();
+
+        $subTotal = (float) ($payload['totals']['sub_total_cost'] ?? 0);
+        $assembleTotal = (float) ($payload['totals']['sub_total_assemble_cost'] ?? 0);
+        $checkoutTotals = $this->checkout->calculateCheckoutTotals(
+            $subTotal,
+            $assembleTotal,
+            $salesTaxPercent,
+            'Check',
+            0.0
+        );
+
+        return view('tenants.orders.workspace.checkout', [
+            'cartData' => $cartData,
+            'payload' => $payload,
+            'salesTaxPercent' => $salesTaxPercent,
+            'feeConfig' => $feeConfig,
+            'checkoutTotals' => $checkoutTotals,
+            'subTotal' => $subTotal,
+            'assembleTotal' => $assembleTotal,
+            'weight' => $payload['totals']['sub_total_weight'] ?? 0,
+            'assembleYes' => ($payload['assemble'] ?? 'no') === 'yes',
+        ]);
+    }
+
+    public function checkoutSubmit(Request $request): RedirectResponse
+    {
+        $cartData = session('cart_data', []);
+        $payload = session('workspace_checkout', []);
+        if (empty($cartData) || empty($payload)) {
+            return redirect()->route('tenant_order_workspace')->with('error', 'Checkout session expired.');
+        }
+
+        $request->validate([
+            'payment_method' => 'required|string|max:80',
+            'self_ship' => 'nullable|string|max:120',
+            'bill_to_name' => 'required|string|max:255',
+            'bill_to_email' => 'required|email|max:255',
+        ]);
+
+        $user = $request->user()->load(['country', 'state']);
+        $subTotal = (float) ($payload['totals']['sub_total_cost'] ?? 0);
+        $assembleTotal = (float) ($payload['totals']['sub_total_assemble_cost'] ?? 0);
+        $salesTaxPercent = (float) ($request->input('updated_sales_tax') ?: $this->checkout->salesTaxPercent($user));
+        $paymentMethod = (string) $request->input('payment_method');
+        $shippingCost = 0.0;
+
+        $checkoutTotals = $this->checkout->calculateCheckoutTotals(
+            $subTotal,
+            $assembleTotal,
+            $salesTaxPercent,
+            $paymentMethod,
+            $shippingCost
+        );
+
+        $grandTotal = $checkoutTotals['grand_total'];
+        $transactionId = null;
+        $orderStatus = 'PENDING';
+        $paytraceResponse = '';
+
+        $methodLower = strtolower($paymentMethod);
+        if (str_contains($methodLower, 'credit') || str_contains($methodLower, 'debit')) {
+            $type = str_contains($methodLower, 'debit') ? 'debit_card' : 'credit_card';
+            $result = $this->paytrace->charge($type, $grandTotal, [
+                'card_number' => $request->input('card_number'),
+                'expiry_date' => $request->input('expiry_date'),
+                'cvv_number' => $request->input('cvv_number'),
+                'billing_name' => $request->input('checkout_fname'),
+                'billing_address' => $request->input('checkout_address'),
+                'billing_city' => $request->input('checkout_city'),
+                'billing_state' => $request->input('checkout_state'),
+                'billing_zip' => $request->input('checkout_zipcode'),
+            ]);
+            if (! $result['success']) {
+                return redirect()
+                    ->route('tenant_order_workspace_checkout')
+                    ->withInput()
+                    ->with('error', $result['status_message']);
+            }
+            $transactionId = $result['transaction_id'] ?? null;
+            $orderStatus = 'PAID';
+            $paytraceResponse = $result['status_message'];
+        } elseif ($methodLower === 'ach') {
+            $result = $this->paytrace->charge('ach', $grandTotal, [
+                'account_number' => $request->input('account_number'),
+                'routing_number' => $request->input('route_number'),
+                'billing_name' => $request->input('ach_checkout_fname'),
+                'billing_address' => $request->input('bill_to_address'),
+                'billing_city' => $request->input('bill_to_city'),
+                'billing_state' => $request->input('bill_to_state'),
+                'billing_zip' => $request->input('bill_to_zip'),
+            ]);
+            if (! $result['success']) {
+                return redirect()
+                    ->route('tenant_order_workspace_checkout')
+                    ->withInput()
+                    ->with('error', $result['status_message']);
+            }
+            $transactionId = $result['check_transaction_id'] ?? $result['transaction_id'] ?? null;
+            $paytraceResponse = $result['status_message'];
+        }
+
+        $order = Order::create([
+            'job_name' => $payload['job_name'],
+            'rooms' => $payload['rooms'],
+            'assemble_cabinets_check' => $payload['assemble'] ?? 'no',
+            'shipping_status' => 'pending',
+            'comment' => $payload['comment'] ?? '',
+            'user_id' => $user->id,
+            'user_address' => $this->workspace->formatUserAddress($user),
+            'user_email' => $user->email,
+            'user_phone' => $user->phone,
+            'fuel_tax' => (string) $checkoutTotals['fuel_percent'],
+            'fuel_charges' => $checkoutTotals['fuel_amount'],
+            'fuel_charges_pertcentage' => (string) $checkoutTotals['fuel_percent'],
+            'sales_tax' => (string) $salesTaxPercent,
+            'sub_total_cost' => $subTotal,
+            'sub_total_weight' => $payload['totals']['sub_total_weight'] ?? 0,
+            'sub_total_assemble_cost' => $assembleTotal,
+            'grand_total_cost' => $grandTotal,
+            'order_amount' => $grandTotal,
+            'amount' => $checkoutTotals['amount_before_tax'] + $checkoutTotals['sales_tax_amount'],
+            'shipping_cost' => $request->input('self_ship', 'pickup'),
+            'order_payment_type' => $paymentMethod,
+            'transaction_pro_id' => $transactionId,
+            'status' => $orderStatus,
+            'paytrace_response' => $paytraceResponse,
+            'credit_card_charges' => $checkoutTotals['credit_card_charges'],
+            'ach_charges' => $checkoutTotals['ach_charges'],
+        ]);
+
+        $cartData = array_merge($cartData, [
+            'bill_to_name' => $request->input('bill_to_name'),
+            'bill_to_address' => $request->input('bill_to_address'),
+            'bill_to_email' => $request->input('bill_to_email'),
+            'bill_to_phone' => $request->input('bill_to_phone'),
+            'bill_to_city' => $request->input('bill_to_city'),
+            'bill_to_county' => $request->input('bill_to_county'),
+            'bill_to_state' => $request->input('bill_to_state'),
+            'bill_to_zipcode' => $request->input('bill_to_zip'),
+        ]);
+
+        try {
+            $this->notifications->sendOrderPlacedEmails($order, $user, $checkoutTotals, $cartData);
+        } catch (\Throwable) {
+            // Templates may be missing; order is still saved.
+        }
+
+        session()->forget(['workspace_checkout', 'cart_data']);
+
+        return redirect()
+            ->route('tenant_order_list')
+            ->with('success', 'Order #'.$order->id.' placed successfully.');
     }
 
     public function printOrder(int $id): View
@@ -179,9 +358,11 @@ class TenantCreateOrderController extends Controller
     /**
      * @return Collection<int, ProductSection>
      */
-    protected function productSectionsFor(ProductCatalog $catalog, DoorColors $door): Collection
+    protected function productSectionsFor(ProductCatalog $catalog, DoorColors $door, $user): Collection
     {
-        return ProductSection::query()
+        $context = $this->pricing->contextFor($user, $catalog->id, $door->id);
+
+        $sections = ProductSection::query()
             ->orderBy('cabinets_name')
             ->get()
             ->map(function (ProductSection $section) use ($catalog, $door) {
@@ -198,6 +379,8 @@ class TenantCreateOrderController extends Controller
                 return $section;
             })
             ->filter(fn (ProductSection $section) => $section->products->isNotEmpty());
+
+        return $this->pricing->applyPricingToSections($sections, $context);
     }
 
     public function searchProducts(Request $request, int $catalogId, int $doorId): JsonResponse
@@ -265,22 +448,82 @@ class TenantCreateOrderController extends Controller
         ?string $defaultShippingStatus = null,
     ): JsonResponse {
         $record = null;
+        $clearCart = $this->shouldClearWorkspaceCart($modelClass);
         try {
             $payload = $this->workspace->parsePayload($request, $defaultShippingStatus);
             $record = $this->workspace->createRecord($modelClass, $payload);
+            $this->sendActionEmails($modelClass, $payload, $record);
+
+            if ($clearCart) {
+                $this->clearWorkspaceCart($request);
+            }
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => collect($e->errors())->flatten()->first() ?? 'Validation failed.',
+                'errors' => $e->errors(),
             ], 422);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'message' => config('app.debug') ? $e->getMessage() : 'Could not save. Please try again.',
+            ], 500);
         }
 
         $redirectParams = ['id' => $record->id ?? null];
 
         return response()->json([
             'message' => $message,
+            'clear_cart' => $clearCart,
             'redirect' => $redirectRoute === 'tenant_order_workspace_print_page' && isset($record)
                 ? route('tenant_order_workspace_print_page', $record->id)
                 : route($redirectRoute),
         ]);
+    }
+
+    protected function shouldClearWorkspaceCart(string $modelClass): bool
+    {
+        return in_array($modelClass, [Quote::class, ShippingQuote::class, StockCheckRequest::class], true);
+    }
+
+    protected function clearWorkspaceCart(Request $request): void
+    {
+        $user = $request->user();
+        $catalogId = (int) $request->input('catalog_id');
+
+        if ($user && $catalogId > 0) {
+            $this->cartPersistence->clear($user->id, $catalogId);
+        }
+
+        session()->forget(['workspace_checkout', 'cart_data']);
+    }
+
+    protected function sendActionEmails(string $modelClass, array $payload, $record): void
+    {
+        $user = $payload['user'] ?? null;
+        if (! $user) {
+            return;
+        }
+
+        try {
+            if ($modelClass === Quote::class) {
+                $this->notifications->sendQuoteSavedEmails($record, $user, $payload);
+            }
+            if ($modelClass === ShippingQuote::class) {
+                $costs = $payload['shipping_costs'] ?? [];
+                $this->notifications->sendShippingQuoteEmails($record, $user, $costs);
+            }
+            if ($modelClass === StockCheckRequest::class) {
+                $withShipping = ! empty($payload['shipping_costs']);
+                $this->notifications->sendStockCheckEmails(
+                    $record,
+                    $user,
+                    $payload['shipping_costs'] ?? [],
+                    $withShipping
+                );
+            }
+        } catch (\Throwable) {
+            // Email templates may be missing in some tenants; do not block save.
+        }
     }
 }

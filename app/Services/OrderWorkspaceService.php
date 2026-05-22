@@ -16,6 +16,10 @@ class OrderWorkspaceService
      */
     public function parsePayload(Request $request, ?string $defaultShippingStatus = 'pending'): array
     {
+        if ($request->isJson()) {
+            $request->merge($request->json()->all());
+        }
+
         $validated = $request->validate([
             'job_name' => 'required|string|max:255',
             'rooms' => 'required|array|min:1',
@@ -39,11 +43,32 @@ class OrderWorkspaceService
             }
             $roomsPayload[] = [
                 'room_name' => $room['room_name'],
-                'products' => collect($room['products'])->map(fn ($p) => [
-                    'product_id' => (int) $p['product_id'],
-                    'quantity' => max(1, (int) ($p['quantity'] ?? 1)),
-                    'checkbox_status' => $p['checkbox_status'] ?? 'none',
-                ])->values()->all(),
+                'products' => collect($room['products'])->map(function ($p) {
+                    $val1 = ! empty($p['checkbox_val1']);
+                    $val2 = ! empty($p['checkbox_val2']);
+                    $status = $p['checkbox_status'] ?? 'none';
+                    if ($val1 && $val2) {
+                        $status = 'both';
+                    } elseif ($val1) {
+                        $status = 'single';
+                    } elseif ($val2) {
+                        $status = 'double';
+                    }
+
+                    return [
+                        'product_id' => (int) $p['product_id'],
+                        'quantity' => max(1, (int) ($p['quantity'] ?? 1)),
+                        'cost' => isset($p['cost']) ? (float) $p['cost'] : null,
+                        'cost1' => isset($p['cost1']) ? (float) $p['cost1'] : null,
+                        'weight' => isset($p['weight']) ? (float) $p['weight'] : null,
+                        'assemble_cost' => isset($p['assemble_cost']) ? (float) $p['assemble_cost'] : null,
+                        'sku' => $p['sku'] ?? null,
+                        'label' => $p['label'] ?? null,
+                        'checkbox_val1' => $val1 ? 1 : 0,
+                        'checkbox_val2' => $val2 ? 1 : 0,
+                        'checkbox_status' => $status,
+                    ];
+                })->values()->all(),
             ];
         }
 
@@ -57,16 +82,33 @@ class OrderWorkspaceService
         $totals = $this->calculateTotals($roomsPayload, $assembleYes);
         $fuelTax = TaxValues::query()->where('option_key', 'fuel_charges_value')->first();
 
+        $shippingCosts = null;
+        if (($validated['shipping_status'] ?? '') === 'yes' && $request->filled('ship_quote_delivery_type')) {
+            $shippingCosts = app(OrderWorkspaceShippingService::class)->calculate([
+                'delivery_type' => $request->input('ship_quote_delivery_type'),
+                'liftgate' => $request->input('ship_quote_liftgate_req'),
+                'unload_type' => $request->input('ship_quote_unload_type'),
+            ]);
+        }
+
+        $comment = $validated['comment'] ?? null;
+        if (! empty($validated['quote_name'])) {
+            $comment = trim('Quote: '.$validated['quote_name'].($comment ? "\n".$comment : ''));
+        }
+
         return [
             'job_name' => $validated['job_name'],
             'rooms' => $roomsPayload,
             'assemble' => $assembleValue,
             'shipping_status' => $validated['shipping_status'] ?? $defaultShippingStatus,
-            'comment' => $validated['comment'] ?? null,
+            'comment' => $comment,
+            'quote_name' => $validated['quote_name'] ?? null,
             'user' => $user,
             'totals' => $totals,
             'fuel_tax' => $fuelTax?->option_value,
             'user_address' => $this->formatUserAddress($user),
+            'shipping_costs' => $shippingCosts,
+            'ship_quote_type' => $request->input('ship_quote_type'),
         ];
     }
 
@@ -101,9 +143,21 @@ class OrderWorkspaceService
                     continue;
                 }
                 $qty = $line['quantity'];
-                $totalAssemble += ((float) $productData->assemble_cost) * $qty;
-                $subTotalCost += ((float) preg_replace('/[^\d.]/', '', (string) $productData->cost)) * $qty;
-                $subTotalWeight += ((float) preg_replace('/[^\d.]/', '', (string) $productData->weight)) * $qty;
+                $lineCost = (float) ($line['cost'] ?? 0);
+                if ($lineCost <= 0) {
+                    $lineCost = (float) preg_replace('/[^\d.]/', '', (string) $productData->cost);
+                }
+                $lineWeight = (float) ($line['weight'] ?? 0);
+                if ($lineWeight <= 0) {
+                    $lineWeight = (float) preg_replace('/[^\d.]/', '', (string) $productData->weight);
+                }
+                $lineAssemble = (float) ($line['assemble_cost'] ?? 0);
+                if ($lineAssemble <= 0) {
+                    $lineAssemble = (float) preg_replace('/[^\d.]/', '', (string) $productData->assemble_cost);
+                }
+                $totalAssemble += $lineAssemble * $qty;
+                $subTotalCost += $lineCost * $qty;
+                $subTotalWeight += $lineWeight * $qty;
             }
         }
 
@@ -122,8 +176,7 @@ class OrderWorkspaceService
      */
     public function createRecord(string $modelClass, array $payload): Model
     {
-        /** @var Model $record */
-        $record = $modelClass::create([
+        $attrs = [
             'job_name' => $payload['job_name'],
             'rooms' => $payload['rooms'],
             'assemble_cabinets_check' => $payload['assemble'],
@@ -136,9 +189,22 @@ class OrderWorkspaceService
             'fuel_tax' => $payload['fuel_tax'],
             'sub_total_cost' => $payload['totals']['sub_total_cost'],
             'sub_total_weight' => $payload['totals']['sub_total_weight'],
-            'sub_total_assemble_cost' => $payload['totals']['sub_total_assemble_cost'],
+            'sub_total_assemble_cost' => (string) ($payload['totals']['sub_total_assemble_cost'] ?? 0),
             'grand_total_cost' => $payload['totals']['grand_total_cost'],
-        ]);
+        ];
+
+        if (! empty($payload['shipping_costs'])) {
+            $costs = $payload['shipping_costs'];
+            $attrs['delivery_cost'] = $costs['delivery_cost'];
+            $attrs['liftgate_cost'] = $costs['liftgate_cost'];
+            $attrs['unload_cost'] = $costs['unload_cost'];
+            $attrs['pallets_cost'] = $costs['pallets_cost'];
+            $attrs['shipping_cost'] = $costs['shipping_cost'];
+            $attrs['grand_total_cost'] = ($payload['totals']['grand_total_cost'] ?? 0) + ($costs['shipping_cost'] ?? 0);
+        }
+
+        /** @var Model $record */
+        $record = $modelClass::create($attrs);
 
         return $record;
     }

@@ -7,18 +7,34 @@
     const $page = $('#ow-page');
     if (!$page.length) return;
 
+    /** jQuery .data() camelCases keys; use attributes so URLs/CSRF always resolve. */
+    function pageAttr(name) {
+        const v = $page.attr('data-' + name);
+        return v === undefined || v === '' ? undefined : v;
+    }
+
+    function pageJson(name) {
+        const raw = pageAttr(name);
+        if (!raw) return null;
+        try {
+            return JSON.parse(raw);
+        } catch (e) {
+            return null;
+        }
+    }
+
     const cfg = {
-        catalogId: $page.data('catalog-id'),
-        doorId: $page.data('door-id'),
-        csrf: $page.data('csrf'),
-        accordionSearchUrl: $page.data('accordion-search-url'),
-        autosaveUrl: $page.data('autosave-url'),
+        catalogId: parseInt(pageAttr('catalog-id'), 10) || pageAttr('catalog-id'),
+        doorId: parseInt(pageAttr('door-id'), 10) || pageAttr('door-id'),
+        csrf: pageAttr('csrf'),
+        accordionSearchPrefix: pageAttr('accordion-search-prefix'),
+        autosaveUrl: pageAttr('autosave-url'),
         urls: {
-            print: $page.data('store-print-url'),
-            quote: $page.data('store-quote-url'),
-            shipping: $page.data('store-shipping-url'),
-            stock: $page.data('store-stock-url'),
-            process: $page.data('store-process-url'),
+            print: pageAttr('store-print-url'),
+            quote: pageAttr('store-quote-url'),
+            shipping: pageAttr('store-shipping-url'),
+            stock: pageAttr('store-stock-url'),
+            process: pageAttr('store-process-url'),
         },
     };
 
@@ -28,6 +44,27 @@
 
     function money(n) {
         return '$' + (Number(n) || 0).toFixed(2);
+    }
+
+    function hasJobName() {
+        return $('#ow-job-name').val().trim().length > 0;
+    }
+
+    function requireJobName() {
+        if (hasJobName()) {
+            return true;
+        }
+        $('.err-job-name').html('<span class="text-danger">Required Field</span>');
+        $('#ow-job-name').focus();
+        return false;
+    }
+
+    function syncJobNameGate() {
+        const enabled = hasJobName();
+        $('.room-name-input')
+            .prop('readonly', !enabled)
+            .attr('placeholder', enabled ? 'Enter room name' : 'Enter job name first');
+        $('#ow-add-room').prop('disabled', !enabled);
     }
 
     function setActiveRoom(n) {
@@ -53,6 +90,206 @@
         scheduleAutosave();
     }
 
+    function lineCheckboxPayload($r) {
+        const val1 = $r.find('.chk-single').is(':checked');
+        const val2 = $r.find('.chk-double').is(':checked');
+        return {
+            checkbox_val1: val1 ? 1 : 0,
+            checkbox_val2: val2 ? 1 : 0,
+            checkbox_status: val1 && val2 ? 'both' : val1 ? 'single' : val2 ? 'double' : 'none',
+        };
+    }
+
+    function num(v, fallback) {
+        const n = parseFloat(v);
+        return Number.isFinite(n) ? n : fallback !== undefined ? fallback : 0;
+    }
+
+    function normalizeSavedLine(p) {
+        const qty = parseInt(p.quantity ?? p.product_quantity ?? p.cabinet_quantity, 10) || 1;
+        const cost = num(p.cost ?? p.product_cost, 0);
+        return {
+            product_id: p.product_id ?? p.product_ids ?? p.add_pro_ids_room_wise ?? '',
+            sku: p.sku ?? p.product_sku ?? '',
+            label: p.label ?? p.product_name ?? p.cabinet_name ?? '',
+            description: p.description ?? p.product_cabinets_description ?? p.cabinet_description ?? '',
+            weight: num(p.weight ?? p.product_weight, 0),
+            cost: cost,
+            cost1: num(p.cost1 ?? p.product_actual_price ?? p.product_count_cost, cost),
+            quantity: qty,
+            cabinet_id: p.cabinet_id ?? p.product_cabinets_id ?? p.cabinets_id ?? '',
+            product_details: p.product_details ?? '',
+            assemble_cost: num(p.assemble_cost ?? p.product_assemble_cost, 0),
+            product_color: p.product_color ?? p.product_cabinets_color ?? p.cabinet_color ?? '',
+            parent_door_price: p.parent_door_price ?? '',
+            parent_door_factor: p.parent_door_factor ?? p.parent_door_point ?? '',
+            representative_door_price: p.representative_door_price ?? '',
+            representative_door_factor: p.representative_door_factor ?? p.representative_door_point ?? '',
+            user_door_factor: p.user_door_factor ?? p.user_door_point ?? p.door_point ?? '',
+            catalogue_name: p.catalogue_name ?? p.sel_catalogue_name ?? '',
+            product_note: p.product_note ?? '',
+            line_total: num(p.line_total ?? p.product_tot_price, cost * qty),
+            checkbox_val1: p.checkbox_val1,
+            checkbox_val2: p.checkbox_val2,
+            checkbox_status: p.checkbox_status,
+        };
+    }
+
+    function lineFromPicker($src) {
+        const doorColor = $('.product_img_name').val() || '';
+        return normalizeSavedLine({
+            product_id: $src.data('cabinetid') || $src.data('productId'),
+            sku: $src.data('sku'),
+            label: $src.data('label'),
+            description: $src.data('description'),
+            weight: $src.data('weight'),
+            cost: $src.data('cost'),
+            cost1: $src.data('cost1') ?? $src.data('cost'),
+            cabinet_id: $src.data('cabinet'),
+            product_details: $src.data('details'),
+            assemble_cost: $src.data('ass-cost'),
+            product_color: doorColor,
+            parent_door_factor: $src.data('parent-point'),
+            representative_door_factor: $src.data('representative-point'),
+            user_door_factor: $src.data('door-point'),
+            catalogue_name: $('input[name="catalogue_name"]').val() || '',
+            quantity: 1,
+        });
+    }
+
+    function lineFromCartRow($r) {
+        return normalizeSavedLine({
+            product_id: $r.data('product-id'),
+            sku: $r.data('sku'),
+            label: $r.data('label'),
+            description: $r.data('description'),
+            weight: $r.data('unit-weight'),
+            cost: $r.data('unit-cost'),
+            cost1: $r.data('unit-cost-raw') ?? $r.data('unit-cost'),
+            quantity: parseInt($r.find('.product-qty-input').val(), 10) || 1,
+            cabinet_id: $r.data('cabinet-id'),
+            product_details: $r.data('product-details'),
+            assemble_cost: $r.data('assemble-cost'),
+            product_color: $r.data('product-color'),
+            parent_door_price: $r.data('parent-door-price'),
+            parent_door_factor: $r.data('parent-door-factor'),
+            representative_door_price: $r.data('rep-door-price'),
+            representative_door_factor: $r.data('rep-door-factor'),
+            user_door_factor: $r.data('user-door-factor'),
+            catalogue_name: $r.data('catalogue-name'),
+            product_note: $r.data('product-note'),
+            line_total: $r.data('line-total'),
+            ...lineCheckboxPayload($r),
+        });
+    }
+
+    function enrichLineFromPicker(line) {
+        line = normalizeSavedLine(line);
+        if (!line.sku) {
+            return line;
+        }
+        const $pick = $('#product-list-container tr.cabinet-row').filter(function () {
+            return String($(this).data('sku')) === String(line.sku);
+        }).first();
+        if (!$pick.length) {
+            return line;
+        }
+        const fresh = lineFromPicker($pick);
+        return normalizeSavedLine({
+            ...fresh,
+            ...line,
+            cost: line.cost || fresh.cost,
+            cost1: line.cost1 || fresh.cost1,
+            weight: line.weight || fresh.weight,
+            line_total: line.line_total || fresh.line_total,
+        });
+    }
+
+    function applyLineCheckboxes($row, line) {
+        const v1 =
+            line.checkbox_val1 == 1 ||
+            line.checkbox_val1 === '1' ||
+            line.checkbox_status === 'single' ||
+            line.checkbox_status === 'both';
+        const v2 =
+            line.checkbox_val2 == 1 ||
+            line.checkbox_val2 === '1' ||
+            line.checkbox_status === 'double' ||
+            line.checkbox_status === 'both';
+        $row.find('.chk-single').prop('checked', !!v1);
+        $row.find('.chk-double').prop('checked', !!v2);
+    }
+
+    function roomsFromSaved(saved) {
+        const rd = saved.room_data;
+        if (!rd) {
+            return [];
+        }
+        if (Array.isArray(rd)) {
+            return rd;
+        }
+        const rooms = [];
+        let idx = 1;
+        Object.keys(rd).forEach(function (roomName) {
+            const val = rd[roomName];
+            const skus = val.product_sku || [];
+            const products = [];
+            for (let i = 0; i < skus.length; i++) {
+                products.push({
+                    product_id: (val.product_ids || val.add_pro_ids_room_wise || [])[i],
+                    sku: skus[i],
+                    label: (val.product_name || [])[i],
+                    description: (val.product_cabinets_description || [])[i],
+                    weight: (val.product_weight || [])[i],
+                    cost: (val.product_cost || [])[i],
+                    cost1: (val.product_actual_price || [])[i],
+                    quantity: (val.product_quantity || [])[i] || 1,
+                    cabinet_id: (val.product_cabinets_id || [])[i],
+                    product_details: (val.product_details || [])[i],
+                    assemble_cost: (val.product_assemble_cost || [])[i],
+                    product_color: (val.product_cabinets_color || [])[i],
+                    parent_door_price: (val.parent_door_price || [])[i],
+                    parent_door_factor: (val.parent_door_factor || [])[i],
+                    representative_door_price: (val.representative_door_price || [])[i],
+                    representative_door_factor: (val.representative_door_factor || [])[i],
+                    user_door_factor: (val.user_door_factor || [])[i],
+                    catalogue_name: (val.sel_catalogue_name || [])[i],
+                    product_note: (val.product_note || [])[i],
+                    line_total: (val.product_tot_price || [])[i],
+                    checkbox_val1: (val.checkbox_val1 || [])[i],
+                    checkbox_val2: (val.checkbox_val2 || [])[i],
+                });
+            }
+            rooms.push({ room_index: idx++, room_name: roomName, products: products });
+        });
+        return rooms;
+    }
+
+    function restoreDoorSelection(saved) {
+        if (!saved.door_label && !saved.door_image) {
+            return;
+        }
+        if (saved.door_label) {
+            $('.product_img_name').val(saved.door_label);
+            $('#door-heading').text(saved.door_label);
+        }
+        if (saved.door_image) {
+            $('.product_img_src').val(saved.door_image);
+            $('#door-preview-img').attr('src', saved.door_image).removeClass('d-none');
+            $('#door-preview-empty').hide();
+        }
+        const $tile = $('.door-image-tile, .ow-door-pill').filter(function () {
+            return $(this).data('label') === saved.door_label;
+        }).first();
+        if ($tile.length) {
+            $('.door-image-tile, .ow-door-pill').removeClass('is-selected selected');
+            $tile.addClass('is-selected selected');
+            if ($tile.data('door-id')) {
+                cfg.doorId = $tile.data('door-id');
+            }
+        }
+    }
+
     function collectRoomsPayload() {
         const rooms = [];
         $('tbody.cart-room').each(function () {
@@ -60,14 +297,18 @@
             const roomName = $tb.find('.room-name-input').val().trim();
             const products = [];
             $tb.find('.product-row').each(function () {
-                const $r = $(this);
-                let status = 'none';
-                if ($r.find('.chk-double').is(':checked')) status = 'double';
-                else if ($r.find('.chk-single').is(':checked')) status = 'single';
+                const line = lineFromCartRow($(this));
                 products.push({
-                    product_id: parseInt($r.data('product-id'), 10),
-                    quantity: parseInt($r.find('.product-qty-input').val(), 10) || 1,
-                    checkbox_status: status,
+                    product_id: parseInt(line.product_id, 10),
+                    quantity: line.quantity,
+                    cost: line.cost,
+                    cost1: line.cost1,
+                    weight: line.weight,
+                    sku: line.sku,
+                    label: line.label,
+                    description: line.description,
+                    assemble_cost: line.assemble_cost,
+                    ...lineCheckboxPayload($(this)),
                 });
             });
             if (roomName && products.length) {
@@ -85,21 +326,7 @@
             $(this)
                 .find('.product-row')
                 .each(function () {
-                    const $r = $(this);
-                    lines.push({
-                        product_id: $r.data('product-id'),
-                        sku: $r.data('sku'),
-                        label: $r.data('label'),
-                        description: $r.data('description'),
-                        weight: $r.data('unit-weight'),
-                        cost: $r.data('unit-cost'),
-                        quantity: parseInt($r.find('.product-qty-input').val(), 10) || 1,
-                        checkbox_status: $r.find('.chk-double').is(':checked')
-                            ? 'double'
-                            : $r.find('.chk-single').is(':checked')
-                              ? 'single'
-                              : 'none',
-                    });
+                    lines.push(lineFromCartRow($(this)));
                 });
             rooms.push({
                 room_index: idx,
@@ -168,47 +395,86 @@
         return ok;
     }
 
-    function buildProductRow(roomIndex, $src) {
-        const sku = $src.data('sku');
-        const label = $src.data('label');
-        const desc = $src.data('description');
-        const weight = parseFloat($src.data('weight')) || 0;
-        const cost = parseFloat($src.data('cost')) || 0;
-        const pid = $src.data('cabinetid') || $src.data('product-id');
+    function accordionSearchUrl() {
+        return cfg.accordionSearchPrefix + '/' + cfg.doorId + '/accordion-search';
+    }
 
-        return (
-            '<tr class="product-row" data-product-id="' +
-            pid +
-            '" data-sku="' +
-            sku +
-            '">' +
-            '<td><input type="checkbox" class="chk-single ow-chk ow-chk--yellow"><br>' +
-            '<input type="checkbox" class="chk-double ow-chk ow-chk--green"></td>' +
-            '<td>' +
-            label +
-            '</td><td>' +
-            desc +
-            '</td>' +
-            '<td class="line-weight">' +
-            weight.toFixed(2) +
-            ' lbs</td>' +
-            '<td class="line-unit">' +
-            money(cost) +
-            '</td>' +
-            '<td class="line-total">' +
-            money(cost) +
-            '</td>' +
-            '<td><div class="ow-qty-wrap">' +
-            '<button type="button" class="btn btn-sm btn-light btn-qty-minus">-</button>' +
-            '<input type="text" class="form-control form-control-sm product-qty-input text-center" value="1" readonly ' +
-            'data-unit-cost="' +
-            cost +
-            '" data-unit-weight="' +
-            weight +
-            '">' +
-            '<button type="button" class="btn btn-sm btn-light btn-qty-plus">+</button></div></td>' +
-            '<td><a href="#" class="btn-delete-row text-primary">×</a></td></tr>'
+    function populateProductDetails($row) {
+        const catName = $row.closest('table').data('category-name') || '';
+        $('.ow-detail-placeholder').hide();
+        $('#detail-category').text(catName ? catName + ':' : '');
+        $('#detail-label').text($row.data('label') || '');
+        $('#detail-sku').text('SKU: ' + ($row.data('sku') || ''));
+        $('#detail-weight').text('Weight: ' + ($row.data('weight') || 0) + ' lbs');
+        $('#detail-cost').text('Cost: $' + (parseFloat($row.data('cost')) || 0).toFixed(2));
+        $('#detail-info').text('Details: ' + ($row.data('details') || ''));
+        const img = $row.data('product-img');
+        if (img) {
+            $('#detail-img').attr('src', img).removeClass('d-none');
+        } else {
+            $('#detail-img').addClass('d-none');
+        }
+    }
+
+    function buildProductRow(line) {
+        line = enrichLineFromPicker(normalizeSavedLine(line));
+        const qty = line.quantity || 1;
+        const cost = line.cost;
+        const weight = line.weight;
+        const lineTotal = line.line_total > 0 ? line.line_total : cost * qty;
+        const $tr = $('<tr class="product-row"></tr>');
+        $tr.attr({
+            'data-product-id': line.product_id || '',
+            'data-sku': line.sku || '',
+            'data-label': line.label || '',
+            'data-description': line.description || '',
+            'data-unit-weight': weight,
+            'data-unit-cost': cost,
+            'data-unit-cost-raw': line.cost1,
+            'data-cabinet-id': line.cabinet_id || '',
+            'data-product-details': line.product_details || '',
+            'data-assemble-cost': line.assemble_cost,
+            'data-product-color': line.product_color || '',
+            'data-parent-door-price': line.parent_door_price,
+            'data-parent-door-factor': line.parent_door_factor,
+            'data-rep-door-price': line.representative_door_price,
+            'data-rep-door-factor': line.representative_door_factor,
+            'data-user-door-factor': line.user_door_factor,
+            'data-catalogue-name': line.catalogue_name || '',
+            'data-product-note': line.product_note || '',
+            'data-line-total': lineTotal,
+        });
+        $tr.append(
+            '<td class="ow-check-cell"><input type="checkbox" class="cb-yellow chk-single" style="accent-color:yellow">' +
+                '<input type="checkbox" class="cb-green chk-double" style="accent-color:green"></td>'
         );
+        $tr.append($('<td></td>').text(line.label || ''));
+        $tr.append($('<td></td>').text(line.description || ''));
+        $tr.append($('<td class="line-weight"></td>').text(weight.toFixed(2) + ' lbs'));
+        $tr.append($('<td class="line-unit"></td>').text(money(cost)));
+        $tr.append($('<td class="line-total"></td>').text(money(lineTotal)));
+        $tr.append(
+            '<td class="product-qty-cell text-center">' +
+                '<span class="product-qty-count">1</span>' +
+                '<input type="hidden" class="product-qty-input" value="1" min="1" ' +
+                'data-unit-cost="' +
+                cost +
+                '" data-unit-weight="' +
+                weight +
+                '">' +
+                '</td><td><a href="#" class="btn-delete-row text-primary">×</a></td>'
+        );
+        setRowQty($tr, qty);
+        applyLineCheckboxes($tr, line);
+        updateRowTotal($tr, cost, qty);
+        return $tr;
+    }
+
+    function setRowQty($row, qty) {
+        const n = Math.max(1, parseInt(qty, 10) || 1);
+        $row.find('.product-qty-input').val(n);
+        $row.find('.product-qty-count').text(n);
+        return n;
     }
 
     function updateRowTotal($row, unitCost, qty) {
@@ -218,33 +484,51 @@
     }
 
     function appendRoomTbody(n) {
+        const removeBtn =
+            '<button type="button" class="btn btn-sm btn-light btn-remove-room flex-shrink-0" data-room="' +
+            n +
+            '">-</button>';
         const html =
             '<tbody data-room-index="' +
             n +
             '" class="cart-room">' +
-            '<tr class="room-header-row">' +
-            '<th class="ow-room-th">Room <span class="text-danger">*</span></th>' +
-            '<th colspan="6"><input type="text" name="roomlabel[]" data-attr="' +
+            '<tr class="room-header-row"><th colspan="8">' +
+            '<div class="ow-room-toolbar">' +
+            '<span class="ow-room-toolbar__label">Room <span class="text-danger">*</span></span>' +
+            '<input type="text" name="roomlabel[]" data-attr="' +
             n +
-            '" class="form-control form-control-sm room-name-input" placeholder="Enter Room Name.">' +
+            '" class="form-control form-control-sm room-name-input ow-room-toolbar__input" placeholder="Enter room name" readonly>' +
             '<input type="hidden" name="roomlabel_id[]" value="' +
             n +
             '">' +
-            '<span class="err-roomlabel text-danger"></span></th>' +
-            '<th><button type="button" class="btn btn-sm btn-light btn-remove-room" data-room="' +
-            n +
-            '">-</button></th></tr>' +
-            '<tr class="cart-header-row"><th>Double Check Work</th><th>Cabinet Name</th><th>Cabinet Description</th>' +
-            '<th>Weight</th><th>Unit Price</th><th>Total Price</th><th>Quantity</th><th>Delete</th></tr></tbody>';
+            removeBtn +
+            '</div>' +
+            '<span class="err-roomlabel text-danger f-12 d-block"></span></th></tr>' +
+            '<tr class="cart-header-row"><th>Check</th><th>Name</th><th>Desc</th><th>Wt</th><th>Unit</th><th>Total</th><th>Qty</th><th></th></tr></tbody>';
         $('#cart_table tfoot').before(html);
     }
 
+    function workspaceMeta() {
+        return {
+            catalogue_name: $('input[name="catalogue_name"]').val() || '',
+            product_img_name: $('.product_img_name').val() || '',
+            product_img_src: $('.product_img_src').val() || '',
+            cus_rep_id: $('input[name="cus_rep_id"]').val() || '',
+            cus_parent_id: $('input[name="cus_parent_id"]').val() || '',
+            catalog_id: cfg.catalogId,
+        };
+    }
+
     function postAction(url, extra) {
+        if (!url) {
+            return $.Deferred().reject({ responseJSON: { message: 'Action URL is not configured.' } }).promise();
+        }
         const body = {
             job_name: $('#ow-job-name').val().trim(),
             rooms: collectRoomsPayload(),
             assemble_cabinets_check: $('input[name="assemble_cabinets_check"]:checked').val(),
             comment: $('#ow-comment').val(),
+            ...workspaceMeta(),
             ...extra,
         };
         return $.ajax({
@@ -256,19 +540,54 @@
         });
     }
 
-    function handleSaveResponse(data) {
-        if (data.redirect) window.location.href = data.redirect;
-        else if (data.message) Swal.fire({ icon: 'success', title: 'Saved', text: data.message });
+    function resetWorkspaceCartUi() {
+        $('#ow-job-name').val('');
+        $('#ow-comment').val('');
+        $('input[name="assemble_cabinets_check"][value="no"]').prop('checked', true);
+        $('.cart-room').remove();
+        roomCounter = 1;
+        $('.cart_product_weight').val('0 lbs');
+        $('.all_cart_total').val('0');
+        $('.total-weight').text('0 lbs');
+        $('.total-price').text('$0.00');
+        $('.err-job-name, .err-roomlabel, .err-cart-tot, .err-assemble').html('');
+        syncJobNameGate();
+        scheduleAutosave();
+    }
+
+    function handleSaveResponse(data, opts) {
+        opts = opts || {};
+        if (data.clear_cart) {
+            resetWorkspaceCartUi();
+        }
+        if (data.redirect) {
+            if (opts.newTab) {
+                window.open(data.redirect, '_blank');
+            } else {
+                window.location.href = data.redirect;
+            }
+            return;
+        }
+        if (data.message && typeof Swal !== 'undefined') {
+            Swal.fire({ icon: 'success', title: 'Saved', text: data.message });
+        }
     }
 
     // --- Events ---
+    $('#ow-job-name').on('input', function () {
+        $('.err-job-name').html('');
+        syncJobNameGate();
+    });
+
+    syncJobNameGate();
+
     $('#ow-add-room').on('click', function () {
-        if (!$('#ow-job-name').val().trim()) {
-            $('.err-job-name').html('<span class="text-danger">Required Field</span>');
+        if (!requireJobName()) {
             return;
         }
         roomCounter += 1;
         appendRoomTbody(roomCounter);
+        syncJobNameGate();
         setActiveRoom(roomCounter);
         scheduleAutosave();
     });
@@ -281,17 +600,38 @@
         recalcTotals();
     });
 
-    $(document).on('click focus', '.room-name-input', function () {
+    $(document).on('focus', '.room-name-input', function () {
+        if (!requireJobName()) {
+            $(this).blur();
+            return;
+        }
+        setActiveRoom($(this).data('attr'));
+    });
+
+    $(document).on('click', '.room-name-input', function () {
+        if (!requireJobName()) {
+            return;
+        }
         setActiveRoom($(this).data('attr'));
     });
 
     $(document).on('click', 'tbody.cart-room', function (e) {
-        if ($(e.target).closest('.btn-remove-room, .btn-delete-row, .btn-qty-minus, .btn-qty-plus').length) return;
+        if ($(e.target).closest('.btn-remove-room, .btn-delete-row').length) return;
         if ($(e.target).hasClass('room-name-input')) return;
+        if (!requireJobName()) return;
         setActiveRoom($(this).data('room-index'));
     });
 
-    $(document).on('dblclick', '.cabinet-label-cell', function () {
+    $(document).on('click', '.cabinet-row', function (e) {
+        if (e.detail > 1) return;
+        populateProductDetails($(this));
+    });
+
+    $(document).on('dblclick', '.cabinet-label-cell', function (e) {
+        e.preventDefault();
+        if (!requireJobName()) {
+            return;
+        }
         const $cell = $(this).closest('tr');
         const $room = $('tbody.cart-room.active');
         const roomName = $room.find('.room-name-input').val().trim();
@@ -303,33 +643,13 @@
         const existing = $room.find('.product-row[data-sku="' + sku + '"]');
         if (existing.length) {
             const $input = existing.find('.product-qty-input');
-            const v = parseInt($input.val(), 10) + 1;
-            $input.val(v);
+            const v = setRowQty(existing, parseInt($input.val(), 10) + 1);
             updateRowTotal(existing, parseFloat($input.data('unit-cost')), v);
             recalcTotals();
+            scheduleAutosave();
             return;
         }
-        const roomIndex = $room.data('room-index');
-        $room.append(buildProductRow(roomIndex, $cell));
-        recalcTotals();
-    });
-
-    $(document).on('click', '.btn-qty-minus', function () {
-        const $input = $(this).siblings('.product-qty-input');
-        let v = parseInt($input.val(), 10) || 1;
-        if (v > 1) {
-            v -= 1;
-            $input.val(v);
-            updateRowTotal($(this).closest('tr'), parseFloat($input.data('unit-cost')), v);
-            recalcTotals();
-        }
-    });
-
-    $(document).on('click', '.btn-qty-plus', function () {
-        const $input = $(this).siblings('.product-qty-input');
-        const v = parseInt($input.val(), 10) + 1;
-        $input.val(v);
-        updateRowTotal($(this).closest('tr'), parseFloat($input.data('unit-cost')), v);
+        $room.append(buildProductRow(lineFromPicker($cell)));
         recalcTotals();
     });
 
@@ -339,11 +659,28 @@
         recalcTotals();
     });
 
-    $(document).on('change', '.chk-single', function () {
-        if (this.checked) $(this).closest('tr').find('.chk-double').prop('checked', false);
+    $(document).on('change', '.chk-single, .chk-double, .cb-yellow, .cb-green', function () {
+        scheduleAutosave();
     });
-    $(document).on('change', '.chk-double', function () {
-        if (this.checked) $(this).closest('tr').find('.chk-single').prop('checked', false);
+
+    $(document).on('click', '.door-image-tile, .door-image-tile.ow-door-pill', function () {
+        const $tile = $(this);
+        $('.door-image-tile, .ow-door-pill').removeClass('is-selected selected');
+        $tile.addClass('is-selected selected');
+        const name = $tile.data('label');
+        const src = $tile.data('src') || $tile.find('img').attr('src') || '';
+        cfg.doorId = $tile.data('door-id');
+        $('.product_img_name').val(name);
+        $('.product_img_src').val(src);
+        $('#door-heading').text(name);
+        if (src) {
+            $('#door-preview-img').attr('src', src).removeClass('d-none');
+            $('#door-preview-empty').hide();
+        } else {
+            $('#door-preview-img').addClass('d-none');
+            $('#door-preview-empty').show();
+        }
+        runSkuSearch(true);
     });
 
     $('input[name="assemble_cabinets_check"]').on('change', function () {
@@ -358,26 +695,28 @@
         }
     });
 
-    function runSkuSearch() {
-        const sku = $('#ow-sku-search').val().trim();
-        if (!sku) {
-            window.location.reload();
-            return;
-        }
-        $.post(cfg.accordionSearchUrl, {
+    function runSkuSearch(forceFull) {
+        const sku = forceFull ? '' : $('#ow-sku-search').val().trim();
+        $.post(accordionSearchUrl(), {
             _token: cfg.csrf,
-            sku,
+            sku: sku || '',
             color: $('.product_img_name').val(),
         }).done(function (html) {
-            $('#product-list-container').html(html);
+            $('#product-list-container').html(html || '<p class="p-3 text-muted">No Product Found</p>');
         });
     }
 
     $('#btn-print').on('click', function () {
         if (!validateCart()) return;
+        const $btn = $(this).prop('disabled', true);
         postAction(cfg.urls.print, { shipping_status: 'pending' })
-            .done(handleSaveResponse)
-            .fail(showError);
+            .done(function (data) {
+                handleSaveResponse(data, { newTab: true });
+            })
+            .fail(showError)
+            .always(function () {
+                $btn.prop('disabled', false);
+            });
     });
 
     $('#btn-save-quote').on('click', function () {
@@ -474,55 +813,88 @@
 
     $('#btn-process-order').on('click', function () {
         if (!validateCart()) return;
-        postAction(cfg.urls.process, {})
+        postAction(cfg.urls.process, {
+            catalog_id: cfg.catalogId,
+            product_img_name: $('.product_img_name').val(),
+            product_img_src: $('.product_img_src').val(),
+            catalogue_name: $('input[name="catalogue_name"]').val(),
+            cus_rep_id: $('input[name="cus_rep_id"]').val(),
+            cus_parent_id: $('input[name="cus_parent_id"]').val(),
+        })
             .done(handleSaveResponse)
             .fail(showError);
     });
 
     function showError(xhr) {
-        const msg = xhr.responseJSON?.message || 'Could not save.';
-        Swal.fire({ icon: 'error', title: 'Error', text: msg });
+        let msg = 'Could not save.';
+        if (xhr.responseJSON) {
+            if (xhr.responseJSON.message) msg = xhr.responseJSON.message;
+            else if (xhr.responseJSON.errors) {
+                const errs = xhr.responseJSON.errors;
+                msg = Object.keys(errs)
+                    .map(function (k) {
+                        return errs[k][0];
+                    })
+                    .join(' ');
+            }
+        } else if (xhr.status === 419) {
+            msg = 'Session expired. Please refresh the page and try again.';
+        } else if (xhr.status === 0) {
+            msg = 'Network error — could not reach the server.';
+        }
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({ icon: 'error', title: 'Error', text: msg });
+        } else {
+            alert(msg);
+        }
     }
 
     $(document).on('keypress', function (e) {
-        if (e.which === 13 && !$(e.target).is('textarea')) e.preventDefault();
+        if (e.which === 13 && !$(e.target).is('textarea')) {
+            e.preventDefault();
+            runSkuSearch();
+        }
     });
 
-    // Restore saved cart_data
-    const saved = $page.data('saved-cart');
-    if (saved && saved.room_data && saved.room_data.length) {
+    // Restore saved cart_data (Laravel room_data[] or legacy CI keyed room_data)
+    const saved = pageJson('saved-cart');
+    const savedRooms = saved ? roomsFromSaved(saved) : [];
+    if (saved && savedRooms.length) {
         restoring = true;
         if (saved.job_name) $('#ow-job-name').val(saved.job_name);
+        syncJobNameGate();
         if (saved.order_comment) $('#ow-comment').val(saved.order_comment);
-        if (saved.is_assemble) $('input[name="assemble_cabinets_check"][value="' + saved.is_assemble + '"]').prop('checked', true);
+        if (saved.is_assemble) {
+            const assembleVal = saved.is_assemble === 1 || saved.is_assemble === '1' ? 'yes' : saved.is_assemble;
+            $('input[name="assemble_cabinets_check"][value="' + assembleVal + '"]').prop('checked', true);
+        }
+        restoreDoorSelection(saved);
 
-        saved.room_data.forEach(function (room, idx) {
+        savedRooms.forEach(function (room, idx) {
+            const roomIndex = room.room_index || idx + 1;
             if (idx > 0) {
-                roomCounter = Math.max(roomCounter, room.room_index || idx + 1);
-                if (!$('tbody.cart-room[data-room-index="' + room.room_index + '"]').length) {
-                    appendRoomTbody(room.room_index);
+                roomCounter = Math.max(roomCounter, roomIndex);
+                if (!$('tbody.cart-room[data-room-index="' + roomIndex + '"]').length) {
+                    appendRoomTbody(roomIndex);
                 }
             }
-            const $tb = $('tbody.cart-room[data-room-index="' + (room.room_index || 1) + '"]');
+            const $tb = $('tbody.cart-room[data-room-index="' + roomIndex + '"]');
             $tb.find('.room-name-input').val(room.room_name || '');
             (room.products || []).forEach(function (p) {
-                const $fake = $('<tr>').data({
-                    sku: p.sku,
-                    label: p.label,
-                    description: p.description,
-                    weight: p.weight,
-                    cost: p.cost,
-                    cabinetid: p.product_id,
-                });
-                $tb.append(buildProductRow(room.room_index || 1, $fake));
-                const $row = $tb.find('.product-row').last();
-                $row.find('.product-qty-input').val(p.quantity || 1);
-                if (p.checkbox_status === 'single') $row.find('.chk-single').prop('checked', true);
-                if (p.checkbox_status === 'double') $row.find('.chk-double').prop('checked', true);
-                updateRowTotal($row, parseFloat(p.cost), parseInt(p.quantity, 10) || 1);
+                const line = enrichLineFromPicker(normalizeSavedLine(p));
+                const sku = line.sku;
+                const existing = sku ? $tb.find('.product-row[data-sku="' + sku + '"]') : $();
+                if (existing.length) {
+                    const $input = existing.find('.product-qty-input');
+                    const v = setRowQty(existing, parseInt($input.val(), 10) + (line.quantity || 1));
+                    updateRowTotal(existing, parseFloat($input.data('unit-cost')), v);
+                } else {
+                    $tb.append(buildProductRow(line));
+                }
             });
         });
         restoring = false;
+        syncJobNameGate();
         recalcTotals();
     }
 })(window.jQuery);

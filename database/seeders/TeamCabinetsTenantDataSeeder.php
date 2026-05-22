@@ -21,10 +21,13 @@ class TeamCabinetsTenantDataSeeder extends Seeder
 
         $tenant->run(function () {
             $applied = app(TeamCabinetsTenantDefaultsService::class)->apply();
+            $countyCount = app(\App\Services\SalesTaxCountiesService::class)->countyCount();
+
             $this->command?->info('Team Cabinets defaults: '
                 .$applied['taxes'].' taxes, '
                 .$applied['terms'].' terms, '
                 .$applied['point_factors'].' commission roles, '
+                .$countyCount.' sales tax counties, '
                 .($applied['order_catalogs'] ?? 0).' catalogs, '
                 .($applied['order_products'] ?? 0).' order products.');
         });

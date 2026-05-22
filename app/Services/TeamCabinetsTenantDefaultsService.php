@@ -59,6 +59,8 @@ class TeamCabinetsTenantDefaultsService
             $applied['point_factors']++;
         }
 
+        app(SalesTaxCountiesService::class)->ensureFloridaDefaults();
+
         app(ManageOtherPageContentService::class)->ensureDefaults();
         app(StorefrontPageService::class)->ensureDefaults();
         $orderCatalog = app(TeamCabinetsOrderCatalogService::class)->apply();

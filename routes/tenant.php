@@ -247,6 +247,7 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
           Route::post('orders/workspace/print', [TenantCreateOrderController::class, 'storePrint'])->name('tenant_order_workspace_print');
           Route::post('orders/workspace/process', [TenantCreateOrderController::class, 'storeProcess'])->name('tenant_order_workspace_process');
           Route::get('orders/workspace/checkout', [TenantCreateOrderController::class, 'checkout'])->name('tenant_order_workspace_checkout');
+          Route::post('orders/workspace/checkout', [TenantCreateOrderController::class, 'checkoutSubmit'])->name('tenant_order_workspace_checkout_submit');
           Route::get('orders/workspace/{id}/print', [TenantCreateOrderController::class, 'printOrder'])->name('tenant_order_workspace_print_page');
           Route::get('orders/workspace/catalog/{catalog}/doors', [TenantCreateOrderController::class, 'doors'])->name('tenant_order_workspace_doors');
           Route::get('orders/workspace/catalog/{catalog}/door/{door}', [TenantCreateOrderController::class, 'buildLegacyDoorUrl'])->name('tenant_order_workspace_build_legacy');
@@ -389,6 +390,14 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
           Route::get('setting/manage_email_content', [TenantSettingController::class, 'manage_email'])->name('tenant_setting_manage_email_content');
           Route::get('setting/manage_term_condition', [TenantSettingController::class, 'manage_term_condition'])->name('tenant_setting_manage_term_condition');
           Route::get('setting/manage_tax_fees', [TenantSettingController::class, 'manage_tax_fees'])->name('tenant_setting_tax_fees');
+          Route::get('setting/tax-fees/payment', [TenantSettingController::class, 'manage_tax_fees_payment'])->name('tenant_setting_tax_fees_payment');
+          Route::post('setting/tax-fees/payment', [TenantSettingController::class, 'store_tax_fees_payment'])->name('tenant_setting_tax_fees_payment_store');
+          Route::get('setting/tax-fees/shipping', [TenantSettingController::class, 'manage_tax_fees_shipping'])->name('tenant_setting_tax_fees_shipping');
+          Route::post('setting/tax-fees/shipping', [TenantSettingController::class, 'store_tax_fees_shipping'])->name('tenant_setting_tax_fees_shipping_store');
+          Route::get('setting/tax-fees/sales-tax', [TenantSettingController::class, 'manage_tax_fees_sales_tax'])->name('tenant_setting_tax_fees_sales_tax');
+          Route::post('setting/tax-fees/sales-tax', [TenantSettingController::class, 'store_tax_fees_sales_tax'])->name('tenant_setting_tax_fees_sales_tax_store');
+          Route::get('setting/tax-fees/paytrace', [TenantSettingController::class, 'manage_tax_fees_paytrace'])->name('tenant_setting_tax_fees_paytrace');
+          Route::post('setting/tax-fees/paytrace', [TenantSettingController::class, 'store_tax_fees_paytrace'])->name('tenant_setting_tax_fees_paytrace_store');
           Route::post('setting/manage_tax_fees_store', [TenantSettingController::class, 'store_tax_fees'])->name('tenant_setting_tax_fees_store');
           Route::get('setting/manage_commission', [TenantSettingController::class, 'manage_commission'])->name('tenant_setting_commission');
           Route::post('setting/manage_commission', [TenantSettingController::class, 'store_commission_defaults'])->name('tenant_setting_commission_store');

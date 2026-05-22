@@ -14,6 +14,10 @@ return [
         'debit_card_charges' => '0.50',
         'ach_pay_charges' => '10.00',
         'fuel_charges_value' => '2',
+        'commercial_delivery_charge' => '75',
+        'liftgate_charge' => '150',
+        'unload_charge' => '150',
+        'pallet_cost' => '30',
     ],
 
     /** Legacy CI role commission defaults (point factor % as decimal). */

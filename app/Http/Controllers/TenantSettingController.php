@@ -11,6 +11,8 @@ use App\Models\SiteSetting;
 use App\Services\ManageOtherPageContentService;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
+use App\Models\SalesTaxCounty;
+use App\Services\SalesTaxCountiesService;
 use App\Services\TaxValuesService;
 use App\Services\TenantFrontendThemeService;
 use Illuminate\Support\Facades\Auth;
@@ -157,18 +159,25 @@ class TenantSettingController extends Controller
     return redirect()->back()->with('success', 'Site settings saved successfully.');
 }
 
-    public function manage_tax_fees(TaxValuesService $taxValues)
+    public function manage_tax_fees(TaxValuesService $taxValues, SalesTaxCountiesService $salesTaxCounties)
     {
         $taxValues->ensureDefaults();
-        $values = [];
-        foreach (TaxValuesService::feeKeys() as $key => $meta) {
-            $values[$key] = $taxValues->get($key, $meta['default']);
-        }
 
-        return view('tenants.setting.manage_tax_fees', compact('values'));
+        return view('tenants.setting.manage_tax_fees', [
+            'countyCount' => $salesTaxCounties->countyCount(),
+        ]);
     }
 
-    public function store_tax_fees(Request $request, TaxValuesService $taxValues)
+    public function manage_tax_fees_payment(TaxValuesService $taxValues)
+    {
+        $taxValues->ensureDefaults();
+
+        return view('tenants.setting.manage_tax_fees_payment', [
+            'values' => $this->taxFeeValues($taxValues, TaxValuesService::paymentFeeKeys()),
+        ]);
+    }
+
+    public function store_tax_fees_payment(Request $request, TaxValuesService $taxValues)
     {
         $request->validate([
             'fuel_charges_value' => 'required|numeric|min:0|max:100',
@@ -178,13 +187,114 @@ class TenantSettingController extends Controller
             'sales_tax_percentage' => 'nullable|numeric|min:0|max:100',
         ]);
 
-        foreach (TaxValuesService::feeKeys() as $key => $meta) {
+        foreach (TaxValuesService::paymentFeeKeys() as $key => $meta) {
             if ($request->has($key)) {
                 $taxValues->set($key, (string) $request->input($key), $meta['label']);
             }
         }
 
-        return redirect()->back()->with('success', 'Tax and fee settings saved successfully.');
+        return redirect()
+            ->route('tenant_setting_tax_fees_payment')
+            ->with('success', 'Payment and fuel fee settings saved.');
+    }
+
+    public function manage_tax_fees_shipping(TaxValuesService $taxValues)
+    {
+        $taxValues->ensureDefaults();
+
+        return view('tenants.setting.manage_tax_fees_shipping', [
+            'values' => $this->taxFeeValues($taxValues, TaxValuesService::shippingFeeKeys()),
+        ]);
+    }
+
+    public function store_tax_fees_shipping(Request $request, TaxValuesService $taxValues)
+    {
+        $request->validate([
+            'commercial_delivery_charge' => 'required|numeric|min:0|max:99999',
+            'liftgate_charge' => 'required|numeric|min:0|max:99999',
+            'unload_charge' => 'required|numeric|min:0|max:99999',
+            'pallet_cost' => 'required|numeric|min:0|max:99999',
+        ]);
+
+        foreach (TaxValuesService::shippingFeeKeys() as $key => $meta) {
+            $taxValues->set($key, (string) $request->input($key), $meta['label']);
+        }
+
+        return redirect()
+            ->route('tenant_setting_tax_fees_shipping')
+            ->with('success', 'Shipping quote charges saved.');
+    }
+
+    public function manage_tax_fees_sales_tax(SalesTaxCountiesService $salesTaxCounties)
+    {
+        app(TaxValuesService::class)->ensureDefaults();
+        $salesTaxCounties->ensureFloridaDefaults();
+
+        $counties = SalesTaxCounty::query()->orderBy('counties')->get();
+
+        return view('tenants.setting.manage_tax_fees_sales_tax', compact('counties'));
+    }
+
+    public function store_tax_fees_sales_tax(Request $request)
+    {
+        $validated = $request->validate([
+            'counties' => 'required|array',
+            'counties.*.tax' => 'required|numeric|min:0|max:100',
+        ]);
+
+        foreach ($validated['counties'] as $id => $row) {
+            SalesTaxCounty::query()->whereKey($id)->update([
+                'tax' => (float) $row['tax'],
+            ]);
+        }
+
+        return redirect()
+            ->route('tenant_setting_tax_fees_sales_tax')
+            ->with('success', 'Florida county sales tax rates updated.');
+    }
+
+    public function manage_tax_fees_paytrace(TaxValuesService $taxValues)
+    {
+        $taxValues->ensureDefaults();
+
+        return view('tenants.setting.manage_tax_fees_paytrace', [
+            'values' => $this->taxFeeValues($taxValues, TaxValuesService::paytraceKeys()),
+        ]);
+    }
+
+    public function store_tax_fees_paytrace(Request $request, TaxValuesService $taxValues)
+    {
+        $request->validate([
+            'paytrace_username' => 'nullable|string|max:255',
+            'paytrace_password' => 'nullable|string|max:255',
+        ]);
+
+        foreach (TaxValuesService::paytraceKeys() as $key => $meta) {
+            if ($request->has($key)) {
+                $taxValues->set($key, (string) $request->input($key, ''), $meta['label']);
+            }
+        }
+
+        return redirect()
+            ->route('tenant_setting_tax_fees_paytrace')
+            ->with('success', 'Paytrace credentials saved.');
+    }
+
+    /** @deprecated Use tab-specific store routes. */
+    public function store_tax_fees(Request $request, TaxValuesService $taxValues)
+    {
+        return $this->store_tax_fees_payment($request, $taxValues);
+    }
+
+    /** @return array<string, string|null> */
+    private function taxFeeValues(TaxValuesService $taxValues, array $keys): array
+    {
+        $values = [];
+        foreach ($keys as $key => $meta) {
+            $values[$key] = $taxValues->get($key, $meta['default']);
+        }
+
+        return $values;
     }
 
     public function manage_commission()

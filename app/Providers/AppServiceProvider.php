@@ -41,6 +41,8 @@ class AppServiceProvider extends ServiceProvider
                     'app.asset_url' => rtrim(request()->getSchemeAndHttpHost(), '/').'/public',
                 ]);
             }
+
+            View::share('panelAsset', static fn (string $path): string => tenant_static_asset($path));
         }
 
         Paginator::useBootstrapFive();

@@ -48,7 +48,7 @@
                 <span class="tc-header-dropdown__role">{{ $tcUserRole }}</span>
             </li>
             <li class="tc-header-dropdown__item">
-                <a href="{{ route('tenant_profile_step_1') }}" role="menuitem">
+                <a href="{{ Auth::user()->hasRole('Admin') ? route('tenant_setting_profile') : route('tenant_profile') }}" role="menuitem">
                     <i data-feather="user" aria-hidden="true"></i>
                     <span>{{ __('Profile') }}</span>
                 </a>

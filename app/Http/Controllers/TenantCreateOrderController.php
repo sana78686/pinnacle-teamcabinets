@@ -14,6 +14,7 @@ use App\Services\OrderCartPersistenceService;
 use App\Services\OrderPricingService;
 use App\Services\OrderWorkspaceCheckoutService;
 use App\Services\OrderWorkspaceNotificationService;
+use App\Services\TenantNotificationService;
 use App\Services\OrderWorkspaceService;
 use App\Services\QuoteWorkspaceService;
 use App\Services\PaytracePaymentService;
@@ -429,9 +430,14 @@ class TenantCreateOrderController extends Controller
 
         session()->forget(['workspace_checkout', 'cart_data', 'shipping_quote_checkout_id']);
 
-        return redirect()
-            ->route('tenant_order_show', $order->id)
-            ->with('success', 'Order #'.$order->id.' placed successfully. You can file a claim from this order when needed.');
+        TenantNotificationService::flashToast(
+            'Order #'.$order->id.' placed successfully! You can file a claim from this order when needed.',
+            'success',
+            'Order placed',
+            route('tenant_order_show', $order->id, false),
+        );
+
+        return redirect()->route('tenant_order_show', $order->id);
     }
 
     public function printOrder(int $id): View

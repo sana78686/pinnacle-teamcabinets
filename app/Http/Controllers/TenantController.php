@@ -10,6 +10,7 @@ use App\Models\Country;
 use App\Models\City;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Services\TenantDashboardService;
 use App\Services\TenantProvisioningService;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
@@ -368,54 +369,20 @@ while (
     {
         return view('tenants.index');
     }
-    protected function countUsersByRole(string $roleName): int
+    public function tenant_dashboard(TenantDashboardService $dashboard)
     {
-        if (! Role::where('name', $roleName)->where('guard_name', 'web')->exists()) {
-            return 0;
-        }
-
-        return User::role($roleName)->count();
-    }
-
-    public function tenant_dashboard()
-    {
-        if(Auth::user()->hasRole('Admin'))
-        {
-
-
-
-            $users = User::get();
-$tenant = Tenant::get();
-
-$totalUsers = $users->count();
-
-$dealerCount = $this->countUsersByRole('Dealer');
-$representativeCount = $this->countUsersByRole('Representative');
-$distributorCount = $this->countUsersByRole('Distributor');
-$showroomCount = $this->countUsersByRole('Showroom');
-
-
+        if (Auth::user()->hasRole('Admin')) {
             $onboarding = app(\App\Services\TenantOnboardingService::class);
-            $onboardingSteps = $onboarding->steps();
-            $onboardingProgress = $onboarding->completedCount().' / '.$onboarding->totalSteps();
-            $dealerReady = $onboarding->isReadyForDealers();
 
-            return view('tenants.dashboard', compact(
-                'totalUsers',
-                'dealerCount',
-                'representativeCount',
-                'distributorCount',
-                'showroomCount',
-                'onboardingSteps',
-                'onboardingProgress',
-                'dealerReady'
-            ));
-            // return view('tenants.dashboard');
+            return view('tenants.dashboard', [
+                'stats' => $dashboard->adminStats(),
+                'recentOrders' => $dashboard->recentOrders(5),
+                'onboardingSteps' => $onboarding->steps(),
+                'onboardingProgress' => $onboarding->completedCount().' / '.$onboarding->totalSteps(),
+                'dealerReady' => $onboarding->isReadyForDealers(),
+            ]);
+        }
 
-        }
-        else
-        {
-            return view('tenants.representative_modals.dashboard');
-        }
+        return view('tenants.representative_modals.dashboard');
     }
 }

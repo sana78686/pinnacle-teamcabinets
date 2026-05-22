@@ -8,8 +8,7 @@
              <ul class="iconbar-mainmenu custom-scrollbar">
                 <li class="iconbar-header">Dashboard</li>
                 <li><a href="{{ route('tenant_dashboard') }}">Dashboard</a></li>
-                <li><a href="{{ route('tenant_profile_step_1') }}">My Profile</a></li>
-                <li><a href="{{ route('tenant_profile_step_2') }}">Change Password</a></li>
+                <li><a href="{{ Auth::user()->hasRole('Admin') ? route('tenant_setting_profile') : route('tenant_profile') }}">My Profile</a></li>
                 <li class="iconbar-header sub-header">Widgets</li>
                 <li><a href="javascript:;">General widget</a></li>
                 <li><a href="javascript:;">Chart widget</a></li>

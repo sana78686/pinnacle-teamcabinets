@@ -102,7 +102,8 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
             request()->session()->invalidate();
             request()->session()->regenerateToken();
 
-            return redirect()->route('tenant_login');
+            return redirect()->route('tenant_login')
+                ->with('success', 'You have been logged out successfully.');
         })->name('tenant_logout');
         Route::get('/subscription-required', function () {
             return view('tenants.billing.subscription-required');
@@ -148,13 +149,11 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
 
         /*** Profile Routes */
          Route::get('/profile/step_1', [TenantProfileController::class, 'step_1'])->name('tenant_profile_step_1');
-         Route::post('/profile/step_1', [TenantProfileController::class, 'storeProfileStep1'])->name('tenant_store_profile_step_1');
          Route::get('/profile/step_2', [TenantProfileController::class, 'step_2'])->name('tenant_profile_step_2');
-         Route::post('/profile/step_2/store', [TenantProfileController::class, 'updatePassword'])->name('tenant_store_profile_step_2');
          Route::get('/profile/step_3', [TenantProfileController::class, 'step_3'])->name('tenant_profile_step_3');
-         Route::get('/profile', [TenantProfileController::class, 'edit'])->name('tenant_profile_edit');
-         Route::patch('/profile', [TenantProfileController::class, 'update'])->name('tenant_profile_update');
-         Route::delete('/profile', [TenantProfileController::class, 'destroy'])->name('tenant_profile_destroy');
+         Route::get('/profile', [TenantProfileController::class, 'profile'])->name('tenant_profile');
+         Route::post('/profile', [TenantProfileController::class, 'updateProfile'])->name('tenant_profile_update');
+         Route::post('/profile/password', [TenantProfileController::class, 'updatePassword'])->name('tenant_profile_password');
 
         /*** Users Routes */
          Route::get('users/index', [TenantUserController::class, 'index'])->name('tenant_user_index');
@@ -366,6 +365,10 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
           Route::get('setting/hub', function () {
               return redirect()->route('tenant_site_setting');
           })->name('tenant_settings_hub');
+
+          Route::get('setting/profile', [TenantProfileController::class, 'settingsProfile'])->name('tenant_setting_profile');
+          Route::post('setting/profile', [TenantProfileController::class, 'updateSettingsProfile'])->name('tenant_setting_profile_update');
+          Route::post('setting/profile/password', [TenantProfileController::class, 'updatePassword'])->name('tenant_setting_profile_password');
 
           Route::get('setting/website-designing', [TenantSettingController::class, 'website_designing'])->name('tenant_website_designing');
 

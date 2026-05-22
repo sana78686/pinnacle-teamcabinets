@@ -47,6 +47,7 @@ class TenantNotificationController extends Controller
             'message' => $n->data['message'] ?? '',
             'url' => $n->data['url'] ?? null,
             'type' => $n->data['type'] ?? 'info',
+            'module' => $n->data['module'] ?? null,
             'read_at' => $n->read_at?->toIso8601String(),
             'created_at' => $n->created_at->diffForHumans(),
             'created_at_iso' => $n->created_at->toIso8601String(),

@@ -43,8 +43,9 @@
     window.TENANT_NOTIFICATIONS_READ_ALL_URL = @json(route('tenant_notifications_read_all'));
     window.TENANT_NOTIFICATIONS_POLL_MS = @json((int) config('tenant_panel.notifications_poll_ms', 15000));
     window.TENANT_PANEL_TOAST_IDS = @json(session('tenant_panel_toast_ids', []));
+    window.TENANT_PANEL_TOAST_MESSAGES = @json(session('tenant_panel_toast_messages', []));
 </script>
-<script src="{{ $panelAsset('js/tenant-notifications.js') }}?v=5"></script>
+<script src="{{ $panelAsset('js/tenant-notifications.js') }}?v=6"></script>
 @if ($tcLayout['settings_extras'] ?? false)
 <script src="{{ $panelAsset('js/tenant-select2.js') }}?v=1"></script>
 @endif

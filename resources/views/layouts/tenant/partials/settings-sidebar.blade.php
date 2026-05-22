@@ -1,5 +1,6 @@
 @php
     $sectionIcons = [
+        'tenant_setting_profile' => 'user',
         'tenant_site_setting' => 'settings',
         'tenant_setting_tax_fees' => 'percent',
         'tenant_setting_commission' => 'trending-up',

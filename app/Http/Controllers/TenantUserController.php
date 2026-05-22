@@ -71,6 +71,12 @@ class TenantUserController extends Controller
             $query->where('email', 'LIKE', '%'.$request->email.'%');
         }
 
+        if ($request->query('verified') === '0') {
+            $query->where('is_verified_by_admin', false);
+        } elseif ($request->query('verified') === '1') {
+            $query->where('is_verified_by_admin', true);
+        }
+
         $data['users'] = $query->latest()->paginate(tenant_list_per_page())->withQueryString();
 
         return view('tenants.users.index', $data);
@@ -494,13 +500,7 @@ public function updateVerification(Request $request, $id)
 
     Mail::to($user->email)->send(new UserAccountVerificationMail($user));
 
-    TenantNotificationService::notifyUser(
-        $user,
-        'Account approved',
-        'Your account has been approved. You can now sign in to the dealer panel.',
-        route('tenant_login'),
-        'success'
-    );
+    TenantNotificationService::accountApproved($user);
 
     return response()->json(['success' => true, 'message' => 'User verified successfully.']);
 }
@@ -526,6 +526,7 @@ public function updateStatus(Request $request, $id)
         Mail::to($user->email)->send(new UserAccountActivationMail($user));
     } elseif ($newStatus === 'deactive') {
         Mail::to($user->email)->send(new UserAccountDeactivationMail($user));
+        TenantNotificationService::accountDeactivated($user);
     }
 
     return response()->json([
@@ -539,13 +540,7 @@ public function updateStatus(Request $request, $id)
         try {
             Mail::to($user->email)->send(new UserRegisteredByAdminMail($user, $plainPassword));
 
-            TenantNotificationService::notifyUser(
-                $user,
-                'Your account is ready',
-                'An email with your login link and credentials was sent to '.$user->email.'.',
-                route('tenant_login'),
-                'success'
-            );
+            TenantNotificationService::accountCreatedByAdmin($user);
         } catch (\Throwable $e) {
             Log::warning('Failed to send admin-created user welcome email', [
                 'user_id' => $user->id,

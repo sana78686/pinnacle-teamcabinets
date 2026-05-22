@@ -26,7 +26,6 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Auth\Events\PasswordReset;
 use App\Mail\PendingUserVerificationMail;
 use App\Mail\AdminNewUserNotificationMail;
-use App\Services\TenantNotificationService;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Cookie;
 
@@ -158,12 +157,7 @@ public function postLogin(Request $request)
         // dd( $$role->name->all());
          Mail::to($tenant_user->email)->send(new PendingUserVerificationMail($tenant_user));
 
-    TenantNotificationService::notifyAdmins(
-        'New user registration',
-        $tenant_user->name . ' (' . $tenant_user->email . ') registered and is awaiting approval.',
-        route('tenant_user_index'),
-        'user'
-    );
+    TenantNotificationService::registrationPendingApproval($tenant_user);
 
     $adminEmail = SiteSetting::first()?->newuser_email;
     if ($adminEmail) {

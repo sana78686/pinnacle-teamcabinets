@@ -74,10 +74,13 @@
         }
     }
 
-    function iconClass(type) {
+    function iconClass(type, module) {
         if (type === 'success') return 'bg-success';
-        if (type === 'warning') return 'bg-warning';
         if (type === 'danger' || type === 'error') return 'bg-danger';
+        if (type === 'warning' || module === 'shipping' || module === 'stock') return 'bg-warning';
+        if (module === 'quotes') return 'bg-primary';
+        if (module === 'orders') return 'bg-success';
+        if (module === 'auth') return 'bg-info';
         return 'bg-info';
     }
 
@@ -97,7 +100,7 @@
             return (
                 '<li class="tc-notification-item' + (unread ? ' tc-notification-item--unread' : '') + '">' +
                 '<' + tag + link + ' class="media tc-notification-link">' +
-                '<div class="mr-3 notification-icons ' + iconClass(n.type) + '"><i class="mt-0" data-feather="bell"></i></div>' +
+                '<div class="mr-3 notification-icons ' + iconClass(n.type, n.module) + '"><i class="mt-0" data-feather="bell"></i></div>' +
                 '<div class="media-body">' +
                 '<h6 class="mb-0">' + escapeHtml(n.title) + '</h6>' +
                 '<p class="mb-0">' + escapeHtml(n.message) + '</p>' +
@@ -269,6 +272,7 @@
             Notification.requestPermission();
         }
 
+        showBootToasts();
         poll(true);
         setInterval(function () { poll(false); }, pollIntervalMs);
 

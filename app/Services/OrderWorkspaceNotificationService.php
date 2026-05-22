@@ -44,6 +44,7 @@ class OrderWorkspaceNotificationService
         }
 
         $this->notifyAdminsShippingQuote($record, $user);
+        TenantNotificationService::shippingQuoteRequestedForUser($record, $user);
     }
 
     public function sendOrderPlacedEmails(Order $order, User $user, array $checkoutTotals, array $cartData): void
@@ -99,12 +100,14 @@ class OrderWorkspaceNotificationService
             Log::warning('Order placed email failed: '.$e->getMessage());
         }
 
-        $this->notifyAdminsOrderPlaced($order, $user);
+        TenantNotificationService::orderPlacedForUser($order, $user);
+        TenantNotificationService::orderPlacedForAdmins($order, $user);
     }
 
     public function sendQuoteSavedEmails(Quote $quote, User $user, array $payload): void
     {
-        $this->notifyAdminsQuoteSaved($quote, $user);
+        TenantNotificationService::quoteSavedForUser($quote, $user);
+        TenantNotificationService::quoteSavedForAdmins($quote, $user);
 
         if (! $user->email) {
             return;
@@ -162,38 +165,7 @@ class OrderWorkspaceNotificationService
         }
 
         $this->notifyAdminsStockCheck($record, $user, $withShipping);
-    }
-
-    protected function notifyAdminsOrderPlaced(Order $order, User $user): void
-    {
-        try {
-            TenantNotificationService::notifyAdminsPanel(
-                'New order placed',
-                sprintf('%s placed order #%d — %s.', $user->name ?? 'Customer', $order->id, $order->job_name ?? 'Order'),
-                $this->safeRoute('tenant_order_show', $order->id, 'tenant_order_list'),
-                'success',
-                'orders',
-                'orders_list',
-            );
-        } catch (\Throwable $e) {
-            Log::warning('Order placed panel notification failed: '.$e->getMessage());
-        }
-    }
-
-    protected function notifyAdminsQuoteSaved(Quote $quote, User $user): void
-    {
-        try {
-            TenantNotificationService::notifyAdminsPanel(
-                'New quote saved',
-                sprintf('%s saved quote #%d — %s.', $user->name ?? 'Customer', $quote->id, $quote->job_name ?? 'Quote'),
-                $this->safeRoute('tenant_quotes_show', $quote->id, 'tenant_quotes_index'),
-                'info',
-                'quotes',
-                'quotes_list',
-            );
-        } catch (\Throwable $e) {
-            Log::warning('Quote panel notification failed: '.$e->getMessage());
-        }
+        TenantNotificationService::stockCheckSubmittedForUser($record, $user, $withShipping);
     }
 
     protected function notifyAdminsShippingQuote(ShippingQuote $record, User $user): void
@@ -201,10 +173,10 @@ class OrderWorkspaceNotificationService
         try {
             TenantNotificationService::notifyAdminsPanel(
                 'Shipping quote requested',
-                sprintf('%s requested shipping quote #%d — %s.', $user->name ?? 'Customer', $record->id, $record->job_name ?? 'Job'),
+                sprintf('New shipping quote request from %s — "%s"', $user->name ?? 'Customer', $record->job_name ?? 'Job'),
                 $this->safeRoute('tenant_shipping_quotes_show', $record->id, 'tenant_shipping_quotes_index'),
-                'info',
-                'quotes',
+                'warning',
+                'shipping',
                 'shipping_quotes_list',
             );
         } catch (\Throwable $e) {
@@ -218,10 +190,10 @@ class OrderWorkspaceNotificationService
             $suffix = $withShipping ? ' (includes shipping)' : '';
             TenantNotificationService::notifyAdminsPanel(
                 'Stock check requested',
-                sprintf('%s submitted stock check #%d — %s%s.', $user->name ?? 'Customer', $record->id, $record->job_name ?? 'Job', $suffix),
+                sprintf('New stock check from %s%s', $user->name ?? 'Customer', $suffix),
                 $this->safeRoute('tenant_stock_check_show', $record->id, 'tenant_stock_check_index'),
                 'warning',
-                'stock_check',
+                'stock',
                 'stock_check_list',
             );
         } catch (\Throwable $e) {

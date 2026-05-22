@@ -678,7 +678,7 @@ public function updateStatus(Request $request, $id)
 
         //change status to un-approved
         $user->restore();
-        $user->status="un-approved";
+        $user->status = config('tenant_user.default_status', 'un-approved');
         $user->save();// Restore the user
         return redirect()->route('tenant_user_index')
             ->with('success', 'User.'.$user->name.'. Restored successfully!');

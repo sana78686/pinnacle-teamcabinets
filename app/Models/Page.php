@@ -1,12 +1,12 @@
 <?php
 
 namespace App\Models;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-// use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
-use Illuminate\Database\Eloquent\Model;
 
 class Page extends Model
 {
@@ -16,16 +16,22 @@ class Page extends Model
 
     public const SLUG_BLOG = 'blog';
 
-    protected $guarded = [];
-
     protected $connection = 'tenant';
 
-
-    // protected $fillable = [
-    //    'tenant_id', 'parent_id','title','slug','content',
-    // //    'meta_title',
-    //     // 'meta_description','show_in_menu','order_no','status'
-    // ];
+    protected $fillable = [
+        'tenant_id',
+        'parent_id',
+        'title',
+        'slug',
+        'content',
+        'meta_title',
+        'meta_description',
+        'meta_keywords',
+        'og_image',
+        'show_in_menu',
+        'order_no',
+        'status',
+    ];
 
 
     public function parent() {
@@ -83,5 +89,55 @@ class Page extends Model
         $blog = static::findBlogPage();
 
         return $blog && (int) $this->parent_id === (int) $blog->id;
+    }
+
+    /** @return array<int, string> */
+    public static function reservedTopLevelSlugs(): array
+    {
+        return array_values(array_unique(array_merge(
+            [self::SLUG_BLOG, self::SLUG_ABOUT, 'contact', 'contact-us'],
+            config('tenant_storefront.reserved_slugs', [])
+        )));
+    }
+
+    public function isCmsPage(): bool
+    {
+        if ($this->isBlogIndex() || $this->isBlogPost()) {
+            return false;
+        }
+
+        return $this->parent_id !== null
+            || ! in_array($this->slug, self::reservedTopLevelSlugs(), true);
+    }
+
+    /** Custom storefront pages only (excludes blog, articles, and reserved system pages). */
+    public function scopeCmsOnly(Builder $query): Builder
+    {
+        $blogId = static::findBlogPage()?->id;
+        $reserved = static::reservedTopLevelSlugs();
+
+        return $query
+            ->when($blogId, function (Builder $q) use ($blogId) {
+                $q->where(function (Builder $q2) use ($blogId) {
+                    $q2->whereNull('parent_id')
+                        ->orWhere('parent_id', '!=', $blogId);
+                });
+            })
+            ->where(function (Builder $q) use ($reserved) {
+                $q->whereNotNull('parent_id')
+                    ->orWhereNotIn('slug', $reserved);
+            });
+    }
+
+    /** Blog posts (children of the blog index page). */
+    public function scopeBlogPosts(Builder $query): Builder
+    {
+        $blogId = static::findBlogPage()?->id;
+
+        if (! $blogId) {
+            return $query->whereRaw('0 = 1');
+        }
+
+        return $query->where('parent_id', $blogId);
     }
 }

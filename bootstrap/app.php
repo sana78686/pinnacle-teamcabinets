@@ -18,11 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'dev/seed-team-cabinets',
         ]);
         $middleware->redirectGuestsTo(function (Request $request) {
-            if (function_exists('tenant') && tenant()) {
-                return route('tenant_login');
-            }
-
-            return route('auth_login');
+            return tenant_guest_redirect_url($request);
         });
 
         $middleware->alias([

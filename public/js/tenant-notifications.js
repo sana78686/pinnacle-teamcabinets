@@ -89,7 +89,7 @@
         if (!list) return;
 
         if (!items.length) {
-            list.innerHTML = '<li class="p-3 text-muted text-center">No notifications yet</li>';
+            list.innerHTML = '<li class="p-3 text-muted tc-notification-list__empty">No notifications yet</li>';
             return;
         }
 
@@ -194,7 +194,7 @@
 
         Swal.fire({
             toast: true,
-            position: 'top-end',
+            position: 'top-start',
             icon: icon,
             title: item.title || 'Notification',
             text: item.message || '',

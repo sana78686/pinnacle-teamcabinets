@@ -238,8 +238,24 @@ class TenantOrderTrackerService
         $customerPaid = (float) ($order?->order_amount ?? $order?->grand_total_cost ?? $workspace->grand_total_cost ?? 0);
         $qb = $order?->quickbook_invoice_id ?? $order?->quickbooks_number ?? '';
 
+        $displayRef = match ($source) {
+            'order' => '#'.$orderNumber,
+            'stock_check' => 'SC#'.$scId,
+            'quote' => 'Quote #'.$mqId,
+            default => $orderNumber,
+        };
+
+        $typeLabel = match ($source) {
+            'order' => 'Order',
+            'stock_check' => 'Stock check',
+            'quote' => 'Quote',
+            default => 'Record',
+        };
+
         $row = [
             'source' => $source,
+            'type_label' => $typeLabel,
+            'display_ref' => $displayRef,
             'order_number' => $orderNumber,
             'order_id' => $order?->id ?? 0,
             'sc_id' => $scId ?: ($detail?->sc_id ?? 0),

@@ -56,7 +56,8 @@
     <section class="tc-settings-section">
         <h3 class="tc-settings-section__title">Contact & Registration</h3>
         <div class="form-check form-switch mb-2">
-            <input class="form-check-input" type="checkbox" id="sameContactToggle">
+            <input class="form-check-input" type="checkbox" id="sameContactToggle" name="use_same_contact" value="1"
+                {{ !empty($sameContact) ? 'checked' : '' }}>
             <label class="form-check-label" for="sameContactToggle">Use the same email and phone for Contact Us &amp; New User Register</label>
         </div>
         <div id="customContactFields">
@@ -177,6 +178,39 @@
         </div>
     </section>
 
+    <section class="tc-settings-section">
+        <h3 class="tc-settings-section__title">Storefront brand color</h3>
+        <p class="text-muted small mb-3">Applies to your public site header, footer, and primary buttons. Saved as CSS on your server — not loaded from the database on each page view.</p>
+        @php
+            $brandColor = old('storefront_brand_color', $storefrontBrandColor ?? '#1a4a7a');
+        @endphp
+        <div class="row g-3 align-items-end">
+            <div class="col-md-6 col-lg-4">
+                <div class="tc-field">
+                    <label for="storefront_brand_color">Brand color</label>
+                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                        <input type="hidden" name="storefront_brand_color" id="storefront_brand_color" value="{{ $brandColor }}">
+                        <input type="color" id="storefront_brand_color_picker"
+                            class="form-control form-control-color tc-brand-picker"
+                            value="{{ $brandColor }}" title="Pick brand color">
+                        <input type="text" id="storefront_brand_color_hex" class="form-control" style="max-width:8rem;"
+                            pattern="^#[0-9A-Fa-f]{6}$" maxlength="7" value="{{ $brandColor }}" aria-label="Hex color">
+                    </div>
+                    @error('storefront_brand_color')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-8">
+                <div class="tc-brand-preview" id="tcBrandPreview" aria-hidden="true">
+                    <div class="tc-brand-preview__chip" data-part="header">Header</div>
+                    <div class="tc-brand-preview__chip" data-part="button">Primary button</div>
+                    <div class="tc-brand-preview__chip" data-part="footer">Footer</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <div class="tc-settings-form-actions">
         <button type="submit" class="btn btn-primary">Save Settings</button>
     </div>
@@ -184,8 +218,102 @@
 @endsection
 
 @section('setting_script')
+<style>
+    .tc-brand-picker { width: 3.25rem; height: 2.75rem; padding: 0.2rem; cursor: pointer; }
+    .tc-brand-preview { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .tc-brand-preview__chip {
+        padding: 0.65rem 1.1rem;
+        border-radius: 6px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #fff;
+        min-width: 7rem;
+        text-align: center;
+    }
+    .tc-brand-preview__chip[data-part="button"] { color: #fff; }
+</style>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        const picker = document.getElementById('storefront_brand_color_picker');
+        const hexInput = document.getElementById('storefront_brand_color_hex');
+        const hiddenColor = document.getElementById('storefront_brand_color');
+        const preview = document.getElementById('tcBrandPreview');
+        const form = document.querySelector('.tc-settings-form');
+
+        function normalizeHex(value) {
+            let v = (value || '').trim();
+            if (!v.startsWith('#')) {
+                v = '#' + v;
+            }
+            if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+                return v.toLowerCase();
+            }
+            return null;
+        }
+
+        function darken(hex, amount) {
+            const n = parseInt(hex.slice(1), 16);
+            let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+            const f = 1 - amount;
+            r = Math.round(r * f); g = Math.round(g * f); b = Math.round(b * f);
+            return '#' + [r, g, b].map(function (c) { return c.toString(16).padStart(2, '0'); }).join('');
+        }
+
+        function applyBrandPreview(hex) {
+            if (!preview || !hex) {
+                return;
+            }
+            const navy = darken(hex, 0.42);
+            preview.querySelector('[data-part="header"]').style.background = navy;
+            preview.querySelector('[data-part="footer"]').style.background = 'linear-gradient(180deg, ' + darken(hex, 0.5) + ' 0%, ' + navy + ' 100%)';
+            preview.querySelector('[data-part="button"]').style.background = hex;
+            if (picker) {
+                picker.value = hex;
+            }
+            if (hexInput) {
+                hexInput.value = hex;
+            }
+            if (hiddenColor) {
+                hiddenColor.value = hex;
+            }
+        }
+
+        function syncFromPicker() {
+            const hex = normalizeHex(picker ? picker.value : '');
+            if (hex) {
+                applyBrandPreview(hex);
+            }
+        }
+
+        if (picker) {
+            picker.addEventListener('input', syncFromPicker);
+        }
+        if (hexInput) {
+            hexInput.addEventListener('input', function () {
+                const hex = normalizeHex(hexInput.value);
+                if (hex) {
+                    applyBrandPreview(hex);
+                }
+            });
+            hexInput.addEventListener('blur', function () {
+                const hex = normalizeHex(hexInput.value);
+                if (hex) {
+                    applyBrandPreview(hex);
+                }
+            });
+        }
+
+        syncFromPicker();
+
+        if (form) {
+            form.addEventListener('submit', function () {
+                const hex = normalizeHex(hexInput && hexInput.value ? hexInput.value : (picker ? picker.value : ''));
+                if (hex) {
+                    applyBrandPreview(hex);
+                }
+            });
+        }
+
         const toggle = document.getElementById('sameContactToggle');
         const fields = document.getElementById('customContactFields');
         const mainPhone = document.getElementById('main_phone');
@@ -195,6 +323,13 @@
         const newuserPhone = document.getElementById('newuser_phone');
         const newuserEmail = document.getElementById('newuser_email');
 
+        function syncContactFromMain() {
+            contactusPhone.value = mainPhone.value;
+            contactusEmail.value = mainEmail.value;
+            newuserPhone.value = mainPhone.value;
+            newuserEmail.value = mainEmail.value;
+        }
+
         function setRequiredFields(required) {
             contactusPhone.required = required;
             contactusEmail.required = required;
@@ -202,36 +337,43 @@
             newuserEmail.required = required;
         }
 
+        function applyToggleState() {
+            if (toggle.checked) {
+                fields.style.display = 'none';
+                setRequiredFields(false);
+                syncContactFromMain();
+            } else {
+                fields.style.display = 'block';
+                setRequiredFields(false);
+            }
+        }
+
         if (!toggle || !fields) {
             return;
         }
 
-        if (toggle.checked) {
-            fields.style.display = 'none';
-            setRequiredFields(false);
-            contactusPhone.value = mainPhone.value;
-            contactusEmail.value = mainEmail.value;
-            newuserPhone.value = mainPhone.value;
-            newuserEmail.value = mainEmail.value;
-        }
+        applyToggleState();
 
-        toggle.addEventListener('change', function () {
-            if (this.checked) {
-                fields.style.display = 'none';
-                setRequiredFields(false);
-                contactusPhone.value = mainPhone.value;
-                contactusEmail.value = mainEmail.value;
-                newuserPhone.value = mainPhone.value;
-                newuserEmail.value = mainEmail.value;
-            } else {
-                fields.style.display = 'block';
-                setRequiredFields(true);
-                contactusPhone.value = '';
-                contactusEmail.value = '';
-                newuserPhone.value = '';
-                newuserEmail.value = '';
+        toggle.addEventListener('change', applyToggleState);
+
+        mainPhone.addEventListener('input', function () {
+            if (toggle.checked) {
+                syncContactFromMain();
             }
         });
+        mainEmail.addEventListener('input', function () {
+            if (toggle.checked) {
+                syncContactFromMain();
+            }
+        });
+
+        if (form) {
+            form.addEventListener('submit', function () {
+                if (toggle.checked) {
+                    syncContactFromMain();
+                }
+            });
+        }
     });
 </script>
 @endsection

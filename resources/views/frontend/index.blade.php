@@ -17,7 +17,7 @@
     <div class="tc-settings-toolbar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <div>
             <h5 class="mb-1 tc-settings-form-title">Pages</h5>
-            <p class="mb-0 text-muted tc-field-hint">Manage public website pages. Reserved slugs: <code>about</code>, <code>blog</code> (use Website Designing → About Us / Blog).</p>
+            <p class="mb-0 text-muted tc-field-hint">Custom storefront pages only. Use <strong>Articles</strong> for blog posts and <strong>About Us</strong> for your about page.</p>
         </div>
         <a href="{{ route('pages.create') }}" class="btn btn-primary btn-sm">
             <i data-feather="plus" class="tc-btn-icon"></i> Create Page
@@ -31,7 +31,7 @@
                     <th scope="col">#</th>
                     <th scope="col">Title</th>
                     <th scope="col">Slug</th>
-                    <th scope="col">Parent</th>
+                    <th scope="col">Parent page</th>
                     <th scope="col">Status</th>
                     <th scope="col">Order</th>
                     <th scope="col" class="text-end">Actions</th>

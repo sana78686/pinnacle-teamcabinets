@@ -41,25 +41,24 @@ class StorefrontPageService
      */
     protected function ensurePage(string $slug, string $title, string $content, array $extra = []): Page
     {
-        $page = Page::query()->where('slug', $slug)->first();
+        $tenantId = tenant('id');
 
-        if ($page) {
-            if (trim((string) $page->content) === '' && trim($content) !== '') {
-                $page->update(['content' => $content]);
-            }
+        $page = Page::firstOrCreate(
+            ['tenant_id' => $tenantId, 'slug' => $slug],
+            array_merge([
+                'title' => $title,
+                'content' => $content,
+                'status' => 'published',
+                'parent_id' => null,
+                'show_in_menu' => false,
+                'order_no' => 0,
+            ], $extra)
+        );
 
-            return $page;
+        if (trim((string) $page->content) === '' && trim($content) !== '') {
+            $page->update(['content' => $content]);
         }
 
-        return Page::create(array_merge([
-            'tenant_id' => tenant('id'),
-            'title' => $title,
-            'slug' => $slug,
-            'content' => $content,
-            'status' => 'published',
-            'parent_id' => null,
-            'show_in_menu' => false,
-            'order_no' => 0,
-        ], $extra));
+        return $page;
     }
 }

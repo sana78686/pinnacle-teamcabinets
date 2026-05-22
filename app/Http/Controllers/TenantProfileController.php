@@ -7,6 +7,7 @@ use App\Models\Country;
 use App\Models\State;
 use App\Models\User;
 use App\Mail\PasswordChanged;
+use App\Services\TenantAuthSessionService;
 use App\Services\TenantNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,6 +18,10 @@ use Illuminate\View\View;
 
 class TenantProfileController extends Controller
 {
+    public function __construct(
+        protected TenantAuthSessionService $authSessions,
+    ) {}
+
     public function step_1(Request $request): RedirectResponse
     {
         return redirect()->route($this->profileRouteName());
@@ -73,6 +78,10 @@ class TenantProfileController extends Controller
 
         $user->password = Hash::make($request->new_password);
         $user->save();
+
+        $this->authSessions->logoutEverywhere($user);
+        $user->refresh();
+        $this->authSessions->storeLoginSession($user, $request);
 
         try {
             Mail::to($user->email)->send(new PasswordChanged($user));

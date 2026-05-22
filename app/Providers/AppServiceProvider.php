@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\StorefrontBrandCssService;
 use App\Services\TenantFrontendThemeService;
 use App\View\Composers\StorefrontComposer;
 use App\View\Composers\TenantFrontendThemeComposer;
@@ -20,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(TenantFrontendThemeService::class);
+        $this->app->singleton(StorefrontBrandCssService::class);
     }
 
     /**

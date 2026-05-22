@@ -56,15 +56,7 @@ class TenantFrontendThemeService
             throw new InvalidArgumentException("Unknown frontend theme: {$slug}");
         }
 
-        $settings = SiteSetting::query()->first() ?? new SiteSetting([
-            'tenant_id' => tenant('id'),
-            'phone' => '',
-            'email' => '',
-        ]);
-
-        if (! $settings->tenant_id && tenant('id')) {
-            $settings->tenant_id = tenant('id');
-        }
+        $settings = SiteSetting::forCurrentTenant();
 
         if (Schema::hasColumn('site_settings', 'frontend_theme')) {
             $settings->frontend_theme = $slug;

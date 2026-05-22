@@ -52,6 +52,12 @@
                         <td class="text-end text-nowrap">
                             <a href="{{ route('cms.page', $post->slug) }}" class="btn btn-light btn-sm" target="_blank" rel="noopener">View</a>
                             <a href="{{ route('pages.edit', $post->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                            <form method="POST" action="{{ route('pages.destroy', $post->id) }}" class="d-inline"
+                                onsubmit="return confirm('Delete this article?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
                         </td>
                     </tr>
                 @empty

@@ -2,6 +2,7 @@
 
 namespace App\View\Composers;
 
+use App\Services\StorefrontBrandCssService;
 use App\Services\StorefrontPresenterService;
 use Illuminate\View\View;
 
@@ -9,6 +10,7 @@ class StorefrontComposer
 {
     public function __construct(
         protected StorefrontPresenterService $storefront,
+        protected StorefrontBrandCssService $brandCss,
     ) {}
 
     public function compose(View $view): void
@@ -30,6 +32,7 @@ class StorefrontComposer
             'sfShowAbout' => $this->storefront->showAboutNav(),
             'sfShowBlog' => $this->storefront->showBlogNav(),
             'sfFooterNav' => $this->storefront->footerNavLinks(),
+            'sfBrandStylesheet' => $this->brandCss->stylesheetUrl(),
         ]);
     }
 }

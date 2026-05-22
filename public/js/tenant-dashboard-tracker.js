@@ -123,7 +123,53 @@
         });
     }
 
+    function initTrackerFilters() {
+        var form = document.getElementById('tcTrackerFilterForm');
+        if (!form) return;
+
+        var search = form.querySelector('#tracker_search');
+        var perPage = form.querySelector('#tracker_per_page');
+        var clearBtn = document.getElementById('tcTrackerSearchClear');
+        var debounceTimer;
+
+        function submitForm() {
+            var pageInput = form.querySelector('input[name="tracker_page"]');
+            if (pageInput) {
+                pageInput.remove();
+            }
+            form.submit();
+        }
+
+        if (perPage) {
+            perPage.addEventListener('change', submitForm);
+        }
+
+        if (search) {
+            search.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    submitForm();
+                }
+            });
+            search.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(submitForm, 500);
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                if (search) {
+                    search.value = '';
+                }
+                submitForm();
+            });
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
+        initTrackerFilters();
+
         document.querySelectorAll('.tc-tracker-row').forEach(function (mainRow) {
             var detail = mainRow.nextElementSibling;
             if (detail && detail.classList.contains('tc-tracker-detail-row')) {

@@ -20,11 +20,13 @@
     @stack('head')
 </head>
 <body class="ow-standalone-body tc-order-workspace tc-form-page">
+    @include('partial.message')
     @yield('content')
     <script src="{{ $panelAsset('assets/main/js/jquery-3.5.1.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ $panelAsset('js/tenant-session-flash.js') }}?v=2"></script>
     @yield('script')
     @stack('scripts')
 </body>

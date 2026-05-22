@@ -11,30 +11,16 @@
             <p class="tc-dash-card__sub mb-0">Edit fields inline; changes save automatically.</p>
         </div>
     </div>
-    @if ($trackerRows->total() > 0)
-    <div class="card-body border-bottom py-2">
-        <form method="get" action="{{ route('tenant_dashboard') }}" class="tc-list-toolbar row align-items-center g-2 mb-0">
-            <div class="col-auto">
-                <label class="tc-list-toolbar__label mb-0 me-1">Show</label>
-                <select name="tracker_per_page" class="form-control form-control-sm d-inline-block tc-list-toolbar__select" onchange="this.form.submit()">
-                    @foreach ([10, 15, 25, 50] as $opt)
-                        <option value="{{ $opt }}" @selected(($trackerPerPage ?? 10) === $opt)>{{ $opt }}</option>
-                    @endforeach
-                </select>
-                <span class="text-muted small ms-1">entries</span>
-            </div>
-            <div class="col-auto ms-md-auto">
-                <label class="tc-list-toolbar__label mb-0 me-1">Search:</label>
-                <input type="search" name="tracker_search" class="form-control form-control-sm d-inline-block tc-list-toolbar__search"
-                    value="{{ $trackerSearch ?? '' }}" placeholder="Filter orders…">
-                <button type="submit" class="btn btn-sm btn-light ms-1">Go</button>
-            </div>
-        </form>
-    </div>
+
+    @if ($trackerRows->total() > 0 || ($trackerSearch ?? '') !== '')
+        <div class="card-body border-bottom py-3">
+            @include('tenants.dashboard.partials.tracker-toolbar')
+        </div>
     @endif
+
     <div class="card-body p-0">
-        <div class="table-responsive tc-admin-datatable tc-dash-tracker-wrap">
-            <table id="tcOrderTrackerTable" class="table table-striped table-bordered table-sm mb-0 tc-dash-tracker__table">
+        <div class="table-responsive tc-dash-tracker-wrap">
+            <table class="table table-striped table-bordered table-sm mb-0 tc-dash-tracker__table">
                 <thead>
                     <tr>
                         <th class="tc-tracker-col-order">Order</th>
@@ -63,28 +49,23 @@
                             data-assemble="{{ $row['assemble_cabinetry_charged'] }}"
                             data-cc="{{ $row['credit_card_charges'] }}"
                             data-fuel="{{ $row['fuel_charges_display'] }}"
-                            data-tax="{{ $row['tax_display'] }}"
+                            data-tax="{{ $row['tax_display'] }}">
                             <td class="tc-tracker-cell-order" data-label="Order">
+                                <span class="tc-tracker-type">{{ $row['type_label'] }}</span>
                                 @if ($row['order_show_url'])
-                                    <a href="{{ $row['order_show_url'] }}" class="fw-semibold">{{ $row['order_number'] }}</a>
+                                    <a href="{{ $row['order_show_url'] }}" class="tc-tracker-ref">{{ $row['display_ref'] }}</a>
+                                @elseif ($row['sc_show_url'])
+                                    <a href="{{ $row['sc_show_url'] }}" class="tc-tracker-ref">{{ $row['display_ref'] }}</a>
                                 @else
-                                    <span class="fw-semibold">{{ $row['order_number'] }}</span>
+                                    <span class="tc-tracker-ref">{{ $row['display_ref'] }}</span>
                                 @endif
-                                <div class="tc-tracker-meta">{{ $row['job_name'] ?: '—' }}</div>
-                                @if ($row['sc_id'])
-                                    <div class="tc-tracker-meta">
-                                        SC#
-                                        @if ($row['sc_show_url'])
-                                            <a href="{{ $row['sc_show_url'] }}">{{ $row['sc_id'] }}</a>
-                                        @else
-                                            {{ $row['sc_id'] }}
-                                        @endif
-                                    </div>
+                                @if (!empty($row['job_name']) && $row['job_name'] !== '—')
+                                    <div class="tc-tracker-meta">{{ $row['job_name'] }}</div>
                                 @endif
+                                <div class="tc-tracker-meta">{{ $row['created_at'] }}</div>
                             </td>
                             <td data-label="Customer">
                                 <span class="tc-tracker-customer">{{ $row['customer'] }}</span>
-                                <div class="tc-tracker-meta">{{ $row['created_at'] }}</div>
                             </td>
                             <td data-label="Status">
                                 <select class="form-select form-select-sm tc-tracker-field tc-select2-search" name="stock_check_status" data-field="stock_check_status">
@@ -105,8 +86,8 @@
                                     <option value="No" @selected($row['team_paid'] !== 'Yes')>No</option>
                                 </select>
                             </td>
-                            <td class="text-end">
-                                <span class="tc-tracker-margin-badge tc-tracker-margin" data-margin-color="{{ $row['margin_color'] }}">
+                            <td class="text-end" data-label="Margin">
+                                <span class="tc-tracker-margin-badge tc-tracker-margin {{ ($row['margin_color'] ?? '') === 'green' ? 'is-positive' : 'is-negative' }}">
                                     ${{ number_format((float) $row['margin'], 2) }}
                                 </span>
                             </td>
@@ -189,14 +170,25 @@
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">No tracker rows yet. Place orders or add stock checks / quotes.</td>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                @if (($trackerSearch ?? '') !== '')
+                                    No tracker rows match your search.
+                                @else
+                                    No tracker rows yet. Place orders or add stock checks / quotes.
+                                @endif
+                            </td>
                         </tr>
                     @endif
                 </tbody>
             </table>
         </div>
-        @if ($trackerRows->total() > 0)
-            <div class="card-footer py-2">{{ $trackerRows->withQueryString()->links() }}</div>
+        @if ($trackerRows->hasPages())
+            <div class="card-footer py-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <span class="text-muted small mb-0">Page {{ $trackerRows->currentPage() }} of {{ $trackerRows->lastPage() }}</span>
+                <div class="tc-list-pagination mb-0">
+                    {{ $trackerRows->withQueryString()->links('vendor.pagination.tc-admin') }}
+                </div>
+            </div>
         @endif
     </div>
 </div>

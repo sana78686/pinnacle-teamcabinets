@@ -1,15 +1,20 @@
 @extends('layouts.tenant.settings')
-@section('title', 'Create CMS Page')
+@section('title', !empty($isArticle) ? 'New Article' : 'Create CMS Page')
 
 @section('breadcrumb-title')
-    <h2>Create <span>Page</span></h2>
+    <h2>{{ !empty($isArticle) ? 'New' : 'Create' }} <span>{{ !empty($isArticle) ? 'Article' : 'Page' }}</span></h2>
 @endsection
 
 @section('breadcrumb-items')
     <li class="breadcrumb-item">Settings</li>
     <li class="breadcrumb-item"><a href="{{ route('tenant_website_designing') }}">Website Designing</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('pages.index') }}">CMS Pages</a></li>
-    <li class="breadcrumb-item active">Create</li>
+    @if (!empty($isArticle))
+        <li class="breadcrumb-item"><a href="{{ route('tenant_storefront_blog') }}">Articles</a></li>
+        <li class="breadcrumb-item active">New</li>
+    @else
+        <li class="breadcrumb-item"><a href="{{ route('pages.index') }}">CMS Pages</a></li>
+        <li class="breadcrumb-item active">Create</li>
+    @endif
 @endsection
 
 @section('setting_content')
@@ -17,10 +22,16 @@
 
     <div class="tc-settings-toolbar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <div>
-            <h5 class="mb-1 tc-settings-form-title">Create New Page</h5>
-            <p class="mb-0 text-muted tc-field-hint">Add a new page to your public website.</p>
+            <h5 class="mb-1 tc-settings-form-title">{{ !empty($isArticle) ? 'New article' : 'Create new page' }}</h5>
+            <p class="mb-0 text-muted tc-field-hint">
+                @if (!empty($isArticle))
+                    This post will appear on your public blog.
+                @else
+                    Custom pages for your storefront (not blog posts).
+                @endif
+            </p>
         </div>
-        <a href="{{ route('pages.index') }}" class="btn btn-light btn-sm">Back to list</a>
+        <a href="{{ !empty($isArticle) ? route('tenant_storefront_blog') : route('pages.index') }}" class="btn btn-light btn-sm">Back</a>
     </div>
 
     @if ($errors->any())
@@ -58,23 +69,28 @@
             </div>
         </div>
 
-        <div class="mb-3 tc-field">
-            <label for="parent_id" class="form-label">Parent Page (Optional)</label>
-            <select name="parent_id" id="parent_id" class="form-select">
-                <option value="">-- None (top-level page) --</option>
-                @foreach ($parents as $id => $title)
-                    <option value="{{ $id }}" {{ (string) old('parent_id', $defaultParentId ?? '') === (string) $id ? 'selected' : '' }}>{{ $title }}</option>
-                @endforeach
-            </select>
-            @if (!empty($defaultParentId) && isset($blogPage) && (int) $defaultParentId === (int) $blogPage->id)
-                <p class="tc-field-hint mb-0 mt-1">This post will appear on your public <strong>Blog</strong> page.</p>
-            @endif
-        </div>
+        @if (!empty($isArticle) && isset($blogPage))
+            <input type="hidden" name="is_article" value="1">
+            <input type="hidden" name="parent_id" value="{{ $blogPage->id }}">
+        @else
+            <div class="mb-3 tc-field">
+                <label for="parent_id" class="form-label">Parent Page (Optional)</label>
+                <select name="parent_id" id="parent_id" class="form-select">
+                    <option value="">-- None (top-level page) --</option>
+                    @foreach ($parents as $id => $title)
+                        <option value="{{ $id }}" {{ (string) old('parent_id') === (string) $id ? 'selected' : '' }}>{{ $title }}</option>
+                    @endforeach
+                </select>
+            </div>
+        @endif
 
-        <div class="mb-3 tc-field">
-            <label for="editor" class="form-label">Page Content</label>
-            <textarea name="content" id="editor" class="form-control" rows="8">{{ old('content') }}</textarea>
-        </div>
+        @include('layouts.tenant.partials.cms-rich-editor', [
+            'editorId' => 'editor',
+            'name' => 'content',
+            'label' => 'Page Content',
+            'value' => old('content'),
+            'editorHeight' => 420,
+        ])
 
         <div class="row">
             <div class="col-md-4">
@@ -102,74 +118,4 @@
             <a href="{{ route('pages.index') }}" class="btn btn-light">Cancel</a>
         </div>
     </form>
-@endsection
-
-@section('setting_script')
-    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/46.0.0/ckeditor5.css">
-    <script src="https://cdn.ckeditor.com/ckeditor5/46.0.0/ckeditor5.umd.js"></script>
-    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5-premium-features/46.0.0/ckeditor5-premium-features.css">
-    <script src="https://cdn.ckeditor.com/ckeditor5-premium-features/46.0.0/ckeditor5-premium-features.umd.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            if (typeof feather !== 'undefined') {
-                feather.replace();
-            }
-
-            const {
-                ClassicEditor,
-                Essentials,
-                Bold,
-                Italic,
-                Font,
-                Paragraph,
-                Alignment,
-                Image,
-                ImageToolbar,
-                ImageUpload,
-                ImageInsert,
-                ImageCaption,
-                PasteFromOffice,
-                ImageStyle,
-            } = CKEDITOR;
-
-            const { FormatPainter } = CKEDITOR_PREMIUM_FEATURES;
-
-            class Base64UploadAdapter {
-                constructor(loader) {
-                    this.loader = loader;
-                }
-                upload() {
-                    return this.loader.file.then(file => new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = () => resolve({ default: reader.result });
-                        reader.onerror = err => reject(err);
-                        reader.readAsDataURL(file);
-                    }));
-                }
-                abort() {}
-            }
-
-            function Base64UploadAdapterPlugin(editor) {
-                editor.plugins.get('FileRepository').createUploadAdapter = loader => new Base64UploadAdapter(loader);
-            }
-
-            ClassicEditor.create(document.querySelector('#editor'), {
-                licenseKey: 'eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3NjEwOTExOTksImp0aSI6IjJmOGFmZWRkLWRiNDAtNDRjOS05N2M3LWJjN2JmYzhhMmE1MyIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiLCJzaCJdLCJ3aGl0ZUxhYmVsIjp0cnVlLCJsaWNlbnNlVHlwZSI6InRyaWFsIiwiZmVhdHVyZXMiOlsiKiJdLCJ2YyI6IjFkM2IxYWZlIn0.yM6GkJEVB3i9LdhwsMQy6niiCkGqc1Rj8vyTOPISHxGp8VuejBsIFhacx75yhLcUpimX17_V0iKeCMy0RTpsAQ',
-                plugins: [
-                    Essentials, Bold, Italic, Font, Paragraph, FormatPainter, Alignment,
-                    Image, ImageToolbar, ImageUpload, ImageInsert, ImageCaption, PasteFromOffice,
-                    Base64UploadAdapterPlugin, ImageStyle,
-                ],
-                toolbar: [
-                    'undo', 'redo', '|', 'bold', 'italic', '|',
-                    'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
-                    'alignment', '|', 'formatPainter', '|', 'insertImage',
-                ],
-            }).then(function () {
-                if (window.TenantFieldTips) {
-                    window.TenantFieldTips.refresh(document.querySelector('.tc-settings-panel'));
-                }
-            }).catch(console.error);
-        });
-    </script>
 @endsection

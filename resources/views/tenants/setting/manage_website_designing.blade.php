@@ -35,7 +35,7 @@
                 <span class="tc-wd-card__icon"><i data-feather="file-text"></i></span>
                 <strong>CMS pages</strong>
                 <span class="tc-wd-card__meta">{{ $pageCount }} page{{ $pageCount === 1 ? '' : 's' }}</span>
-                <span class="tc-wd-card__desc">Create and publish pages linked from your site menu.</span>
+                <span class="tc-wd-card__desc">Custom pages only — not blog posts or system pages.</span>
             </a>
         </div>
         <div class="col-md-4 mb-3">
@@ -49,9 +49,9 @@
         <div class="col-md-4 mb-3">
             <a href="{{ route('tenant_storefront_blog') }}" class="tc-wd-card">
                 <span class="tc-wd-card__icon"><i data-feather="book-open"></i></span>
-                <strong>Blog</strong>
-                <span class="tc-wd-card__meta">Posts &amp; landing page</span>
-                <span class="tc-wd-card__desc">Publish news and articles linked from your site menu.</span>
+                <strong>Articles</strong>
+                <span class="tc-wd-card__meta">{{ $articleCount ?? 0 }} post{{ ($articleCount ?? 0) === 1 ? '' : 's' }}</span>
+                <span class="tc-wd-card__desc">Blog landing page and news posts (separate from CMS pages).</span>
             </a>
         </div>
         <div class="col-md-4 mb-3">

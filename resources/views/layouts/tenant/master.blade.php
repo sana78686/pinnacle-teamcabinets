@@ -62,6 +62,7 @@
             @include('layouts.tenant.chat_sidebar')
             <!-- Right sidebar Ends-->
             <div class="page-body tc-form-page p-0">
+                @include('partial.message')
                 @auth
                     @include('layouts.tenant.partials.trial-marquee')
                 @endauth

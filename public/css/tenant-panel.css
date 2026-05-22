@@ -1187,11 +1187,13 @@
     margin: 0 !important;
 }
 
+.tc-compact-chrome .notification-dropdown > .tc-header-dropdown__head,
+.page-main-header .notification-dropdown > .tc-header-dropdown__head,
 .tc-compact-chrome .tc-header-dropdown__head,
 .page-main-header .tc-header-dropdown__head {
     background: linear-gradient(135deg, #0c2340 0%, #1a4a7a 100%) !important;
     border-bottom: none;
-    padding: 0.85rem 1rem !important;
+    padding: 0.5rem !important;
     text-align: left !important;
     list-style: none;
 }
@@ -1293,9 +1295,40 @@
 .tc-compact-chrome .tc-notification-list__empty,
 .tc-compact-chrome .tc-notification-list > li.p-3 {
     padding: 1rem !important;
-    text-align: center;
+    text-align: left !important;
     color: #64748b;
     font-size: 0.8125rem;
+}
+
+/* Override theme: notification dropdown was centered */
+.tc-compact-chrome .notification-dropdown li,
+.page-main-header .notification-dropdown li {
+    text-align: left !important;
+    padding: 0 !important;
+}
+
+.tc-compact-chrome .notification-dropdown > .tc-header-dropdown__head,
+.tc-compact-chrome .notification-dropdown > .tc-header-dropdown__foot,
+.page-main-header .notification-dropdown > .tc-header-dropdown__head,
+.page-main-header .notification-dropdown > .tc-header-dropdown__foot {
+    padding: 0.5rem !important;
+}
+
+.tc-compact-chrome .notification-dropdown li:first-child,
+.page-main-header .notification-dropdown li:first-child {
+    text-align: left !important;
+}
+
+.tc-compact-chrome .tc-notification-item .media-body,
+.tc-compact-chrome .tc-notification-item .tc-notification-link,
+.page-main-header .tc-notification-item .media-body {
+    text-align: left !important;
+}
+
+.tc-compact-chrome .tc-notification-item .media-body h6,
+.tc-compact-chrome .tc-notification-item .media-body p,
+.tc-compact-chrome .tc-notification-item .media-body small {
+    text-align: left !important;
 }
 
 .tc-compact-chrome .tc-notification-item {
@@ -1337,6 +1370,44 @@
     color: #64748b;
 }
 
+/* Centered session SweetAlert (success / error / info) */
+.swal2-container {
+    z-index: 20000 !important;
+}
+
+.tc-session-swal {
+    border-radius: 10px !important;
+    font-size: 0.875rem !important;
+}
+
+.tc-session-swal__title {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+}
+
+.tc-session-swal__text {
+    font-size: 0.8125rem !important;
+    line-height: 1.45 !important;
+    color: #475569 !important;
+}
+
+/* Centered session flash (SweetAlert) */
+.swal2-popup.tc-session-swal {
+    font-size: 0.875rem;
+    border-radius: 10px;
+}
+
+.swal2-popup.tc-session-swal .swal2-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.swal2-popup.tc-session-swal .swal2-html-container,
+.swal2-popup.tc-session-swal .swal2-content {
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
+
 /* Kill legacy theme dropdown pointer / gradient blocks */
 .tc-compact-chrome .profile-dropdown::before,
 .tc-compact-chrome .notification-dropdown::before,
@@ -1346,10 +1417,12 @@
     content: none !important;
 }
 
+.page-main-header .notification-dropdown > .tc-header-dropdown__foot,
+.tc-compact-chrome .notification-dropdown > .tc-header-dropdown__foot,
 .page-main-header .tc-header-dropdown__foot,
 .tc-compact-chrome .tc-header-dropdown__foot {
     border-top: 1px solid #e2e8f0;
-    padding: 0.65rem 1rem !important;
+    padding: 0.5rem !important;
     background: #f8fafc;
     display: flex;
     align-items: center;
@@ -1430,6 +1503,29 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+}
+
+.tc-notifications-page .card-body,
+.tc-notifications-list,
+.tc-notifications-list__body {
+    text-align: left !important;
+}
+
+.tc-notifications-list__body h6,
+.tc-notifications-list__body p,
+.tc-notifications-list__body small {
+    text-align: left !important;
+}
+
+/* SweetAlert panel toasts — top-left */
+.swal2-container.swal2-top-start,
+.swal2-container.swal2-top-start .swal2-popup {
+    text-align: left !important;
+}
+
+.swal2-container.swal2-top-start .swal2-title,
+.swal2-container.swal2-top-start .swal2-html-container {
+    text-align: left !important;
 }
 
 .page-main-header .tc-header-dropdown__item a {
@@ -1606,6 +1702,35 @@
 
 .tc-settings-panel .ck-editor {
     max-width: 100%;
+}
+
+/* CMS page rich text editor (TinyMCE) */
+.tc-cms-editor-field__head {
+    width: 100%;
+}
+
+.tc-cms-editor-field__range {
+    width: 7.5rem;
+    margin: 0;
+}
+
+.tc-cms-editor-field__height-val {
+    min-width: 3.25rem;
+    text-align: right;
+}
+
+.tc-settings-panel .tc-cms-editor-field .tox-tinymce {
+    max-width: 100%;
+    border-radius: 8px;
+    border-color: #e2e8f0;
+}
+
+.tc-settings-panel .tc-cms-editor-field .tox .tox-edit-area {
+    min-height: 160px;
+}
+
+.tc-settings-panel .tc-cms-editor-field__textarea {
+    min-height: 12rem;
 }
 
 .tc-btn-icon {
@@ -2240,7 +2365,92 @@
     color: #94a3b8;
 }
 
-/* CI-style list toolbar (Show entries + Search) */
+/* List toolbar — modern (Laravel pagination lists) */
+.tc-panel-shell .tc-list-toolbar--modern .tc-list-toolbar__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    margin-bottom: 0;
+}
+
+.tc-panel-shell .tc-list-toolbar--modern .tc-list-toolbar__search-wrap {
+    position: relative;
+    flex: 1 1 16rem;
+    min-width: 12rem;
+    max-width: 28rem;
+}
+
+.tc-panel-shell .tc-list-toolbar--modern .tc-list-toolbar__search-icon {
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+    line-height: 0;
+}
+
+.tc-panel-shell .tc-list-toolbar--modern .tc-list-toolbar__search-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.tc-panel-shell .tc-list-toolbar--modern .tc-list-toolbar__search {
+    padding-left: 2.1rem;
+    padding-right: 2rem;
+    border-radius: 8px;
+    border-color: #e2e8f0;
+    font-size: 0.875rem;
+    min-height: 38px;
+    width: 100%;
+}
+
+.tc-panel-shell .tc-list-toolbar--modern .tc-list-toolbar__search:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.tc-panel-shell .tc-list-toolbar--modern .tc-list-toolbar__clear {
+    position: absolute;
+    right: 0.35rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0 0.35rem;
+    cursor: pointer;
+}
+
+.tc-panel-shell .tc-list-toolbar--modern .tc-list-toolbar__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    margin-left: auto;
+}
+
+.tc-panel-shell .tc-list-toolbar--modern .tc-list-toolbar__count {
+    font-size: 0.8125rem;
+    white-space: nowrap;
+}
+
+.tc-panel-shell .tc-list-toolbar--modern .tc-list-toolbar__per-page {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+}
+
+.tc-panel-shell .tc-list-toolbar--modern .tc-list-toolbar__per-page .form-select {
+    width: auto;
+    min-width: 4.25rem;
+}
+
+/* CI-style list toolbar (legacy) */
 .tc-list-toolbar__label {
     font-size: 0.875rem;
     font-weight: 500;
@@ -2544,8 +2754,30 @@
 .tc-profile-card__head {
     display: flex;
     gap: 0.85rem;
-    padding: 1.25rem 1.5rem 0;
+    padding: 1rem 1.5rem;
     align-items: flex-start;
+    background: #f8fafc !important;
+    border-bottom: 1px solid #e8ecf1;
+    height: auto !important;
+    line-height: normal !important;
+    text-align: left !important;
+    border-radius: 12px 12px 0 0;
+}
+
+/* Theme color-6.css styles bare <header> as a 200px dark bar — never apply on profile */
+.tc-profile-page header.tc-profile-card__head,
+.tc-settings-panel .tc-profile-card__head {
+    height: auto !important;
+    line-height: normal !important;
+    text-align: left !important;
+    background: #f8fafc !important;
+}
+
+.tc-profile-page header.tc-profile-card__head h4,
+.tc-profile-page header.tc-profile-card__head p,
+.tc-settings-panel .tc-profile-card__head h4,
+.tc-settings-panel .tc-profile-card__head p {
+    color: inherit !important;
 }
 
 .tc-profile-card__icon {
@@ -2963,6 +3195,123 @@
     .tc-panel-shell .tc-dash-setup {
         margin-top: 0.5rem;
     }
+}
+
+/* Order tracker toolbar (Laravel pagination — not DataTables) */
+.tc-panel-shell .tc-tracker-toolbar__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+}
+
+.tc-panel-shell .tc-tracker-toolbar__search-wrap {
+    position: relative;
+    flex: 1 1 16rem;
+    min-width: 12rem;
+    max-width: 28rem;
+}
+
+.tc-panel-shell .tc-tracker-toolbar__search-icon {
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+    line-height: 0;
+}
+
+.tc-panel-shell .tc-tracker-toolbar__search-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.tc-panel-shell .tc-tracker-toolbar__search {
+    padding-left: 2.1rem;
+    padding-right: 2rem;
+    border-radius: 8px;
+    border-color: #e2e8f0;
+    font-size: 0.875rem;
+    min-height: 38px;
+}
+
+.tc-panel-shell .tc-tracker-toolbar__search:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.tc-panel-shell .tc-tracker-toolbar__clear {
+    position: absolute;
+    right: 0.35rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0 0.35rem;
+    cursor: pointer;
+}
+
+.tc-panel-shell .tc-tracker-toolbar__clear:hover {
+    color: #0f172a;
+}
+
+.tc-panel-shell .tc-tracker-toolbar__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    margin-left: auto;
+}
+
+.tc-panel-shell .tc-tracker-toolbar__count {
+    font-size: 0.8125rem;
+    white-space: nowrap;
+}
+
+.tc-panel-shell .tc-tracker-toolbar__per-page {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+}
+
+.tc-panel-shell .tc-tracker-toolbar__per-page .form-select {
+    width: auto;
+    min-width: 4.25rem;
+}
+
+.tc-panel-shell .tc-tracker-type {
+    display: inline-block;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #475569;
+    background: #e2e8f0;
+    border-radius: 4px;
+    padding: 0.1rem 0.35rem;
+    margin-bottom: 0.2rem;
+    vertical-align: middle;
+}
+
+.tc-panel-shell .tc-tracker-ref {
+    display: block;
+    font-weight: 700;
+    color: #1d4ed8;
+    text-decoration: none;
+    line-height: 1.3;
+}
+
+.tc-panel-shell a.tc-tracker-ref:hover {
+    text-decoration: underline;
+}
+
+.tc-panel-shell span.tc-tracker-ref {
+    color: #0f172a;
 }
 
 /* Order tracker — compact table + expandable details (no horizontal scroll) */

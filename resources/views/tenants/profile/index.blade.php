@@ -64,13 +64,13 @@
 
         <div class="tc-profile-main">
             <section class="tc-profile-card">
-                <header class="tc-profile-card__head">
+                <div class="tc-profile-card__head">
                     <span class="tc-profile-card__icon"><i data-feather="user" aria-hidden="true"></i></span>
                     <div>
                         <h4 class="tc-profile-card__title">Personal information</h4>
                         <p class="tc-profile-card__subtitle">Update your name, contact details, and registration information.</p>
                     </div>
-                </header>
+                </div>
 
                 <form class="tc-profile-form" method="POST" action="{{ $profileUpdateRoute }}" enctype="multipart/form-data">
                     @csrf
@@ -162,13 +162,13 @@
             </section>
 
             <section class="tc-profile-card">
-                <header class="tc-profile-card__head">
+                <div class="tc-profile-card__head">
                     <span class="tc-profile-card__icon"><i data-feather="lock" aria-hidden="true"></i></span>
                     <div>
                         <h4 class="tc-profile-card__title">Change password</h4>
                         <p class="tc-profile-card__subtitle">Keep your account secure with a strong password.</p>
                     </div>
-                </header>
+                </div>
 
                 <form class="tc-profile-form" method="POST" action="{{ $passwordUpdateRoute }}">
                     @csrf

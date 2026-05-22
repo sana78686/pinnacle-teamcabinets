@@ -17,6 +17,11 @@ class TenantRoleService
         'Dealer',
     ];
 
+    public static function isProtectedRole(string $name): bool
+    {
+        return in_array($name, self::DEFAULT_ROLES, true);
+    }
+
     public static function ensureDefaultRoles(): void
     {
         foreach (self::DEFAULT_ROLES as $name) {

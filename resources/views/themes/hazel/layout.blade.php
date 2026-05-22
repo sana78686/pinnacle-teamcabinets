@@ -6,6 +6,9 @@
     @include('themes.hazel.partials.head-meta')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css">
     <link rel="stylesheet" href="{{ tenant_static_asset('css/themes/hazel.css') }}?v=7">
+    @if (!empty($sfBrandStylesheet))
+        <link rel="stylesheet" href="{{ $sfBrandStylesheet }}">
+    @endif
     <link rel="stylesheet" href="{{ tenant_static_asset('css/tenant-responsive.css') }}?v=1">
     @stack('head')
 </head>

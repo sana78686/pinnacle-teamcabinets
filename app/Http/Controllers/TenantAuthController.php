@@ -20,8 +20,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TenantForgotUsernameMail;
 use App\Mail\TenantResetPasswordMail;
+use App\Services\TenantAuthSessionService;
+use App\Services\TenantUserSchemaService;
 use App\Services\TenantNotificationService;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Auth\Events\PasswordReset;
 use App\Mail\PendingUserVerificationMail;
@@ -32,6 +33,11 @@ use Illuminate\Support\Facades\Cookie;
 class TenantAuthController extends Controller
 {
     use Concerns\ValidatesTurnstile;
+
+    public function __construct(
+        protected TenantAuthSessionService $authSessions,
+        protected TenantUserSchemaService $userSchema,
+    ) {}
 
     public function index()
     {
@@ -81,7 +87,7 @@ public function postLogin(Request $request)
                 ->with('error', 'Your account has not been approved by the dealer admin yet. You will be notified when it is approved.');
         }
 
-        if ($user->status === 'deactive') {
+        if (in_array($user->status, ['deactive', 'block'], true)) {
             Auth::logout();
             return redirect()->back()
                 ->withInput($request->only('login', 'remember'))
@@ -93,6 +99,8 @@ public function postLogin(Request $request)
         } else {
             Cookie::queue(Cookie::forget('login'));
         }
+
+        $this->authSessions->storeLoginSession($user, $request);
 
         $toastIds = TenantNotificationService::notifyOnLogin($user);
 
@@ -125,6 +133,9 @@ public function postLogin(Request $request)
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8',
         ]);
+
+        $this->userSchema->ensureStatusColumn();
+
         // Create user in the tenant's database
         // tenancy()->initialize(tenant()); // Ensure we're in tenant DB
         // $tenant_user = DB::connection('tenant')->table('users')->insert([
@@ -149,7 +160,7 @@ public function postLogin(Request $request)
             'is_super_user' => 0,
             'tenant_id' => tenant('id'),
             'company_name' => tenant('name'),
-            'status' => 'un-approved',
+            'status' => config('tenant_user.default_status', 'un-approved'),
             'is_verified' => false,
             'is_verified_by_admin' => false,
         ]);
@@ -237,14 +248,17 @@ public function postLogin(Request $request)
 
     public function logout(Request $request)
     {
+        $user = Auth::user();
+        if ($user) {
+            $this->authSessions->logoutEverywhere($user);
+        }
+
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        Session::flush();
-        Auth::logout();
 
         return redirect()->route('tenant_login')
-            ->with('success', 'You have been logged out successfully.');
+            ->with('success', 'You have been logged out from all devices.');
     }
 
     public function forgot_username()

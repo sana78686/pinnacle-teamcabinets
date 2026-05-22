@@ -15,6 +15,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class TenantPageController extends Controller
@@ -27,37 +28,133 @@ class TenantPageController extends Controller
 
     public function index()
     {
-        $pages = Page::with('parent')->orderBy('order_no')->paginate(tenant_list_per_page())->withQueryString();
+        $pages = Page::query()
+            ->cmsOnly()
+            ->with('parent')
+            ->orderBy('order_no')
+            ->paginate(tenant_list_per_page())
+            ->withQueryString();
 
         return view('frontend.index', compact('pages'));
     }
 
     public function create(Request $request)
     {
-        $parents = Page::whereNull('parent_id')->pluck('title', 'id');
-        $blogPage = $this->storefrontPages->ensureBlogPage();
-        $defaultParentId = $request->query('parent') === 'blog' ? $blogPage->id : $request->query('parent_id');
+        if ($request->query('parent') === 'blog') {
+            $blogPage = Page::findBlogPage() ?? $this->storefrontPages->ensureBlogPage();
 
-        return view('frontend.create', compact('parents', 'blogPage', 'defaultParentId'));
+            return view('frontend.create', [
+                'parents' => collect(),
+                'blogPage' => $blogPage,
+                'defaultParentId' => $blogPage->id,
+                'isArticle' => true,
+            ]);
+        }
+
+        $parents = Page::cmsOnly()
+            ->whereNull('parent_id')
+            ->orderBy('title')
+            ->pluck('title', 'id');
+
+        return view('frontend.create', [
+            'parents' => $parents,
+            'isArticle' => false,
+        ]);
     }
 
     public function store(Request $request)
     {
+        $tenantId = tenant('id');
+        $slug = Str::slug((string) $request->input('slug', ''));
+
+        $request->merge(['slug' => $slug]);
+
         $request->validate([
             'title' => 'required',
-            'slug' => 'required|unique:pages,slug',
+            'slug' => [
+                'required',
+                Rule::unique('pages', 'slug')->where(fn ($q) => $q->where('tenant_id', $tenantId)),
+            ],
         ]);
 
-        Page::create($request->all());
+        $blog = Page::findBlogPage();
+        $isArticleRequest = $request->boolean('is_article') || $request->query('parent') === 'blog';
+
+        if ($slug !== '' && ! $isArticleRequest && ! $request->filled('parent_id') && $this->isReservedTopLevelSlug($slug)) {
+            $existing = Page::query()
+                ->where('slug', $slug)
+                ->whereNull('parent_id')
+                ->first();
+
+            if ($existing) {
+                if ($existing->isBlogIndex()) {
+                    return redirect()
+                        ->route('tenant_storefront_blog')
+                        ->with('info', 'Manage your blog from Articles.');
+                }
+
+                return redirect()
+                    ->route('pages.edit', $existing)
+                    ->with('info', 'That page already exists. You can edit it here.');
+            }
+        }
+
+        $parentId = $request->input('parent_id');
+        $isArticle = $request->boolean('is_article')
+            && $blog
+            && (int) $parentId === (int) $blog->id;
+
+        if ($blog && (int) $parentId === (int) $blog->id && ! $isArticle) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['parent_id' => 'Blog posts must be created from Website Designing → Articles.']);
+        }
+
+        if (! $isArticle && ! $request->filled('parent_id') && $this->isReservedTopLevelSlug($slug)) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['slug' => 'That URL is reserved for a system page (About, Blog, Contact). Use the matching section under Website Designing.']);
+        }
+
+        Page::create(array_merge($request->only((new Page)->getFillable()), [
+            'tenant_id' => $tenantId,
+            'slug' => $slug,
+            'parent_id' => $isArticle ? $blog->id : ($parentId ?: null),
+        ]));
+
+        if ($isArticle) {
+            return redirect()
+                ->route('tenant_storefront_blog')
+                ->with('success', 'Article saved successfully.');
+        }
 
         return redirect()->route('pages.index')->with('success', 'Page created successfully.');
     }
 
     public function edit(Page $page)
     {
-        $parents = Page::whereNull('parent_id')->where('id', '!=', $page->id)->pluck('title', 'id');
+        if ($page->isBlogPost()) {
+            return view('frontend.edit', [
+                'page' => $page,
+                'parents' => collect(),
+                'blogPage' => Page::findBlogPage(),
+                'isArticle' => true,
+            ]);
+        }
 
-        return view('frontend.edit', compact('page', 'parents'));
+        $parents = Page::cmsOnly()
+            ->whereNull('parent_id')
+            ->where('id', '!=', $page->id)
+            ->orderBy('title')
+            ->pluck('title', 'id');
+
+        return view('frontend.edit', [
+            'page' => $page,
+            'parents' => $parents,
+            'isArticle' => false,
+        ]);
     }
 
     public function show($slug = null)
@@ -163,9 +260,14 @@ class TenantPageController extends Controller
     public function blogManage(): View
     {
         $blogPage = $this->storefrontPages->ensureBlogPage();
-        $posts = $blogPage->children()->orderByDesc('created_at')->get();
+        $posts = Page::blogPosts()->orderByDesc('created_at')->get();
 
         return view('frontend.blog_manage', compact('blogPage', 'posts'));
+    }
+
+    protected function isReservedTopLevelSlug(string $slug): bool
+    {
+        return in_array($slug, Page::reservedTopLevelSlugs(), true);
     }
 
     /** @return array<int, array{label: string, url: ?string}> */
@@ -187,14 +289,14 @@ class TenantPageController extends Controller
     protected function homePayload(): array
     {
         $pages = Page::with('parent')->orderBy('order_no')->paginate(tenant_list_per_page())->withQueryString();
-        $settings = SiteSetting::first();
+        $settings = SiteSetting::forCurrentTenant();
         $doorstyles = DoorColors::query()->where('status', 1)->get();
         $catalogs = ProductCatalog::query()
             ->where('status', 1)
             ->with(['doorColors' => fn ($q) => $q->where('status', 1)])
             ->orderBy('name')
             ->get();
-        $homesettings = HomeSetting::first();
+        $homesettings = HomeSetting::forCurrentTenant();
 
         $bennersection = $homesettings
             && $homesettings->banner_image
@@ -246,16 +348,44 @@ class TenantPageController extends Controller
 
     public function update(Request $request, Page $page)
     {
+        $tenantId = tenant('id');
+        $slug = Str::slug((string) $request->input('slug', ''));
+        $request->merge(['slug' => $slug]);
+
         $request->validate([
             'title' => 'required',
-            'slug' => 'required|unique:pages,slug,'.$page->id,
+            'slug' => [
+                'required',
+                Rule::unique('pages', 'slug')
+                    ->where(fn ($q) => $q->where('tenant_id', $tenantId))
+                    ->ignore($page->id),
+            ],
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:1000',
             'meta_keywords' => 'nullable|string|max:500',
             'og_image' => 'nullable|image|max:4096',
         ]);
 
-        $data = $request->except(['og_image', '_token', '_method']);
+        $data = $request->only((new Page)->getFillable());
+        $data['slug'] = $slug;
+        if (array_key_exists('parent_id', $data) && $data['parent_id'] === '') {
+            $data['parent_id'] = null;
+        }
+
+        $blog = Page::findBlogPage();
+        if ($page->isBlogPost()) {
+            $data['parent_id'] = $blog?->id;
+        } elseif ($blog && isset($data['parent_id']) && (int) $data['parent_id'] === (int) $blog->id) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['parent_id' => 'Assign blog posts from Website Designing → Articles.']);
+        } elseif (! $page->isBlogPost() && ! $request->filled('parent_id') && $this->isReservedTopLevelSlug($slug) && $page->slug !== $slug) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['slug' => 'That URL is reserved for a system page.']);
+        }
 
         if ($request->hasFile('og_image')) {
             $dir = public_path('uploads/og');
@@ -268,13 +398,36 @@ class TenantPageController extends Controller
             $data['og_image'] = 'uploads/og/'.$filename;
         }
 
-        $page->update($data);
+        $page->fill($data);
+        $page->save();
 
-        return redirect()->route('pages.index')->with('success', 'Page updated successfully.');
+        if ($page->isBlogPost()) {
+            return redirect()
+                ->route('tenant_storefront_blog')
+                ->with('success', 'Article updated successfully.');
+        }
+
+        return redirect()
+            ->route('pages.index')
+            ->with('success', 'Page updated successfully.');
     }
 
     public function destroy(Page $page)
     {
+        if ($page->isBlogPost()) {
+            $page->delete();
+
+            return redirect()
+                ->route('tenant_storefront_blog')
+                ->with('success', 'Article deleted.');
+        }
+
+        if (! $page->isCmsPage()) {
+            return redirect()
+                ->route('tenant_website_designing')
+                ->with('error', 'This page is managed under another Website Designing section.');
+        }
+
         $page->delete();
 
         return redirect()->route('pages.index')->with('success', 'Page deleted.');

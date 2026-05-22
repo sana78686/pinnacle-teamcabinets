@@ -134,7 +134,7 @@ class User extends Authenticatable
         $user->restore();
 
         // Manually update the status to 'un-approval' after restoring
-        $user->status = 'un-approval';
+        $user->status = config('tenant_user.default_status', 'un-approved');
         $user->save();  // Save the updated status
 
         // Return success message

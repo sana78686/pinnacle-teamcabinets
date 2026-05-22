@@ -15,6 +15,7 @@ use App\Models\SalesTaxCounty;
 use App\Support\TenantListPaginator;
 use App\Services\SalesTaxCountiesService;
 use App\Services\TaxValuesService;
+use App\Services\StorefrontBrandCssService;
 use App\Services\TenantFrontendThemeService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -32,7 +33,7 @@ class TenantSettingController extends Controller
 
     public function contactPageSettings()
     {
-        $settings = SiteSetting::first();
+        $settings = SiteSetting::forCurrentTenant();
 
         return view('tenants.setting.manage_contact_us', compact('settings'));
     }
@@ -44,7 +45,7 @@ class TenantSettingController extends Controller
             'map_embed_url' => 'nullable|string|max:5000',
         ]);
 
-        $settings = SiteSetting::first() ?? new SiteSetting(['tenant_id' => tenant('id')]);
+        $settings = SiteSetting::forCurrentTenant();
         $settings->contact_sidebar_title = $request->contact_sidebar_title;
         $settings->map_embed_url = $request->map_embed_url;
         $settings->save();
@@ -62,10 +63,39 @@ class TenantSettingController extends Controller
 
 
 
-    public function manage_site_settings()
+    public function manage_site_settings(StorefrontBrandCssService $brandCss)
     {
-        $settings = SiteSetting::first() ;
-        return view('tenants.setting.manage_site_settings',compact('settings'));
+        $settings = SiteSetting::forCurrentTenant();
+
+        return view('tenants.setting.manage_site_settings', [
+            'settings' => $settings,
+            'storefrontBrandColor' => $brandCss->currentColor(),
+            'sameContact' => $this->siteSettingsUseSameContact($settings),
+        ]);
+    }
+
+    protected function siteSettingsUseSameContact(?SiteSetting $settings): bool
+    {
+        if (old('use_same_contact') !== null) {
+            return old('use_same_contact') === '1' || old('use_same_contact') === true;
+        }
+
+        if (! $settings) {
+            return true;
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('site_settings', 'use_same_contact')
+            && $settings->use_same_contact !== null) {
+            return (bool) $settings->use_same_contact;
+        }
+
+        $normPhone = static fn ($v) => preg_replace('/\D+/', '', (string) ($v ?? ''));
+        $norm = static fn ($v) => trim((string) ($v ?? ''));
+
+        return $normPhone($settings->contactus_phone) === $normPhone($settings->phone)
+            && $normPhone($settings->newuser_phone) === $normPhone($settings->phone)
+            && $norm($settings->contactus_email) === $norm($settings->email)
+            && $norm($settings->newuser_email) === $norm($settings->email);
     }
 
     public function website_designing(TenantFrontendThemeService $themes)
@@ -74,19 +104,20 @@ class TenantSettingController extends Controller
         $activeSlug = $themes->activeSlug();
         $activeThemeLabel = $themesList[$activeSlug]['label'] ?? $themesList[$activeSlug]['name'] ?? ucfirst($activeSlug);
 
-        $home = HomeSetting::first();
+        $home = HomeSetting::forCurrentTenant();
         $faqCount = count($home?->resolvedFaqs() ?? []);
 
         return view('tenants.setting.manage_website_designing', [
             'activeThemeLabel' => $activeThemeLabel,
             'faqCount' => $faqCount,
-            'pageCount' => Page::count(),
+            'pageCount' => Page::cmsOnly()->count(),
+            'articleCount' => Page::blogPosts()->count(),
         ]);
     }
 
     public function manage_frontend_theme(TenantFrontendThemeService $themes)
     {
-        $settings = SiteSetting::first();
+        $settings = SiteSetting::forCurrentTenant();
         $activeTheme = $themes->activeSlug();
 
         return view('tenants.setting.manage_frontend_theme', [
@@ -112,7 +143,7 @@ class TenantSettingController extends Controller
             ->with('success', 'Storefront theme updated. Visitors will see the new design on your public site.');
     }
 
-   public function store_site_settings(Request $request)
+   public function store_site_settings(Request $request, StorefrontBrandCssService $brandCss)
 {
     // 🔹 Validate inputs
     $request->validate([
@@ -135,14 +166,12 @@ class TenantSettingController extends Controller
         'twitter' => 'nullable|url|max:255',
         'youtube' => 'nullable|url|max:255',
         'instagram' => 'nullable|url|max:255',
+        'storefront_brand_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
 
     ]);
 
     // 🔹 Fetch or create settings (scoped to current tenant)
-    $settings = SiteSetting::first() ?? new SiteSetting(['tenant_id' => tenant('id')]);
-    if (! $settings->tenant_id && tenant('id')) {
-        $settings->tenant_id = tenant('id');
-    }
+    $settings = SiteSetting::forCurrentTenant();
     if (empty($settings->frontend_theme)) {
         $settings->frontend_theme = app(TenantFrontendThemeService::class)->defaultSlug();
     }
@@ -178,11 +207,23 @@ class TenantSettingController extends Controller
     $settings->site_meta_description = $request->site_meta_description;
     $settings->site_meta_keywords = $request->site_meta_keywords;
     $settings->phone = $request->phone;
-    $settings->contactus_phone = $request->contactus_phone;
-    $settings->newuser_phone = $request->newuser_phone;
     $settings->email = $request->email;
-    $settings->contactus_email = $request->contactus_email;
-    $settings->newuser_email = $request->newuser_email;
+
+    if (\Illuminate\Support\Facades\Schema::hasColumn('site_settings', 'use_same_contact')) {
+        $settings->use_same_contact = $request->boolean('use_same_contact');
+    }
+
+    if ($request->boolean('use_same_contact')) {
+        $settings->contactus_phone = $request->phone;
+        $settings->newuser_phone = $request->phone;
+        $settings->contactus_email = $request->email;
+        $settings->newuser_email = $request->email;
+    } else {
+        $settings->contactus_phone = $request->contactus_phone;
+        $settings->newuser_phone = $request->newuser_phone;
+        $settings->contactus_email = $request->contactus_email;
+        $settings->newuser_email = $request->newuser_email;
+    }
     $settings->address = $request->address;
     $settings->facebook = $request->facebook;
     $settings->twitter = $request->twitter;
@@ -192,6 +233,8 @@ class TenantSettingController extends Controller
 
     // 🔹 Save all
     $settings->save();
+
+    $brandCss->write((string) $request->input('storefront_brand_color'));
 
     return redirect()->back()->with('success', 'Site settings saved successfully.');
 }
@@ -550,14 +593,14 @@ class TenantSettingController extends Controller
     }
    public function manage_home_list()
 {
-    $settings = SiteSetting::first();
+    $settings = SiteSetting::forCurrentTenant();
     return view('tenants.setting.manage_home_list', compact('settings'));
 }
 
 
     public function home_list_edit(string $id)
     {
-        $settings = SiteSetting::first();
+        $settings = SiteSetting::forCurrentTenant();
         return view('tenants.setting.manage_home_edit', compact('settings'));
     }
     public function manage_show_home(string $id)

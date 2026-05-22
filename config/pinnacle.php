@@ -27,7 +27,7 @@ return [
         ),
         'dashboard_welcome_body' => env(
             'PINNACLE_DASHBOARD_WELCOME_BODY',
-            'Your account is active on a free trial. Next steps: complete Site Settings, add your product catalog (catalogs, door styles, products), then invite or approve dealers.'
+            'Your account is active on a free trial.'
         ),
     ],
     'support_email' => env('PINNACLE_SUPPORT_EMAIL', 'support@pinnacle.example.com'),

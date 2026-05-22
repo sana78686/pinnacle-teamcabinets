@@ -24,19 +24,19 @@ return [
             'label' => 'CMS pages',
             'route' => 'pages.index',
             'icon' => 'file-text',
-            'active' => ['pages.create', 'pages.index', 'pages.edit', 'pages.show', 'pages.store', 'pages.update', 'pages.destroy'],
+            'active' => ['pages.index', 'pages.create', 'pages.edit', 'pages.store', 'pages.update', 'pages.destroy'],
         ],
         [
             'label' => 'About Us',
             'route' => 'tenant_storefront_about',
             'icon' => 'info',
-            'active' => ['tenant_storefront_about', 'pages.edit'],
+            'active' => ['tenant_storefront_about'],
         ],
         [
             'label' => 'Articles',
             'route' => 'tenant_storefront_blog',
             'icon' => 'book-open',
-            'active' => ['tenant_storefront_blog', 'pages.create', 'pages.edit'],
+            'active' => ['tenant_storefront_blog'],
         ],
         [
             'label' => 'Contact page',

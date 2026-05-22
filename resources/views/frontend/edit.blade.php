@@ -1,15 +1,20 @@
 @extends('layouts.tenant.settings')
-@section('title', 'Edit CMS Page')
+@section('title', !empty($isArticle) ? 'Edit Article' : 'Edit CMS Page')
 
 @section('breadcrumb-title')
-    <h2>Edit <span>Page</span></h2>
+    <h2>Edit <span>{{ !empty($isArticle) ? 'Article' : 'Page' }}</span></h2>
 @endsection
 
 @section('breadcrumb-items')
     <li class="breadcrumb-item">Settings</li>
     <li class="breadcrumb-item"><a href="{{ route('tenant_website_designing') }}">Website Designing</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('pages.index') }}">CMS Pages</a></li>
-    <li class="breadcrumb-item active">Edit</li>
+    @if (!empty($isArticle))
+        <li class="breadcrumb-item"><a href="{{ route('tenant_storefront_blog') }}">Articles</a></li>
+        <li class="breadcrumb-item active">Edit</li>
+    @else
+        <li class="breadcrumb-item"><a href="{{ route('pages.index') }}">CMS Pages</a></li>
+        <li class="breadcrumb-item active">Edit</li>
+    @endif
 @endsection
 
 @section('setting_content')
@@ -17,10 +22,10 @@
 
     <div class="tc-settings-toolbar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <div>
-            <h5 class="mb-1 tc-settings-form-title">Edit Page</h5>
+            <h5 class="mb-1 tc-settings-form-title">{{ !empty($isArticle) ? 'Edit article' : 'Edit page' }}</h5>
             <p class="mb-0 text-muted tc-field-hint">{{ $page->title }}</p>
         </div>
-        <a href="{{ route('pages.index') }}" class="btn btn-light btn-sm">Back to list</a>
+        <a href="{{ !empty($isArticle) ? route('tenant_storefront_blog') : route('pages.index') }}" class="btn btn-light btn-sm">Back</a>
     </div>
 
     @if ($errors->any())
@@ -59,20 +64,27 @@
             </div>
         </div>
 
-        <div class="mb-3 tc-field">
-            <label for="parent_id" class="form-label">Parent Page (Optional)</label>
-            <select name="parent_id" id="parent_id" class="form-select">
-                <option value="">-- None --</option>
-                @foreach ($parents as $id => $title)
-                    <option value="{{ $id }}" {{ old('parent_id', $page->parent_id) == $id ? 'selected' : '' }}>{{ $title }}</option>
-                @endforeach
-            </select>
-        </div>
+        @if (!empty($isArticle) && !empty($blogPage))
+            <input type="hidden" name="parent_id" value="{{ $blogPage->id }}">
+        @else
+            <div class="mb-3 tc-field">
+                <label for="parent_id" class="form-label">Parent Page (Optional)</label>
+                <select name="parent_id" id="parent_id" class="form-select">
+                    <option value="">-- None --</option>
+                    @foreach ($parents as $id => $title)
+                        <option value="{{ $id }}" {{ old('parent_id', $page->parent_id) == $id ? 'selected' : '' }}>{{ $title }}</option>
+                    @endforeach
+                </select>
+            </div>
+        @endif
 
-        <div class="mb-3 tc-field">
-            <label for="editor" class="form-label">Page Content</label>
-            <textarea name="content" id="editor" class="form-control" rows="8">{{ old('content', $page->content) }}</textarea>
-        </div>
+        @include('layouts.tenant.partials.cms-rich-editor', [
+            'editorId' => 'editor',
+            'name' => 'content',
+            'label' => 'Page Content',
+            'value' => old('content', $page->content),
+            'editorHeight' => 420,
+        ])
 
         <section class="tc-settings-section mb-4">
             <h3 class="tc-settings-section__title">SEO &amp; social sharing</h3>
@@ -138,34 +150,4 @@
             <a href="{{ route('pages.index') }}" class="btn btn-light">Cancel</a>
         </div>
     </form>
-@endsection
-
-@section('setting_script')
-    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/46.0.0/ckeditor5.css">
-    <script src="https://cdn.ckeditor.com/ckeditor5/46.0.0/ckeditor5.umd.js"></script>
-    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5-premium-features/46.0.0/ckeditor5-premium-features.css">
-    <script src="https://cdn.ckeditor.com/ckeditor5-premium-features/46.0.0/ckeditor5-premium-features.umd.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            if (typeof feather !== 'undefined') {
-                feather.replace();
-            }
-
-            const { ClassicEditor, Essentials, Bold, Italic, Font, Paragraph } = CKEDITOR;
-            const { FormatPainter } = CKEDITOR_PREMIUM_FEATURES;
-
-            ClassicEditor.create(document.querySelector('#editor'), {
-                licenseKey: 'eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3NjEwOTExOTksImp0aSI6IjJmOGFmZWRkLWRiNDAtNDRjOS05N2M3LWJjN2JmYzhhMmE1MyIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiLCJzaCJdLCJ3aGl0ZUxhYmVsIjp0cnVlLCJsaWNlbnNlVHlwZSI6InRyaWFsIiwiZmVhdHVyZXMiOlsiKiJdLCJ2YyI6IjFkM2IxYWZlIn0.yM6GkJEVB3i9LdhwsMQy6niiCkGqc1Rj8vyTOPISHxGp8VuejBsIFhacx75yhLcUpimX17_V0iKeCMy0RTpsAQ',
-                plugins: [Essentials, Bold, Italic, Font, Paragraph, FormatPainter],
-                toolbar: [
-                    'undo', 'redo', '|', 'bold', 'italic', '|',
-                    'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|', 'formatPainter',
-                ],
-            }).then(function () {
-                if (window.TenantFieldTips) {
-                    window.TenantFieldTips.refresh(document.querySelector('.tc-settings-panel'));
-                }
-            }).catch(console.error);
-        });
-    </script>
 @endsection

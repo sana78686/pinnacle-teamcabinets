@@ -8,7 +8,6 @@
                     @include('layouts.tenant.partials.settings-sidebar')
                     <div class="tc-settings-content">
                         <div class="tc-settings-panel tc-form-page">
-                            @include('partial.message')
                             @yield('setting_content')
                         </div>
                     </div>

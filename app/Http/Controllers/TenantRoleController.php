@@ -9,6 +9,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use App\Services\TenantRoleService;
+use App\Support\TenantListPaginator;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -34,8 +36,20 @@ class TenantRoleController extends Controller
      */
     public function index(Request $request): View
     {
-        $data['roles'] = Role::orderBy('id', 'DESC')->paginate(tenant_list_per_page())->withQueryString();
-        return view('tenants.roles.index', $data);
+        $perPage = TenantListPaginator::perPage($request);
+        $search = TenantListPaginator::search($request);
+        $query = Role::query()->orderBy('id', 'DESC');
+
+        if ($search !== '') {
+            $query->where('name', 'like', '%'.$search.'%');
+        }
+
+        return view('tenants.roles.index', [
+            'roles' => $query->paginate($perPage)->withQueryString(),
+            'perPage' => $perPage,
+            'search' => $search,
+            'protectedRoles' => TenantRoleService::DEFAULT_ROLES,
+        ]);
     }
 
     /**
@@ -157,9 +171,17 @@ public function update(Request $request, $id): RedirectResponse
      */
     public function destroy($id): RedirectResponse
     {
-        DB::table("roles")->where('id',$id)->delete();
-        return redirect()->route('roles.index')
-                        ->with('success','Role deleted successfully');
+        $role = Role::findOrFail($id);
+
+        if (TenantRoleService::isProtectedRole($role->name)) {
+            return redirect()->route('tenant_role_index')
+                ->with('error', 'System roles cannot be deleted.');
+        }
+
+        $role->delete();
+
+        return redirect()->route('tenant_role_index')
+            ->with('success', 'Role deleted successfully');
     }
 
 

@@ -97,14 +97,7 @@ Route::get('/{slug?}', [\App\Http\Controllers\TenantPageController::class, 'show
 Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.send');
 
     Route::middleware(['auth', 'tenant.auth'])->group(function () {
-        Route::post('/logout', function () {
-            Auth::logout();
-            request()->session()->invalidate();
-            request()->session()->regenerateToken();
-
-            return redirect()->route('tenant_login')
-                ->with('success', 'You have been logged out successfully.');
-        })->name('tenant_logout');
+        Route::post('/logout', [TenantAuthController::class, 'logout'])->name('tenant_logout');
         Route::get('/subscription-required', function () {
             return view('tenants.billing.subscription-required');
         })->name('tenant.subscription.required');

@@ -205,6 +205,65 @@ if (! function_exists('tenant_layout_flags')) {
     }
 }
 
+if (! function_exists('request_is_tenant_context')) {
+    /** True when the HTTP request targets a tenant site or tenant admin panel (not central Pinnacle). */
+    function request_is_tenant_context(?\Illuminate\Http\Request $request = null): bool
+    {
+        $request ??= request();
+
+        if (function_exists('tenant') && tenant()) {
+            return true;
+        }
+
+        $host = $request->getHost();
+        $centralHosts = config('tenancy.central_domains', []);
+
+        if ($host !== '' && in_array($host, $centralHosts, true)) {
+            return $request->is('tenants', 'tenants/*');
+        }
+
+        if ($request->is('tenants', 'tenants/*', 'login', 'registration', 'post-login', 'post-registration', 'forgot/*', 'verify-otp', 'reset-password-update', 'show-resetform/*')) {
+            return true;
+        }
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('domains')) {
+                $domainModel = config('tenancy.domain_model', \Stancl\Tenancy\Database\Models\Domain::class);
+                if (class_exists($domainModel) && $domainModel::query()->where('domain', $host)->exists()) {
+                    return true;
+                }
+            }
+        } catch (\Throwable) {
+            // DB unavailable during early boot — fall through to host heuristic
+        }
+
+        $base = tenant_base_domain();
+        if ($host !== '' && $host !== $base && str_ends_with($host, '.'.$base)) {
+            return true;
+        }
+
+        return false;
+    }
+}
+
+if (! function_exists('tenant_guest_redirect_url')) {
+    /** Login URL for unauthenticated users on tenant hosts / tenant panel routes. */
+    function tenant_guest_redirect_url(?\Illuminate\Http\Request $request = null): string
+    {
+        $request ??= request();
+
+        if (! request_is_tenant_context($request)) {
+            return route('auth_login');
+        }
+
+        if (function_exists('tenant') && tenant()) {
+            return route('tenant_login');
+        }
+
+        return rtrim($request->getSchemeAndHttpHost(), '/').'/login';
+    }
+}
+
 if (! function_exists('pinnacle_public_asset_url')) {
     /** Resolved public asset URL when the file exists on disk, otherwise null. */
     function pinnacle_public_asset_url(?string $relativePath): ?string

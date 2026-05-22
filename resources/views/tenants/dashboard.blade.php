@@ -134,7 +134,7 @@
 @section('script')
 <script src="{{ $panelAsset('assets/main/js/datatable/datatables/jquery.dataTables.min.js') }}"></script>
 <script src="{{ $panelAsset('assets/main/js/select2/select2.full.min.js') }}"></script>
-<script src="{{ $panelAsset('js/tenant-dashboard-tracker.js') }}?v=3"></script>
+<script src="{{ $panelAsset('js/tenant-dashboard-tracker.js') }}?v=4"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         if (window.feather) {

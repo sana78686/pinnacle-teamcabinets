@@ -12,12 +12,20 @@ class StorefrontPresenterService
 {
     public function site(): ?SiteSetting
     {
-        return SiteSetting::query()->first();
+        if (! tenant('id')) {
+            return SiteSetting::query()->first();
+        }
+
+        return SiteSetting::forCurrentTenant();
     }
 
     public function homeSettings(): ?HomeSetting
     {
-        return HomeSetting::query()->first();
+        if (! tenant('id')) {
+            return HomeSetting::query()->first();
+        }
+
+        return HomeSetting::forCurrentTenant();
     }
 
     public function publicAsset(?string $path): ?string

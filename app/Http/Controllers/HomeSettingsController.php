@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\HomeSetting;
+use Illuminate\Support\Facades\Schema;
 
 class HomeSettingsController extends Controller
 {
 
      public function index()
     {
-        $settings = HomeSetting::first();
+        $settings = HomeSetting::forCurrentTenant();
         $faqs = ($settings && $settings->faqs !== null)
             ? $settings->faqs
             : config('tenant_hazel_home.faqs', []);
@@ -43,8 +44,8 @@ class HomeSettingsController extends Controller
         'meta_keywords' => 'nullable|string|max:500',
     ]);
 
-    // 🔹 Fetch or create settings
-    $settings = HomeSetting::first() ?? new HomeSetting();
+    // 🔹 Fetch or create settings for this tenant
+    $settings = HomeSetting::forCurrentTenant();
 
     // 🔹 Helper for file upload
     $uploadFile = function ($fileInput, $path, $oldFile = null) use ($request) {
@@ -82,10 +83,11 @@ class HomeSettingsController extends Controller
         $request->input('faq_question', []),
         $request->input('faq_answer', [])
     );
-    $settings->meta_title = $request->meta_title;
-    $settings->meta_description = $request->meta_description;
-    $settings->meta_keywords = $request->meta_keywords;
-    // 🔹 Save all
+    if (Schema::hasColumn('home_settings', 'meta_title')) {
+        $settings->meta_title = $request->meta_title;
+        $settings->meta_description = $request->meta_description;
+        $settings->meta_keywords = $request->meta_keywords;
+    }
     $settings->save();
 
     return redirect()->back()->with('success', '✅ Home page settings updated successfully!');

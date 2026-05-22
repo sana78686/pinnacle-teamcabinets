@@ -4,7 +4,7 @@
 <script src="{{ $panelAsset('js/tc-fast-loader.js') }}?v=1"></script>
 <!-- Bootstrap js-->
 <script src="{{$panelAsset('assets/main/js/bootstrap/popper.min.js')}}"></script>
-<script src="{{$panelAsset('assets/main/js/bootstrap/bootstrap.js')}}"></script>
+<script src="{{$panelAsset('assets/main/js/bootstrap/bootstrap.bundle.min.js')}}"></script>
 <!-- feather icon js-->
 <script src="{{$panelAsset('assets/main/js/icons/feather-icon/feather.min.js')}}"></script>
 <script src="{{$panelAsset('assets/main/js/icons/feather-icon/feather-icon.js')}}"></script>
@@ -23,6 +23,7 @@
 <script src="{{ $panelAsset('js/password-toggle.js') }}?v=1"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ $panelAsset('js/tenant-session-flash.js') }}?v=2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
 <script>
@@ -45,7 +46,7 @@
     window.TENANT_PANEL_TOAST_IDS = @json(session('tenant_panel_toast_ids', []));
     window.TENANT_PANEL_TOAST_MESSAGES = @json(session('tenant_panel_toast_messages', []));
 </script>
-<script src="{{ $panelAsset('js/tenant-notifications.js') }}?v=7"></script>
+<script src="{{ $panelAsset('js/tenant-notifications.js') }}?v=9"></script>
 @if ($tcLayout['settings_extras'] ?? false)
 <script src="{{ $panelAsset('js/tenant-select2.js') }}?v=1"></script>
 @endif

@@ -29,25 +29,26 @@
             </div>
 
             <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
-                <div class="form-group">
-                    <label class="form-label">Product Catalog Image</label>
-                    <input type="file" class="form-control" id="image" name="image"
-                        accept="image/jpg,image/jpeg,image/png">
-                    @if ($product_catalog->image_url)
-                        <br>
-                        <img src="{{ $product_catalog->image_url }}" alt="" width="100" class="mt-2 rounded border">
-                    @endif
-                </div>
+                @include('layouts.tenant.partials.image-upload-field', [
+                    'name' => 'image',
+                    'label' => 'Product Catalog Image',
+                    'accept' => 'image/jpg,image/jpeg,image/png',
+                    'previewUrl' => $product_catalog->image_url,
+                    'wrapperClass' => 'form-group',
+                ])
             </div>
 
             <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
-                <div class="form-group">
-                    <label class="form-label">Product Catalog PDF</label>
-                    <input type="file" class="form-control" id="pdf" name="pdf" accept="application/pdf">
+                <div class="form-group tc-image-upload" data-tc-image-upload>
+                    <label class="form-label" for="pdf">Product Catalog PDF</label>
+                    <input type="hidden" name="remove_pdf" value="0" data-tc-image-remove-flag>
                     @if ($product_catalog->pdf_url)
-                        <br>
-                        <a href="{{ route('tenant_product_catalog_pdf', $product_catalog->id) }}" class="btn btn-sm btn-outline-primary mt-2">View PDF</a>
+                        <div class="tc-image-upload__preview mb-2" data-tc-image-preview>
+                            <a href="{{ route('tenant_product_catalog_pdf', $product_catalog->id) }}" class="btn btn-sm btn-outline-primary">View PDF</a>
+                            <button type="button" class="btn btn-outline-danger btn-sm tc-image-upload__remove ms-2" data-tc-image-remove>Remove PDF</button>
+                        </div>
                     @endif
+                    <input type="file" class="form-control" id="pdf" name="pdf" accept="application/pdf">
                 </div>
             </div>
 

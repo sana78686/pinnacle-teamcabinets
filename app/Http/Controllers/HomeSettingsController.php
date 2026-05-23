@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\HomeSetting;
+use App\Support\PublicUploadedFile;
 use Illuminate\Support\Facades\Schema;
 
 class HomeSettingsController extends Controller
@@ -26,15 +27,15 @@ class HomeSettingsController extends Controller
         'aboutus_image' => 'nullable|image|max:2048',
 
         'benner_title' => 'nullable|string|max:255',
-        'benner_description' => 'nullable|string|max:500',
+        'benner_description' => 'nullable|string|max:65000',
         'aboutus_title' => 'nullable|string|max:255',
-        'aboutus_description' => 'nullable|string|max:500',
+        'aboutus_description' => 'nullable|string|max:65000',
         'card_one_title' => 'nullable|string|max:255',
-        'card_one_description' => 'nullable|string|max:500',
+        'card_one_description' => 'nullable|string|max:65000',
         'card_two_title' => 'nullable|string|max:255',
-        'card_two_description' => 'nullable|string|max:500',
+        'card_two_description' => 'nullable|string|max:65000',
         'card_three_title' => 'nullable|string|max:255',
-        'card_three_description' => 'nullable|string|max:500',
+        'card_three_description' => 'nullable|string|max:65000',
         'faq_question' => 'nullable|array',
         'faq_question.*' => 'nullable|string|max:500',
         'faq_answer' => 'nullable|array',
@@ -47,26 +48,18 @@ class HomeSettingsController extends Controller
     // 🔹 Fetch or create settings for this tenant
     $settings = HomeSetting::forCurrentTenant();
 
-    // 🔹 Helper for file upload
-    $uploadFile = function ($fileInput, $path, $oldFile = null) use ($request) {
-        if ($request->hasFile($fileInput)) {
-            // Delete old file if exists
-            if ($oldFile && file_exists(public_path($oldFile))) {
-                @unlink(public_path($oldFile));
-            }
-
-            $file = $request->file($fileInput);
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path($path), $filename);
-            return "$path/$filename";
-        }
-        return $oldFile;
-    };
-
-    // 🔹 Upload files
-
-    $settings->banner_image = $uploadFile('banner_image', 'uploads/banners', $settings->banner_image);
-    $settings->aboutus_image = $uploadFile('aboutus_image', 'uploads/aboutus', $settings->aboutus_image);
+    $settings->banner_image = PublicUploadedFile::resolve(
+        $request,
+        'banner_image',
+        $settings->banner_image,
+        'uploads/banners'
+    );
+    $settings->aboutus_image = PublicUploadedFile::resolve(
+        $request,
+        'aboutus_image',
+        $settings->aboutus_image,
+        'uploads/aboutus'
+    );
 
 
  $settings->benner_title  = $request->benner_title;

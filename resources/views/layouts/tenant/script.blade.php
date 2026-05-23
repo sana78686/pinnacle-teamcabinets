@@ -33,7 +33,7 @@
 </script>
 @if ($tcLayout['settings_extras'] ?? false)
 <script>window.TENANT_FIELD_TIPS = @json(config('tenant_field_tips', []));</script>
-<script src="{{ $panelAsset('js/tenant-tooltips.js') }}?v=3"></script>
+<script src="{{ $panelAsset('js/tenant-tooltips.js') }}?v=4"></script>
 <script src="{{ $panelAsset('js/tenant-settings-forms.js') }}?v=2"></script>
 <script src="{{ $panelAsset('js/tenant-settings-layout.js') }}?v=1"></script>
 @endif
@@ -52,5 +52,6 @@
 @endif
 <script src="{{ $panelAsset('js/tenant-panel-search.js') }}?v=1"></script>
 <script src="{{ $panelAsset('js/tenant-panel-mobile.js') }}?v=1"></script>
+<script src="{{ $panelAsset('js/tenant-image-upload.js') }}?v=1"></script>
 @endauth
 <!-- Plugin used-->

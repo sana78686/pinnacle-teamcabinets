@@ -17,18 +17,18 @@
         <a href="{{ route('tenant_claim_index') }}" class="btn btn-light btn-sm">Back to claims</a>
     </div>
 
-    <div class="table-responsive table-sm">
+        <div class="table-responsive table-sm">
         <table class="table table-bordered table-sm">
-            <thead>
-                <tr>
+                <thead>
+                    <tr>
                     <th>Id</th>
                     <th>Order Id</th>
                     <th>Message</th>
                     <th>User</th>
                     <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
+                    </tr>
+                </thead>
+                <tbody>
                 @forelse ($claims as $claim)
                     <tr>
                         <td>{{ $claim->id }}</td>
@@ -43,8 +43,8 @@
                 @empty
                     <tr><td colspan="5" class="text-center text-muted">No deleted claims.</td></tr>
                 @endforelse
-            </tbody>
-        </table>
+                </tbody>
+            </table>
     </div>
     {{ $claims->links() }}
 @endsection

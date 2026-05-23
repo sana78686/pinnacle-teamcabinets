@@ -7,18 +7,12 @@ use App\Imports\Productcatalog_Import;
 use App\Models\ProductCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Support\PublicUploadedFile;
 class TenantProductCatalogController extends Controller
 {
-    protected function uploadCatalogFile(\Illuminate\Http\UploadedFile $file, string $subdir): string
+    protected function catalogUploadDir(string $subdir): string
     {
-        $dir = public_path('uploads/catalogs/' . $subdir);
-        if (! is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-        $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
-        $file->move($dir, $filename);
-
-        return 'uploads/catalogs/' . $subdir . '/' . $filename;
+        return 'uploads/catalogs/'.$subdir;
     }
 
     /**
@@ -91,11 +85,21 @@ class TenantProductCatalogController extends Controller
         // }
 
         if ($request->hasFile('image')) {
-            $product_catalog->image = $this->uploadCatalogFile($request->file('image'), 'images');
+            $product_catalog->image = PublicUploadedFile::resolve(
+                $request,
+                'image',
+                null,
+                $this->catalogUploadDir('images')
+            );
         }
 
         if ($request->hasFile('pdf')) {
-            $product_catalog->pdf = $this->uploadCatalogFile($request->file('pdf'), 'pdfs');
+            $product_catalog->pdf = PublicUploadedFile::resolve(
+                $request,
+                'pdf',
+                null,
+                $this->catalogUploadDir('pdfs')
+            );
         }
 
         $product_catalog->created_by = Auth::user()->id;
@@ -149,13 +153,19 @@ class TenantProductCatalogController extends Controller
 
     $product_catalog->name = $request->name;
 
-    if ($request->hasFile('image')) {
-        $product_catalog->image = $this->uploadCatalogFile($request->file('image'), 'images');
-    }
+    $product_catalog->image = PublicUploadedFile::resolve(
+        $request,
+        'image',
+        $product_catalog->image,
+        $this->catalogUploadDir('images')
+    );
 
-    if ($request->hasFile('pdf')) {
-        $product_catalog->pdf = $this->uploadCatalogFile($request->file('pdf'), 'pdfs');
-    }
+    $product_catalog->pdf = PublicUploadedFile::resolve(
+        $request,
+        'pdf',
+        $product_catalog->pdf,
+        $this->catalogUploadDir('pdfs')
+    );
 
     $product_catalog->save();
 

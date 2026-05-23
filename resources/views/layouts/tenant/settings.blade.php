@@ -34,10 +34,14 @@
                 if (window.TenantFieldTips && typeof window.TenantFieldTips.refresh === 'function') {
                     window.TenantFieldTips.refresh(panel);
                 }
+                if (window.TenantImageUpload && typeof window.TenantImageUpload.refresh === 'function') {
+                    window.TenantImageUpload.refresh(panel);
+                }
             }
             refreshSettingsUi();
             window.setTimeout(refreshSettingsUi, 500);
         });
     </script>
     @yield('setting_script')
+    @stack('setting_script')
 @endsection

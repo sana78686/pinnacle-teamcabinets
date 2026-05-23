@@ -17,13 +17,12 @@
         <h3 class="tc-settings-section__title">Main Banner</h3>
         <div class="row g-3">
             <div class="col-md-4">
-                <div class="tc-field">
-                    <label for="banner_image">Banner Image or Video</label>
-                    @if ($settings && $settings->banner_image)
-                        <img src="{{ asset($settings->banner_image) }}" alt="Banner" class="tc-settings-preview-img">
-                    @endif
-                    <input type="file" name="banner_image" id="banner_image" class="form-control">
-                </div>
+                @include('layouts.tenant.partials.image-upload-field', [
+                    'name' => 'banner_image',
+                    'label' => 'Banner Image or Video',
+                    'previewUrl' => ($settings && $settings->banner_image) ? asset($settings->banner_image) : null,
+                    'accept' => 'image/*,video/*',
+                ])
             </div>
             <div class="col-md-8">
                 <div class="tc-field">
@@ -34,12 +33,14 @@
                 </div>
             </div>
             <div class="col-12">
-                <div class="tc-field">
-                    <label for="benner_description">Banner Description</label>
-                    <input type="text" name="benner_description" id="benner_description" class="form-control"
-                        placeholder="Enter banner description" required
-                        value="{{ old('benner_description', $settings->benner_description ?? '') }}">
-                </div>
+                @include('layouts.tenant.partials.cms-rich-editor', [
+                    'editorId' => 'benner_description_editor',
+                    'name' => 'benner_description',
+                    'label' => 'Banner Description',
+                    'value' => old('benner_description', $settings->benner_description ?? ''),
+                    'editorHeight' => 260,
+                    'tipPlacement' => 'top',
+                ])
             </div>
         </div>
     </section>
@@ -48,13 +49,11 @@
         <h3 class="tc-settings-section__title">About Us</h3>
         <div class="row g-3">
             <div class="col-md-4">
-                <div class="tc-field">
-                    <label for="aboutus_image">About Us Image</label>
-                    @if ($settings && $settings->aboutus_image)
-                        <img src="{{ asset($settings->aboutus_image) }}" alt="About us" class="tc-settings-preview-img">
-                    @endif
-                    <input type="file" name="aboutus_image" id="aboutus_image" class="form-control">
-                </div>
+                @include('layouts.tenant.partials.image-upload-field', [
+                    'name' => 'aboutus_image',
+                    'label' => 'About Us Image',
+                    'previewUrl' => ($settings && $settings->aboutus_image) ? asset($settings->aboutus_image) : null,
+                ])
             </div>
             <div class="col-md-8">
                 <div class="tc-field">
@@ -65,12 +64,14 @@
                 </div>
             </div>
             <div class="col-12">
-                <div class="tc-field">
-                    <label for="aboutus_description">About Us Description</label>
-                    <input type="text" name="aboutus_description" id="aboutus_description" class="form-control"
-                        placeholder="Enter about us description" required
-                        value="{{ old('aboutus_description', $settings->aboutus_description ?? '') }}">
-                </div>
+                @include('layouts.tenant.partials.cms-rich-editor', [
+                    'editorId' => 'aboutus_description_editor',
+                    'name' => 'aboutus_description',
+                    'label' => 'About Us Description',
+                    'value' => old('aboutus_description', $settings->aboutus_description ?? ''),
+                    'editorHeight' => 320,
+                    'tipPlacement' => 'right',
+                ])
             </div>
         </div>
     </section>
@@ -89,12 +90,14 @@
                 </div>
             </div>
             <div class="col-md-8">
-                <div class="tc-field">
-                    <label for="card_one_description">Description</label>
-                    <input type="text" name="card_one_description" id="card_one_description" class="form-control"
-                        placeholder="Enter card description" required
-                        value="{{ old('card_one_description', $settings->card_one_description ?? '') }}">
-                </div>
+                @include('layouts.tenant.partials.cms-rich-editor', [
+                    'editorId' => 'card_one_description_editor',
+                    'name' => 'card_one_description',
+                    'label' => 'Description',
+                    'value' => old('card_one_description', $settings->card_one_description ?? ''),
+                    'editorHeight' => 240,
+                    'tipPlacement' => 'bottom',
+                ])
             </div>
         </div>
 
@@ -109,12 +112,14 @@
                 </div>
             </div>
             <div class="col-md-8">
-                <div class="tc-field">
-                    <label for="card_two_description">Description</label>
-                    <input type="text" name="card_two_description" id="card_two_description" class="form-control"
-                        placeholder="Enter card description" required
-                        value="{{ old('card_two_description', $settings->card_two_description ?? '') }}">
-                </div>
+                @include('layouts.tenant.partials.cms-rich-editor', [
+                    'editorId' => 'card_two_description_editor',
+                    'name' => 'card_two_description',
+                    'label' => 'Description',
+                    'value' => old('card_two_description', $settings->card_two_description ?? ''),
+                    'editorHeight' => 240,
+                    'tipPlacement' => 'right',
+                ])
             </div>
         </div>
 
@@ -129,12 +134,14 @@
                 </div>
             </div>
             <div class="col-md-8">
-                <div class="tc-field">
-                    <label for="card_three_description">Description</label>
-                    <input type="text" name="card_three_description" id="card_three_description" class="form-control"
-                        placeholder="Enter card description" required
-                        value="{{ old('card_three_description', $settings->card_three_description ?? '') }}">
-                </div>
+                @include('layouts.tenant.partials.cms-rich-editor', [
+                    'editorId' => 'card_three_description_editor',
+                    'name' => 'card_three_description',
+                    'label' => 'Description',
+                    'value' => old('card_three_description', $settings->card_three_description ?? ''),
+                    'editorHeight' => 240,
+                    'tipPlacement' => 'left',
+                ])
             </div>
         </div>
     </section>
@@ -203,5 +210,6 @@
 @endsection
 
 @section('setting_script')
+<script src="{{ tenant_static_asset('js/tenant-image-upload.js') }}?v=1"></script>
 <script src="{{ tenant_static_asset('js/tenant-website-faqs.js') }}?v=1"></script>
 @endsection

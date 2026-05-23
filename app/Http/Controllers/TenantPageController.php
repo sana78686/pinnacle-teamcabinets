@@ -159,7 +159,7 @@ class TenantPageController extends Controller
 
     public function show($slug = null)
     {
-        if (is_null($slug)) {
+         if (is_null($slug)) {
             return view($this->themes->view('home'), array_merge($this->homePayload(), [
                 'seo' => $this->storefront->homeSeo(),
             ]));
@@ -223,8 +223,8 @@ class TenantPageController extends Controller
         }
 
         $page = Page::with('parent')->where('slug', $slug)
-            ->where('status', 'published')
-            ->firstOrFail();
+                    ->where('status', 'published')
+                    ->firstOrFail();
 
         if (! $page->isBlogIndex() && ! $this->storefront->pageIsVisible($page)) {
             throw new NotFoundHttpException;
@@ -387,16 +387,12 @@ class TenantPageController extends Controller
                 ->withErrors(['slug' => 'That URL is reserved for a system page.']);
         }
 
-        if ($request->hasFile('og_image')) {
-            $dir = public_path('uploads/og');
-            if (! is_dir($dir)) {
-                mkdir($dir, 0755, true);
-            }
-            $file = $request->file('og_image');
-            $filename = time().'_'.$file->getClientOriginalName();
-            $file->move($dir, $filename);
-            $data['og_image'] = 'uploads/og/'.$filename;
-        }
+        $data['og_image'] = \App\Support\PublicUploadedFile::resolve(
+            $request,
+            'og_image',
+            $page->og_image,
+            'uploads/og'
+        );
 
         $page->fill($data);
         $page->save();

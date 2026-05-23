@@ -30,7 +30,7 @@
     <div class="hz-container">
         <span class="hz-hero__tag">Quality cabinets · Serving the USA</span>
         <h1>{{ $heroTitle }}</h1>
-        <p class="hz-hero__lead">{{ $heroLead }}</p>
+        <div class="hz-hero__lead hz-page-body">{!! $heroLead !!}</div>
         <div class="hz-hero__actions">
             <a href="{{ route('tenant_register') }}" class="hz-btn hz-btn--gold">Become a dealer</a>
             <a href="{{ route('tenant_register') }}" class="hz-btn hz-btn--outline-light">Apply for trade pricing</a>
@@ -64,13 +64,13 @@
 <section id="hz-difference" class="hz-section">
     <div class="hz-container">
         <h2 class="hz-section__title">{{ $aboutTitle }}</h2>
-        <p class="hz-section__sub">{{ $aboutBody }}</p>
+        <div class="hz-section__sub hz-page-body">{!! $aboutBody !!}</div>
         <div class="hz-grid-3">
             @foreach ($cards as $card)
                 <article class="hz-card hz-card--lift">
                     <div class="hz-card__icon"><i class="fa-solid {{ $card['icon'] }}" aria-hidden="true"></i></div>
                     <h3>{{ $card['title'] }}</h3>
-                    <p>{{ $card['text'] }}</p>
+                    <div class="hz-page-body">{!! $card['text'] !!}</div>
                 </article>
             @endforeach
         </div>

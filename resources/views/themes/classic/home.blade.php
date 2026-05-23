@@ -30,7 +30,7 @@
     <div class="hz-container">
         <span class="hz-hero__tag">Quality cabinets · Serving the USA</span>
         <h1>{{ $heroTitle }}</h1>
-        <p class="hz-hero__lead">{{ $heroLead }}</p>
+        <div class="hz-hero__lead hz-page-body">{!! $heroLead !!}</div>
         <div class="hz-hero__actions">
             <a href="{{ route('tenant_register') }}" class="hz-btn hz-btn--gold">Become a dealer</a>
             <a href="{{ route('tenant_register') }}" class="hz-btn hz-btn--outline-light">Apply for trade pricing</a>
@@ -70,7 +70,7 @@
                 <article class="hz-card hz-card--lift cl-card">
                     <div class="hz-card__icon"><i class="fa-solid {{ $card['icon'] }}" aria-hidden="true"></i></div>
                     <h3>{{ $card['title'] }}</h3>
-                    <p>{{ $card['text'] }}</p>
+                    <div class="hz-page-body">{!! $card['text'] !!}</div>
                 </article>
             @endforeach
         </div>
@@ -90,7 +90,7 @@
         </div>
         <div>
             <h2 class="hz-section__title hz-section__title--left">{{ $aboutussection->aboutus_title ?? $aboutTitle }}</h2>
-            <p>{{ $aboutussection->aboutus_description ?? $aboutBody }}</p>
+            <div class="hz-page-body">{!! $aboutussection->aboutus_description ?? $aboutBody !!}</div>
             <a href="{{ route('tenant_register') }}" class="hz-btn hz-btn--primary">Partner with us</a>
         </div>
     </div>

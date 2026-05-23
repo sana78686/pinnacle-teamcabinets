@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Mail\PasswordChanged;
 use App\Services\TenantAuthSessionService;
 use App\Services\TenantNotificationService;
+use App\Support\PublicUploadedFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -132,16 +133,12 @@ class TenantProfileController extends Controller
             'zip_code' => 'nullable|string|max:20',
         ]);
 
-        if ($request->hasFile('logo')) {
-            if ($user->logo && file_exists(public_path($user->logo))) {
-                @unlink(public_path($user->logo));
-            }
-
-            $file = $request->file('logo');
-            $filename = time().'_'.$file->getClientOriginalName();
-            $file->move(public_path('uploads/logos'), $filename);
-            $user->logo = 'uploads/logos/'.$filename;
-        }
+        $user->logo = PublicUploadedFile::resolve(
+            $request,
+            'logo',
+            $user->logo,
+            'uploads/logos'
+        );
 
         $user->username = $validated['username'];
         $user->name = $validated['full_name'];

@@ -44,7 +44,7 @@
   }
 </style>
 @if ($tcLayout['settings_extras'] ?? false)
-<link rel="stylesheet" href="{{ $panelAsset('css/tenant-tooltips.css') }}?v=1">
+<link rel="stylesheet" href="{{ $panelAsset('css/tenant-tooltips.css') }}?v=2">
 @endif
 <link rel="stylesheet" href="{{ $panelAsset('css/tenant-forms.css') }}?v=8">
 <link rel="stylesheet" href="{{ $panelAsset('css/pinnacle-theme.css') }}?v=10">

@@ -37,7 +37,7 @@
         <div>
             <h2 class="hz-section__title hz-section__title--left">{{ $home?->aboutus_title ?? 'Built for the trade' }}</h2>
             @if ($home?->aboutus_description)
-                <p>{{ $home->aboutus_description }}</p>
+                <div class="hz-page-body">{!! $home->aboutus_description !!}</div>
             @endif
             @if ($sfShowContact)
                 <a href="{{ $sfContactPage ? route('cms.page', $sfContactPage->slug) : route('cms.page').'#hz-contact' }}" class="hz-btn hz-btn--primary">Contact us</a>
@@ -56,7 +56,7 @@
                 <article class="hz-card hz-card--lift cl-card">
                     <div class="hz-card__icon"><i class="fa-solid {{ $card['icon'] }}" aria-hidden="true"></i></div>
                     <h3>{{ $card['title'] }}</h3>
-                    <p>{{ $card['text'] }}</p>
+                    <div class="hz-page-body">{!! $card['text'] !!}</div>
                 </article>
             @endforeach
         </div>

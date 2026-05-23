@@ -56,8 +56,8 @@
                 </a>
             </div>
             @endforeach
-        </div>
-    </div>
+                </div>
+            </div>
 
     @include('tenants.dashboard.partials.order-tracker', [
         'trackerRows' => $trackerRows ?? collect(),
@@ -122,11 +122,11 @@
                     </div>
                 </div>
             </div>
-        </div>
+                    </div>
 
         <div class="col-12 col-lg-4 order-1 order-lg-2">
             @include('tenants.partials.onboarding-checklist', ['compact' => true, 'onboardingPct' => $onboardingPct])
-        </div>
+            </div>
     </div>
 </div>
 @endsection

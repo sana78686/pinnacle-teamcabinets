@@ -1796,6 +1796,18 @@
     border: 1px solid #e8ebf2;
 }
 
+.tc-settings-preview-img--favicon {
+    max-width: 48px;
+}
+
+.tc-image-upload__preview {
+    margin-bottom: 0.5rem;
+}
+
+.tc-image-upload__remove {
+    margin-top: 0.35rem;
+}
+
 .tc-settings-panel .tc-settings-form .row.g-3 {
     --bs-gutter-x: 0.75rem;
     --bs-gutter-y: 0.5rem;

@@ -93,14 +93,14 @@
 
     <div class="modal fade" id="importRoleModal" tabindex="-1" aria-labelledby="importRoleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
+                    <div class="modal-content">
+                        <div class="modal-header">
                     <h5 class="modal-title" id="importRoleModalLabel">Import roles</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form action="{{ route('role.import') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
+                        </div>
+                        <div class="modal-body">
+                            <form action="{{ route('role.import') }}" method="POST" enctype="multipart/form-data">
+                                @csrf
                         <div class="mb-3">
                             <label for="roleFile" class="form-label">Select file</label>
                             <input type="file" class="form-control" id="roleFile" name="roleFile" required>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\DoorColors;
     use Illuminate\Http\Request;
+use App\Support\PublicUploadedFile;
     use Illuminate\Support\Facades\Auth;
 
 use App\Models\ProductCatalog;
@@ -124,10 +125,13 @@ class ProductDoorstyleController extends Controller
         $doorColor->product_label = $request->product_label;
         $doorColor->status = $request->status ?? 0;
 
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('door_colors', 'public');
-            $doorColor->image = $imagePath;
-        }
+        $doorColor->image = PublicUploadedFile::resolve(
+            $request,
+            'image',
+            $doorColor->image,
+            'door_colors',
+            'public'
+        );
 
         $doorColor->updated_by = Auth::id();
         $doorColor->save();

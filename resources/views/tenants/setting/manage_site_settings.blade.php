@@ -18,23 +18,20 @@
         <h3 class="tc-settings-section__title">Company</h3>
         <div class="row g-3">
             <div class="col-md-6 col-lg-3">
-                <div class="tc-field">
-                    <label for="logo">Logo</label>
-                    @if ($settings && $settings->logo)
-                        <img src="{{ tenant_static_asset($settings->logo) }}" alt="Logo" class="tc-settings-preview-img">
-                    @endif
-                    <input type="file" name="logo" id="logo" class="form-control" accept="image/*">
-                </div>
+                @include('layouts.tenant.partials.image-upload-field', [
+                    'name' => 'logo',
+                    'label' => 'Logo',
+                    'previewUrl' => ($settings && $settings->logo) ? tenant_static_asset($settings->logo) : null,
+                ])
             </div>
             <div class="col-md-6 col-lg-3">
-                <div class="tc-field">
-                    <label for="favicon">Favicon</label>
-                    @if ($settings && $settings->favicon)
-                        <img src="{{ tenant_static_asset($settings->favicon) }}" alt="Favicon" class="tc-settings-preview-img" style="max-width:48px;">
-                    @endif
-                    <input type="file" name="favicon" id="favicon" class="form-control" accept="image/*">
-                    <small class="text-muted">Shown in browser tab on your public site (32×32 or 64×64 PNG recommended).</small>
-                </div>
+                @include('layouts.tenant.partials.image-upload-field', [
+                    'name' => 'favicon',
+                    'label' => 'Favicon',
+                    'previewUrl' => ($settings && $settings->favicon) ? tenant_static_asset($settings->favicon) : null,
+                    'previewClass' => 'tc-settings-preview-img tc-settings-preview-img--favicon',
+                    'hint' => 'Shown in browser tab on your public site (32×32 or 64×64 PNG recommended).',
+                ])
             </div>
             <div class="col-md-6 col-lg-3">
                 <div class="tc-field">
@@ -122,13 +119,11 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="tc-field">
-                    <label for="og_image">Open Graph image</label>
-                    @if ($settings && $settings->og_image)
-                        <img src="{{ tenant_static_asset($settings->og_image) }}" alt="OG" class="tc-settings-preview-img">
-                    @endif
-                    <input type="file" name="og_image" id="og_image" class="form-control" accept="image/*">
-                </div>
+                @include('layouts.tenant.partials.image-upload-field', [
+                    'name' => 'og_image',
+                    'label' => 'Open Graph image',
+                    'previewUrl' => ($settings && $settings->og_image) ? tenant_static_asset($settings->og_image) : null,
+                ])
             </div>
         </div>
     </section>

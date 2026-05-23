@@ -12,6 +12,7 @@ use App\Services\ManageOtherPageContentService;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use App\Models\SalesTaxCounty;
+use App\Support\PublicUploadedFile;
 use App\Support\TenantListPaginator;
 use App\Services\SalesTaxCountiesService;
 use App\Services\TaxValuesService;
@@ -176,31 +177,9 @@ class TenantSettingController extends Controller
         $settings->frontend_theme = app(TenantFrontendThemeService::class)->defaultSlug();
     }
 
-    // 🔹 Helper for file upload
-    $uploadFile = function ($fileInput, $path, $oldFile = null) use ($request) {
-        if ($request->hasFile($fileInput)) {
-            // Delete old file if exists
-            if ($oldFile && file_exists(public_path($oldFile))) {
-                @unlink(public_path($oldFile));
-            }
-
-            $file = $request->file($fileInput);
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path($path), $filename);
-            return "$path/$filename";
-        }
-        return $oldFile;
-    };
-
-    // 🔹 Upload files
-    $settings->logo = $uploadFile('logo', 'uploads/logos', $settings->logo);
-    foreach (['uploads/favicons', 'uploads/og'] as $uploadDir) {
-        if (! is_dir(public_path($uploadDir))) {
-            mkdir(public_path($uploadDir), 0755, true);
-        }
-    }
-    $settings->favicon = $uploadFile('favicon', 'uploads/favicons', $settings->favicon);
-    $settings->og_image = $uploadFile('og_image', 'uploads/og', $settings->og_image);
+    $settings->logo = PublicUploadedFile::resolve($request, 'logo', $settings->logo, 'uploads/logos');
+    $settings->favicon = PublicUploadedFile::resolve($request, 'favicon', $settings->favicon, 'uploads/favicons');
+    $settings->og_image = PublicUploadedFile::resolve($request, 'og_image', $settings->og_image, 'uploads/og');
 
     // 🔹 Save text fields
     $settings->site_meta_title = $request->site_meta_title;
@@ -221,8 +200,8 @@ class TenantSettingController extends Controller
     } else {
         $settings->contactus_phone = $request->contactus_phone;
         $settings->newuser_phone = $request->newuser_phone;
-        $settings->contactus_email = $request->contactus_email;
-        $settings->newuser_email = $request->newuser_email;
+    $settings->contactus_email = $request->contactus_email;
+    $settings->newuser_email = $request->newuser_email;
     }
     $settings->address = $request->address;
     $settings->facebook = $request->facebook;
@@ -441,7 +420,7 @@ class TenantSettingController extends Controller
         return redirect()
             ->route('tenant_setting_commission')
             ->with('success', 'Default door point factors saved.');
-    }
+}
 
 
 
@@ -458,8 +437,8 @@ class TenantSettingController extends Controller
         return view('tenants.setting.manage_stmp', compact('smtp'));
     }
 
-    public function manage_stmp_store(Request $request)
-    {
+  public function manage_stmp_store(Request $request)
+{
         $rules = [
             'smtp_host' => 'required|string|max:255',
             'smtp_username' => 'required|string|max:255',
@@ -500,14 +479,14 @@ class TenantSettingController extends Controller
             $record->save();
 
             return redirect()->back()->with('success', 'SMTP settings saved. Use Test connection to verify.');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return redirect()->back()->withErrors($e->validator)->withInput();
-        } catch (\Exception $e) {
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return redirect()->back()->withErrors($e->validator)->withInput();
+    } catch (\Exception $e) {
             \Log::error('Failed to save SMTP settings: '.$e->getMessage());
 
-            return redirect()->back()->with('error', 'Something went wrong. Please try again later.');
-        }
+        return redirect()->back()->with('error', 'Something went wrong. Please try again later.');
     }
+}
 
     public function test_smtp_connection(Request $request)
     {

@@ -38,11 +38,12 @@
 
     <!-- Image Upload -->
    
-        <label for="image">Image</label>
-        <input type="file" class="form-control" name="image" id="image">
-        @if(isset($doorColor) && $doorColor->image)
-            <p class="mt-2">Current: <img src="{{ asset('storage/' . $doorColor->image) }}" width="100" /></p>
-        @endif
+        @include('layouts.tenant.partials.image-upload-field', [
+            'name' => 'image',
+            'label' => 'Image',
+            'previewUrl' => (isset($doorColor) && $doorColor->image) ? asset('storage/'.$doorColor->image) : null,
+            'wrapperClass' => 'form-group',
+        ])
  </div>
 
     <!-- Status Checkbox -->

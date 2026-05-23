@@ -76,9 +76,14 @@
                     @csrf
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label" for="profile_logo">Profile photo</label>
-                            <input type="file" class="form-control" id="profile_logo" name="logo" accept="image/*">
-                            <div class="form-text">Optional. JPG, PNG, or SVG up to 2MB.</div>
+                            @include('layouts.tenant.partials.image-upload-field', [
+                                'name' => 'logo',
+                                'id' => 'profile_logo',
+                                'label' => 'Profile photo',
+                                'previewUrl' => ($user->logo && file_exists(public_path($user->logo))) ? tenant_static_asset($user->logo) : null,
+                                'wrapperClass' => '',
+                                'hint' => 'Optional. JPG, PNG, or SVG up to 2MB.',
+                            ])
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="profile_role">Role</label>

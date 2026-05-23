@@ -8,7 +8,7 @@
             <h1 class="hz-page-head__title">{{ $title }}</h1>
         @endif
         @if (!empty($lead))
-            <p class="hz-page-head__lead">{{ $lead }}</p>
+            <div class="hz-page-head__lead hz-page-body">{!! $lead !!}</div>
         @endif
     </div>
 </header>

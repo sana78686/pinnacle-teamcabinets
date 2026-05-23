@@ -113,13 +113,11 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="tc-field">
-                        <label for="og_image" class="form-label">Open Graph image (optional)</label>
-                        @if ($page->og_image)
-                            <img src="{{ tenant_static_asset($page->og_image) }}" alt="" class="tc-settings-preview-img mb-2">
-                        @endif
-                        <input type="file" name="og_image" id="og_image" class="form-control" accept="image/*">
-                    </div>
+                    @include('layouts.tenant.partials.image-upload-field', [
+                        'name' => 'og_image',
+                        'label' => 'Open Graph image (optional)',
+                        'previewUrl' => $page->og_image ? tenant_static_asset($page->og_image) : null,
+                    ])
                 </div>
             </div>
         </section>

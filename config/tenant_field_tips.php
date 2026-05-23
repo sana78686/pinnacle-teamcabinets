@@ -87,16 +87,19 @@ return [
     // Home page settings
     'banner_image' => 'Hero banner image or video for the public home page.',
     'benner_title' => 'Main headline shown on the home page banner.',
-    'benner_description' => 'Short supporting text under the banner headline.',
+    'benner_description' => [
+        'text' => 'Supporting text under the banner headline. Use the editor for bold, links, and lists.',
+        'placement' => 'top',
+    ],
     'aboutus_image' => 'Image displayed in the About Us section.',
     'aboutus_title' => 'Title for the About Us section.',
     'aboutus_description' => 'Description text for the About Us section.',
     'card_one_title' => 'Title for the first feature card on the home page.',
-    'card_one_description' => 'Description for the first feature card.',
+    'card_one_description' => ['text' => 'Description for the first feature card.', 'placement' => 'bottom'],
     'card_two_title' => 'Title for the second feature card.',
-    'card_two_description' => 'Description for the second feature card.',
+    'card_two_description' => ['text' => 'Description for the second feature card.', 'placement' => 'right'],
     'card_three_title' => 'Title for the third feature card.',
-    'card_three_description' => 'Description for the third feature card.',
+    'card_three_description' => ['text' => 'Description for the third feature card.', 'placement' => 'left'],
 
     // CMS / pages
     'parent_id' => 'Parent page in the site menu hierarchy (optional).',

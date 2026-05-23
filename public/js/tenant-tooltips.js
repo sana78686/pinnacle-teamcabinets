@@ -26,14 +26,9 @@
             return title;
         }
         var key = fieldKey(el);
-        if (key && TIPS[key]) {
-            return TIPS[key];
-        }
-        if (el.name && TIPS[el.name]) {
-            return TIPS[el.name];
-        }
-        if (el.id && TIPS[el.id]) {
-            return TIPS[el.id];
+        var entry = (key && TIPS[key]) || (el.name && TIPS[el.name]) || (el.id && TIPS[el.id]) || null;
+        if (entry) {
+            return typeof entry === 'string' ? entry : (entry.text || entry.tip || null);
         }
         var placeholder = el.getAttribute('placeholder');
         if (placeholder && placeholder.length > 2) {
@@ -131,10 +126,24 @@
         return null;
     }
 
-    function createTip(text) {
+    function tipPlacementForField(el) {
+        var placement = el.getAttribute('data-tip-placement');
+        if (placement) {
+            return placement;
+        }
+        var key = fieldKey(el);
+        var entry = (key && TIPS[key]) || (el.name && TIPS[el.name]) || (el.id && TIPS[el.id]) || null;
+        if (entry && typeof entry === 'object' && entry.placement) {
+            return entry.placement;
+        }
+        return 'top';
+    }
+
+    function createTip(text, placement) {
         var span = document.createElement('span');
         span.className = 'tc-tip';
         span.setAttribute('data-tip', text);
+        span.setAttribute('data-placement', placement || 'top');
         span.setAttribute('tabindex', '0');
         span.setAttribute('role', 'button');
         span.setAttribute('aria-label', text);
@@ -181,7 +190,7 @@
             return;
         }
 
-        anchor.appendChild(createTip(tip));
+        anchor.appendChild(createTip(tip, tipPlacementForField(el)));
         el.removeAttribute('title');
         el.removeAttribute('data-toggle');
         el.removeAttribute('data-bs-toggle');

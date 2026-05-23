@@ -24,6 +24,12 @@ class DoorColors extends Model
     {
         return $this->belongsTo(ProductCatalog::class);
     }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return ProductCatalog::publicAssetUrl($this->image);
+    }
+
     public function created_by()
     {
         return $this->belongsTo(User::class);

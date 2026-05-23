@@ -120,9 +120,24 @@ if (! function_exists('tenant_media_url')) {
             return $path;
         }
 
-        $path = ltrim($path, '/');
+        $path = ltrim(str_replace('\\', '/', $path), '/');
+
         if (str_starts_with($path, 'public/')) {
             return asset('storage/'.substr($path, 7));
+        }
+
+        $storageFile = storage_path('app/public/'.$path);
+        if (is_file($storageFile)) {
+            return asset('storage/'.$path);
+        }
+
+        if (is_file(public_path($path))) {
+            return tenant_static_asset($path);
+        }
+
+        // Legacy CI cabinet images (assets/admin/cabinet_img/…)
+        if (str_starts_with($path, 'assets/admin/cabinet_img/')) {
+            return tenant_static_asset($path);
         }
 
         return tenant_static_asset($path);

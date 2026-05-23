@@ -526,7 +526,7 @@ class TenantCreateOrderController extends Controller
 
     public function storeStockCheck(Request $request): JsonResponse
     {
-        return $this->persist($request, StockCheckRequest::class, 'tenant_stock_check_index', 'Stock check request submitted successfully.', 'pending');
+        return $this->persist($request, StockCheckRequest::class, 'tenant_stock_check_show', 'Stock check request submitted successfully.', 'pending');
     }
 
     /**

@@ -3236,19 +3236,166 @@ button.tc-verify-pill {
     height: 18px;
 }
 
-/* —— Dashboard & Pinnacle buttons (tenant panel) —— */
-.tc-panel-shell .page-body .btn-primary,
-.tc-panel-shell .page-body .btn-primary:focus {
-    background-color: var(--pn-navy, #0c2340) !important;
-    border-color: var(--pn-navy, #0c2340) !important;
-    color: #fff !important;
+/* —— Soft tonal Bootstrap buttons (tenant panel) —— */
+.page-body .btn {
+    font-weight: 700;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 50rem;
+    box-shadow: none !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.tc-panel-shell .page-body .btn-primary:hover,
-.tc-panel-shell .page-body .btn-primary:active {
-    background-color: var(--pn-slate, #1a4a7a) !important;
-    border-color: var(--pn-slate, #1a4a7a) !important;
-    color: #fff !important;
+.page-body .btn:focus,
+.page-body .btn:active:focus,
+.page-body .btn:focus-visible {
+    box-shadow: none !important;
+    outline: 0;
+}
+
+.page-body .btn-sm {
+    padding: 0.35rem 0.9rem;
+    font-size: 0.75rem;
+    line-height: 1.35;
+}
+
+.page-body .btn:not(.btn-sm):not(.btn-lg) {
+    padding: 0.45rem 1.15rem;
+    line-height: 1.4;
+}
+
+.page-body .btn:disabled,
+.page-body .btn.disabled {
+    opacity: 0.55;
+}
+
+.page-body .btn-primary,
+.page-body .btn-outline-primary {
+    background-color: #e8eef5 !important;
+    border-color: #b8c9dc !important;
+    color: #0c2340 !important;
+}
+
+.page-body .btn-primary:hover,
+.page-body .btn-primary:active,
+.page-body .btn-primary.active,
+.page-body .btn-outline-primary:hover,
+.page-body .btn-outline-primary:active {
+    background-color: #d4e0ed !important;
+    border-color: #9eb4cc !important;
+    color: #071628 !important;
+}
+
+.page-body .btn-secondary,
+.page-body .btn-outline-secondary {
+    background-color: #f1f3f5 !important;
+    border-color: #ced4da !important;
+    color: #495057 !important;
+}
+
+.page-body .btn-secondary:hover,
+.page-body .btn-secondary:active,
+.page-body .btn-outline-secondary:hover,
+.page-body .btn-outline-secondary:active {
+    background-color: #e2e6ea !important;
+    border-color: #b8bec6 !important;
+    color: #343a40 !important;
+}
+
+.page-body .btn-success,
+.page-body .btn-outline-success {
+    background-color: #e9f7ef !important;
+    border-color: #9fd4ae !important;
+    color: #146c43 !important;
+}
+
+.page-body .btn-success:hover,
+.page-body .btn-success:active,
+.page-body .btn-outline-success:hover,
+.page-body .btn-outline-success:active {
+    background-color: #d4f0df !important;
+    border-color: #7ec492 !important;
+    color: #0f5132 !important;
+}
+
+.page-body .btn-info,
+.page-body .btn-outline-info {
+    background-color: #e8f7fb !important;
+    border-color: #9dd8ea !important;
+    color: #055160 !important;
+}
+
+.page-body .btn-info:hover,
+.page-body .btn-info:active,
+.page-body .btn-outline-info:hover,
+.page-body .btn-outline-info:active {
+    background-color: #d1eff8 !important;
+    border-color: #7cc8e0 !important;
+    color: #04414d !important;
+}
+
+.page-body .btn-warning,
+.page-body .btn-outline-warning {
+    background-color: #fff8e7 !important;
+    border-color: #f0d78c !important;
+    color: #856404 !important;
+}
+
+.page-body .btn-warning:hover,
+.page-body .btn-warning:active,
+.page-body .btn-outline-warning:hover,
+.page-body .btn-outline-warning:active {
+    background-color: #ffefcc !important;
+    border-color: #e6c56a !important;
+    color: #6d4f03 !important;
+}
+
+.page-body .btn-danger,
+.page-body .btn-outline-danger {
+    background-color: #fdecef !important;
+    border-color: #f5b8c4 !important;
+    color: #b02a37 !important;
+}
+
+.page-body .btn-danger:hover,
+.page-body .btn-danger:active,
+.page-body .btn-outline-danger:hover,
+.page-body .btn-outline-danger:active {
+    background-color: #fbd5dc !important;
+    border-color: #ee9aab !important;
+    color: #8c1f2a !important;
+}
+
+.page-body .btn-light,
+.page-body .btn-outline-light {
+    background-color: #f5f6fa !important;
+    border-color: #e2e5ec !important;
+    color: #212529 !important;
+}
+
+.page-body .btn-light:hover,
+.page-body .btn-light:active,
+.page-body .btn-outline-light:hover,
+.page-body .btn-outline-light:active {
+    background-color: #e8ebf2 !important;
+    border-color: #cdd2dc !important;
+    color: #111827 !important;
+}
+
+.page-body .btn-dark,
+.page-body .btn-outline-dark {
+    background-color: #eceff3 !important;
+    border-color: #b8c0ca !important;
+    color: #1f2937 !important;
+}
+
+.page-body .btn-dark:hover,
+.page-body .btn-dark:active,
+.page-body .btn-outline-dark:hover,
+.page-body .btn-outline-dark:active {
+    background-color: #dde3ea !important;
+    border-color: #9aa5b3 !important;
+    color: #111827 !important;
 }
 
 .tc-pn-btn {

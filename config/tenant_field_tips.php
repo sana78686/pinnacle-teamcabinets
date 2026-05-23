@@ -49,6 +49,11 @@ return [
     'description' => 'Detailed product description for staff and customers.',
     'image' => 'Upload a product image (JPG or PNG recommended).',
     'product_label' => 'Label shown for this door style or variant.',
+    'cabinets_name' => 'Cabinet category name (e.g. Wall Cabinets, Base Cabinets).',
+    'product_catalog_id' => 'Product catalog this door style belongs to.',
+    'pdf' => 'Upload a PDF catalog file or paste a direct https:// link.',
+    'assemble_cost' => 'Optional assembly labor cost added to the product.',
+    'qty' => 'Default quantity per unit (usually 1).',
     'factor' => 'Point or pricing factor applied for this catalog and door style.',
 
     // Orders & quotes

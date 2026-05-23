@@ -7,6 +7,7 @@ use App\Models\TaxValues;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class OrderWorkspaceService
@@ -203,12 +204,18 @@ class OrderWorkspaceService
 
         if (! empty($payload['shipping_costs'])) {
             $costs = $payload['shipping_costs'];
-            $attrs['delivery_cost'] = $costs['delivery_cost'];
-            $attrs['liftgate_cost'] = $costs['liftgate_cost'];
-            $attrs['unload_cost'] = $costs['unload_cost'];
-            $attrs['pallets_cost'] = $costs['pallets_cost'];
-            $attrs['total_pallets'] = $costs['total_pallets'] ?? 1;
-            $attrs['shipping_cost'] = $costs['shipping_cost'];
+            $table = (new $modelClass)->getTable();
+            $shippingAttrs = [
+                'delivery_cost' => $costs['delivery_cost'],
+                'liftgate_cost' => $costs['liftgate_cost'],
+                'unload_cost' => $costs['unload_cost'],
+                'pallets_cost' => $costs['pallets_cost'],
+                'shipping_cost' => $costs['shipping_cost'],
+            ];
+            if (Schema::hasColumn($table, 'total_pallets')) {
+                $shippingAttrs['total_pallets'] = $costs['total_pallets'] ?? 1;
+            }
+            $attrs = array_merge($attrs, $shippingAttrs);
             $attrs['grand_total_cost'] = ($payload['totals']['grand_total_cost'] ?? 0) + ($costs['shipping_cost'] ?? 0);
         }
 

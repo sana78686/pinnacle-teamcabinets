@@ -31,5 +31,4 @@
             }
         });
     </script>
-    @yield('products_script')
 @endsection

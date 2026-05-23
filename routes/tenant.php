@@ -19,6 +19,7 @@ use App\Http\Controllers\TenantProductController;
 use App\Http\Controllers\TenantProductCatalogController;
 use App\Http\Controllers\TenantProductSectionController;
 use App\Http\Controllers\ProductDoorstyleController;
+use App\Http\Controllers\ProductSetupApiController;
 use App\Http\Controllers\TenantQuotesController;
 use App\Http\Controllers\TenantSessionCartController;
 use App\Http\Controllers\TenantSettingController;
@@ -234,6 +235,16 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
 
           Route::get('product_catalog/export', [TenantProductCatalogController::class, 'product_catalog_export'])->name('product_catalog_export');
           Route::post('product_catalog/import', [TenantProductCatalogController::class, 'product_catalog_import'])->name('product_catalog_import'); // Handle POST request for file upload
+
+          /** Vue modal CRUD API (catalogs, categories, door-styles, products) */
+          Route::prefix('product-setup/api')->group(function () {
+              Route::get('{type}/meta', [ProductSetupApiController::class, 'meta'])->name('tenant_product_setup_api_meta');
+              Route::get('{type}/{id}', [ProductSetupApiController::class, 'show'])->whereNumber('id')->name('tenant_product_setup_api_show');
+              Route::get('{type}', [ProductSetupApiController::class, 'index'])->name('tenant_product_setup_api_index');
+              Route::post('{type}/{id}', [ProductSetupApiController::class, 'update'])->whereNumber('id')->name('tenant_product_setup_api_update');
+              Route::post('{type}', [ProductSetupApiController::class, 'store'])->name('tenant_product_setup_api_store');
+              Route::delete('{type}/{id}', [ProductSetupApiController::class, 'destroy'])->whereNumber('id')->name('tenant_product_setup_api_destroy');
+          });
 
 
 

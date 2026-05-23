@@ -28,4 +28,9 @@ class Product extends Model
     {
         return $this->belongsTo(DoorColors::class, 'door_color_id');
     }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return ProductCatalog::publicAssetUrl($this->image);
+    }
 }

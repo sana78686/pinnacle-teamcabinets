@@ -137,8 +137,7 @@ class ProductDoorstyleController extends Controller
             $request,
             'image',
             $doorColor->image,
-            'door_colors',
-            'public'
+            'uploads/door_style'
         );
 
         $doorColor->updated_by = Auth::id();

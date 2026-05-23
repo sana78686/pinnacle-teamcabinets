@@ -62,7 +62,7 @@
             title="Create a new user in the system">
             <i class="icofont icofont-plus"></i> Create User
         </a>
-        <a href="{{ route('tenant_deleted_users_list', $user->id) }}" class="btn btn-success btn-sm" data-toggle="tooltip"
+        <a href="{{ route('tenant_deleted_users_list') }}" class="btn btn-success btn-sm" data-toggle="tooltip"
             title="Restore a previously deleted user">
             <i class="icofont icofont-spinner-alt-3"></i> Restore User
         </a>

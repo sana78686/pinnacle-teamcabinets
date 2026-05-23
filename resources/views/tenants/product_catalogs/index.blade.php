@@ -19,6 +19,12 @@
         .list-group-item {
             cursor: pointer;
         }
+
+        .tc-catalog-thumb {
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
     </style>
 
 @endsection
@@ -162,8 +168,22 @@
                             <tr>
                                 <td>{{ ++$key }}</td>
                                 <td>{{ $catalog->name ?? 'N/A' }}</td>
-                                <td>{{ $catalog->image ?? 'N/A' }}</td>
-                                <td>{{ $catalog->pdf ?? 'N/A' }}</td>
+                                <td>
+                                    @if ($catalog->image_url)
+                                        <img src="{{ $catalog->image_url }}" alt="{{ $catalog->name }}" class="tc-catalog-thumb" width="56" height="56">
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($catalog->pdf_url)
+                                        <a href="{{ route('tenant_product_catalog_pdf', $catalog->id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fa-solid fa-file-pdf"></i> View PDF
+                                        </a>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
                                 <td>
                                     <a class="" href="{{ route('tenant_product_catalog_show', $catalog->id) }}"
                                         data-toggle="tooltip" title="View details of this product catalog">
@@ -331,14 +351,20 @@
                             if (data.length) {
                                 data.forEach(item => {
                                     const row = document.createElement('tr');
+                                    const imgCell = item.image_url
+                                        ? `<img src="${item.image_url}" alt="" class="tc-catalog-thumb" width="56" height="56">`
+                                        : '<span class="text-muted">—</span>';
+                                    const pdfCell = item.pdf_view_url
+                                        ? `<a href="${item.pdf_view_url}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-file-pdf"></i> View PDF</a>`
+                                        : '<span class="text-muted">—</span>';
                                     row.innerHTML = `
                                     <td>${item.id}</td>
                                     <td>${item.name}</td>
-                                    <td>${item.image}</td>
-                                    <td>${item.pdf}</td>
+                                    <td>${imgCell}</td>
+                                    <td>${pdfCell}</td>
                                     <td>
-                                        <a href="/product-catalog/${item.id}/show">Show</a> |
-                                        <a href="/product-catalog/${item.id}/edit">Edit</a> |
+                                        <a href="${item.show_url}">Show</a> |
+                                        <a href="${item.edit_url}">Edit</a> |
                                         <a href="javascript:void(0);" onclick="deleteCatalog(${item.id})">Delete</a>
                                     </td>
                                 `;

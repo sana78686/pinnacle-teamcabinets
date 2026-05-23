@@ -241,6 +241,107 @@
     color: var(--hz-gold) !important;
 }
 
+.hz-account {
+    position: relative;
+}
+
+.hz-account__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.hz-account__toggle:hover,
+.hz-account__toggle[aria-expanded="true"] {
+    border-color: var(--hz-gold);
+    color: var(--hz-gold);
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.hz-account__menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    z-index: 120;
+    min-width: 11rem;
+    padding: 0.35rem 0;
+    background: var(--hz-white);
+    border: 1px solid var(--hz-border);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(12, 35, 64, 0.18);
+}
+
+.hz-account__menu[hidden] {
+    display: none;
+}
+
+.hz-account__name {
+    margin: 0;
+    padding: 0.5rem 1rem 0.35rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--hz-navy);
+    border-bottom: 1px solid var(--hz-border);
+}
+
+.hz-account__menu a,
+.hz-account__logout-btn {
+    display: block;
+    width: 100%;
+    padding: 0.55rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: left;
+    color: var(--hz-text);
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.hz-account__menu a:hover,
+.hz-account__logout-btn:hover {
+    background: var(--hz-cream);
+    color: var(--hz-navy);
+}
+
+.hz-account__logout-form {
+    margin: 0;
+}
+
+.hz-account--mobile .hz-account__label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.5rem;
+    font-weight: 600;
+    color: var(--hz-gold);
+}
+
+.hz-account--mobile .hz-account__logout-form {
+    padding: 0 0.5rem;
+}
+
+.hz-account--mobile .hz-account__logout-btn {
+    padding: 0.65rem 0.5rem;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.hz-account--mobile .hz-account__logout-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--hz-gold);
+}
+
 .hz-header--dark .hz-nav a {
     color: rgba(255, 255, 255, 0.92);
 }

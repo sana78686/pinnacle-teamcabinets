@@ -72,13 +72,6 @@ class TenantFrontendThemeService
     {
         $slug = $this->activeSlug();
 
-        if ($slug === 'classic') {
-            $legacy = "frontend.superusers.{$name}";
-            if (view()->exists($legacy)) {
-                return $legacy;
-            }
-        }
-
         $themed = "themes.{$slug}.{$name}";
         if (view()->exists($themed)) {
             return $themed;

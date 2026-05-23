@@ -33,9 +33,9 @@
                     <label class="form-label">Product Catalog Image</label>
                     <input type="file" class="form-control" id="image" name="image"
                         accept="image/jpg,image/jpeg,image/png">
-                    @if ($product_catalog->image)
+                    @if ($product_catalog->image_url)
                         <br>
-                        <img src="{{ asset(' $product_catalog->image') }}" width="100">
+                        <img src="{{ $product_catalog->image_url }}" alt="" width="100" class="mt-2 rounded border">
                     @endif
                 </div>
             </div>
@@ -44,9 +44,9 @@
                 <div class="form-group">
                     <label class="form-label">Product Catalog PDF</label>
                     <input type="file" class="form-control" id="pdf" name="pdf" accept="application/pdf">
-                    @if ($product_catalog->pdf)
+                    @if ($product_catalog->pdf_url)
                         <br>
-                        <a href="{{ asset(' $product_catalog->pdf') }}" target="_blank">View PDF</a>
+                        <a href="{{ route('tenant_product_catalog_pdf', $product_catalog->id) }}" class="btn btn-sm btn-outline-primary mt-2">View PDF</a>
                     @endif
                 </div>
             </div>

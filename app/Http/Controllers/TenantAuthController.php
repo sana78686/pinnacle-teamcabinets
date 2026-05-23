@@ -52,7 +52,7 @@ class TenantAuthController extends Controller
     {
         $data['countries'] = Country::where('id', 233)->get();
         $data['states'] = State::where('country_id', 233)->get();
-        $data['cities'] = City::where('country_id', 233)->get();
+        $data['cities'] = City::forCountry(233)->orderBy('name')->get();
         return view('tenants.auth.register', $data);
     }
     /**

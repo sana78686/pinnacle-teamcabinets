@@ -1,0 +1,257 @@
+/* Classic storefront — uses Site Settings brand vars (--hz-* / --cl-*) */
+
+.cl-header {
+    background: var(--hz-navy);
+    border-bottom: 3px solid var(--hz-gold);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.cl-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 0;
+}
+
+.cl-logo img {
+    max-height: 48px;
+    width: auto;
+}
+
+.cl-logo__text {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #fff;
+    text-decoration: none;
+}
+
+.cl-nav {
+    display: none;
+    gap: 1.25rem;
+    align-items: center;
+}
+
+.cl-nav a {
+    color: rgba(255, 255, 255, 0.92);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.cl-nav a:hover {
+    color: var(--hz-gold);
+}
+
+.cl-header__cta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cl-header__phone {
+    display: none;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.cl-header__phone:hover {
+    color: var(--hz-gold);
+}
+
+.cl-header .hz-account__toggle {
+    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.cl-header .hz-account__toggle:hover,
+.cl-header .hz-account__toggle[aria-expanded="true"] {
+    border-color: var(--hz-gold);
+    color: var(--hz-gold);
+}
+
+.cl-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    cursor: pointer;
+}
+
+.cl-mobile-nav {
+    display: none;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 1rem 1.25rem;
+    background: var(--hz-navy);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.cl-mobile-nav.is-open {
+    display: flex;
+}
+
+.cl-mobile-nav a {
+    padding: 0.6rem 0.5rem;
+    color: rgba(255, 255, 255, 0.92);
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+.cl-mobile-nav a:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--hz-gold);
+}
+
+.cl-hero {
+    padding: 5rem 0 5.5rem;
+}
+
+.cl-hero--image {
+    min-height: 72vh;
+}
+
+.cl-band {
+    background: linear-gradient(180deg, var(--hz-cream) 0%, #fff 100%);
+}
+
+.cl-brands .cl-brand {
+    background: #fff;
+    border: 1px solid var(--hz-border);
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 4px 14px rgba(12, 35, 64, 0.06);
+}
+
+.cl-card {
+    border-top: 4px solid var(--hz-blue);
+}
+
+.cl-section-cards .hz-card__icon {
+    color: var(--hz-blue);
+}
+
+.cl-about-split .hz-about__img img {
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(12, 35, 64, 0.12);
+}
+
+.cl-catalog .hz-catalog-row__brand {
+    border-left: 4px solid var(--hz-gold);
+    padding-left: 1rem;
+}
+
+.cl-pdf-link {
+    margin-top: 0.5rem;
+    display: inline-flex;
+    gap: 0.35rem;
+}
+
+.cl-doors-swiper-wrap {
+    padding: 1rem 0 2.5rem;
+}
+
+.cl-door-slide img {
+    max-width: 100%;
+    height: auto;
+    max-height: 280px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.cl-door-slide h4 {
+    margin: 0.75rem 0 0;
+    font-size: 1rem;
+    color: var(--hz-navy);
+}
+
+.cl-step-box {
+    border: 1px solid var(--hz-border);
+    background: #fff;
+}
+
+.cl-step-box .hz-step-box__num {
+    color: var(--hz-blue);
+}
+
+.cl-cta-band {
+    background: linear-gradient(135deg, var(--hz-navy) 0%, var(--hz-blue) 100%);
+}
+
+.cl-footer.hz-footer {
+    background: var(--hz-navy);
+}
+
+.cl-footer .hz-footer__heading,
+.cl-footer .hz-footer__brand-name,
+.cl-footer .hz-footer__address,
+.cl-footer .hz-footer__links a,
+.cl-footer .hz-footer__copy {
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.cl-footer .hz-footer__links a:hover {
+    color: var(--hz-gold);
+}
+
+.cl-footer .hz-footer__social-btn {
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
+.cl-footer .hz-footer__social-btn:hover {
+    background: var(--hz-gold);
+    border-color: var(--hz-gold);
+    color: var(--hz-navy);
+}
+
+.hz-btn--primary {
+    background: var(--hz-blue);
+}
+
+.hz-btn--primary:hover {
+    background: var(--hz-navy);
+}
+
+.hz-card__icon {
+    color: var(--hz-blue);
+}
+
+.hz-faq__item summary {
+    color: var(--hz-navy);
+}
+
+.hz-faq__item[open] summary {
+    color: var(--hz-blue);
+}
+
+@media (min-width: 992px) {
+    .cl-nav {
+        display: flex;
+    }
+    .cl-header__phone {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    .cl-menu-toggle {
+        display: none;
+    }
+}
+
+@media (max-width: 991px) {
+    .cl-header .hz-btn--login,
+    .cl-header .hz-btn--gold {
+        display: none;
+    }
+}

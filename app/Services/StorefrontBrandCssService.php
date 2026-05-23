@@ -28,7 +28,7 @@ class StorefrontBrandCssService
         }
 
         $css = (string) file_get_contents($path);
-        if (preg_match('/--hz-blue:\s*(#[0-9a-fA-F]{6})/', $css, $m)) {
+        if (preg_match('/--(?:hz|cl)-blue:\s*(#[0-9a-fA-F]{6})/', $css, $m)) {
             return strtolower($m[1]);
         }
 
@@ -66,6 +66,9 @@ class StorefrontBrandCssService
     --hz-navy: {$navy};
     --hz-blue: {$primary};
     --hz-gold: {$gold};
+    --cl-navy: {$navy};
+    --cl-blue: {$primary};
+    --cl-gold: {$gold};
 }
 
 CSS;

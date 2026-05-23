@@ -111,7 +111,7 @@ class TenantUserController extends Controller
         $data['door_colors'] = DoorColors::with('productCatalog')->get();
         $data['countries'] = Country::where('id', '233')->pluck('name', 'name')->all();
         $data['states'] = State::where('country_id', '233')->pluck('name', 'name')->all();
-        $data['cities'] = City::where('country_id', '233')->pluck('name', 'name')->all();
+        $data['cities'] = City::forCountry(233)->orderBy('name')->pluck('name', 'name')->all();
         $data['counties'] = County::pluck('name', 'name')->all();
         $data['point_factor_defaults'] = PointFactorDefault::query()
             ->pluck('point_factor_percentage', 'user_type')
@@ -310,7 +310,7 @@ class TenantUserController extends Controller
         $data['product_catalogs'] = ProductCatalog::where('status', 1)->get();
             $data['countries'] = Country::where('id', 233)->pluck('name', 'id');
         $data['states'] = State::where('country_id', 233)->pluck('name', 'id');
-        $data['cities'] = City::where('country_id', 233)->pluck('name', 'id');
+        $data['cities'] = City::forCountry(233)->orderBy('name')->pluck('name', 'id');
 
         $data['counties'] = County::pluck('name', 'name')->all();
         $data['door_colors'] = DoorColors::with('productCatalog')->get();
@@ -604,7 +604,6 @@ public function updateStatus(Request $request, $id)
         if ($stateId) {
             $data = City::select('id', 'name')
                 ->where('state_id', $stateId)
-                ->where('country_id', 233)
                 ->where('name', 'LIKE', '%' . $query . '%')
                 ->limit(10)
                 ->get();
@@ -806,7 +805,7 @@ public function updateStatus(Request $request, $id)
         $data['door_colors'] = DoorColors::with('productCatalog')->get();
         $data['countries'] = Country::where('id', '233')->pluck('name', 'name')->all();
         $data['states'] = State::where('country_id', '233')->pluck('name', 'name')->all();
-        $data['cities'] = City::where('country_id', '233')->pluck('name', 'name')->all();
+        $data['cities'] = City::forCountry(233)->orderBy('name')->pluck('name', 'name')->all();
         $data['counties'] = County::pluck('name', 'name')->all();
         // dd($data['door_colors']);
         return view('tenants.representative_modals.users.create', $data);

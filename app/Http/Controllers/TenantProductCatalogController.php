@@ -7,11 +7,20 @@ use App\Imports\Productcatalog_Import;
 use App\Models\ProductCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-
-
 class TenantProductCatalogController extends Controller
 {
+    protected function uploadCatalogFile(\Illuminate\Http\UploadedFile $file, string $subdir): string
+    {
+        $dir = public_path('uploads/catalogs/' . $subdir);
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+        $file->move($dir, $filename);
+
+        return 'uploads/catalogs/' . $subdir . '/' . $filename;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -41,7 +50,18 @@ class TenantProductCatalogController extends Controller
         }
         $results = ProductCatalog::where($field, 'LIKE', '%' . $query . '%')
             ->select('id', 'name', 'image', 'pdf')
-            ->get();
+            ->get()
+            ->map(fn (ProductCatalog $catalog) => [
+                'id' => $catalog->id,
+                'name' => $catalog->name,
+                'image_url' => $catalog->image_url,
+                'pdf_url' => $catalog->pdf_url,
+                'pdf_view_url' => $catalog->pdf
+                    ? route('tenant_product_catalog_pdf', $catalog->id)
+                    : null,
+                'show_url' => route('tenant_product_catalog_show', $catalog->id),
+                'edit_url' => route('tenant_product_catalog_edit', $catalog->id),
+            ]);
         return response()->json($results);
     }
 
@@ -71,18 +91,11 @@ class TenantProductCatalogController extends Controller
         // }
 
         if ($request->hasFile('image')) {
-
-            // Upload new image
-            $file = $request->file('image');
-            $filename = time() . '_' . $file->getClientOriginalName(); // Unique filename
-            $file->move(public_path('uploads/catalogs'), $filename); // Save to public directory
-
-            // Save new image path in DB
-            $product_catalog->image = 'uploads/catalogs/' . $filename;
+            $product_catalog->image = $this->uploadCatalogFile($request->file('image'), 'images');
         }
 
         if ($request->hasFile('pdf')) {
-            $product_catalog->pdf = $request->file('pdf')->store('public/pdfs');
+            $product_catalog->pdf = $this->uploadCatalogFile($request->file('pdf'), 'pdfs');
         }
 
         $product_catalog->created_by = Auth::user()->id;
@@ -98,6 +111,19 @@ class TenantProductCatalogController extends Controller
     {
         $product_catalog = ProductCatalog::findOrFail($id);
         return view('tenants.product_catalogs.show',compact('product_catalog'));
+    }
+
+    public function viewPdf(string $id)
+    {
+        $product_catalog = ProductCatalog::findOrFail($id);
+
+        if (! $product_catalog->pdf || ! $product_catalog->pdf_url) {
+            return redirect()
+                ->route('tenant_product_catalog_index')
+                ->with('error', 'No PDF file is attached to this catalog.');
+        }
+
+        return view('tenants.product_catalogs.pdf', compact('product_catalog'));
     }
     /**
      * Show the form for editing the specified resource.
@@ -124,11 +150,11 @@ class TenantProductCatalogController extends Controller
     $product_catalog->name = $request->name;
 
     if ($request->hasFile('image')) {
-        $product_catalog->image = $request->file('image')->store('public/images');
+        $product_catalog->image = $this->uploadCatalogFile($request->file('image'), 'images');
     }
 
     if ($request->hasFile('pdf')) {
-        $product_catalog->pdf = $request->file('pdf')->store('public/pdfs');
+        $product_catalog->pdf = $this->uploadCatalogFile($request->file('pdf'), 'pdfs');
     }
 
     $product_catalog->save();

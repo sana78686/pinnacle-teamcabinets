@@ -222,6 +222,7 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
            Route::post('products/catalogs/store', [TenantProductCatalogController::class, 'store'])->name('tenant_product_catalog_store');
            Route::get('products/catalog/{id}/edit', [TenantProductCatalogController::class, 'edit'])->name('tenant_product_catalog_edit');
            Route::get('products/catalog/{id}/show', [TenantProductCatalogController::class, 'show'])->name('tenant_product_catalog_show');
+           Route::get('products/catalog/{id}/pdf', [TenantProductCatalogController::class, 'viewPdf'])->name('tenant_product_catalog_pdf');
            Route::post('products/catalog/{id}', [TenantProductCatalogController::class, 'update'])->name('tenant_product_catalog_update');
            Route::get('products/catalog/{id}', [TenantProductCatalogController::class, 'destroy'])->name('tenant_product_catalog_destroy');
            Route::get('products_catalog/deleted/list', [TenantProductCatalogController::class, 'deletedproductcatalogList'])->name('tenant_deleted_product_catalog_list');

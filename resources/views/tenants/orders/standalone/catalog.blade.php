@@ -14,13 +14,13 @@
             @forelse ($catalogs as $catalog)
                 <a href="{{ route('tenant_order_workspace_build', $catalog->id) }}" class="co-catalog-card">
                     <div class="co-catalog-card__media">
-                        @if ($catalog->pdf)
-                            <span class="co-catalog-card__pdf" onclick="event.preventDefault(); window.open('{{ asset($catalog->pdf) }}','_blank');">
+                        @if ($catalog->pdf_url)
+                            <span class="co-catalog-card__pdf" onclick="event.preventDefault(); window.open('{{ $catalog->pdf_url }}','_blank');">
                                 <i class="fa-solid fa-file-pdf"></i> View PDF
                             </span>
                         @endif
-                        @if ($catalog->image)
-                            <img src="{{ asset($catalog->image) }}" alt="{{ $catalog->name }}">
+                        @if ($catalog->image_url)
+                            <img src="{{ $catalog->image_url }}" alt="{{ $catalog->name }}">
                         @else
                             <div class="co-catalog-card__placeholder"><i class="fa-solid fa-box"></i></div>
                         @endif

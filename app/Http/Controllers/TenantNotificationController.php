@@ -24,8 +24,8 @@ class TenantNotificationController extends Controller
         $user = $request->user();
         $sinceRaw = $request->query('since');
 
-        $all = $user->notifications()->latest()->take(20)->get();
         $unreadCount = $user->unreadNotifications()->count();
+        $dropdown = $user->unreadNotifications()->latest()->take(20)->get();
 
         $newItems = collect();
         if ($sinceRaw) {
@@ -55,7 +55,7 @@ class TenantNotificationController extends Controller
 
         return response()->json([
             'unread_count' => $unreadCount,
-            'notifications' => $all->map($map)->values(),
+            'notifications' => $dropdown->map($map)->values(),
             'new' => $newItems->map($map)->values(),
             'server_time' => now()->toIso8601String(),
             'nav_badges' => $this->navBadges->countsForUser($user),
@@ -82,13 +82,13 @@ class TenantNotificationController extends Controller
 
     public function markAllRead(Request $request): JsonResponse
     {
-        $request->user()->unreadNotifications()->update(['read_at' => now()]);
-
         $user = $request->user();
+        $user->unreadNotifications->markAsRead();
 
         return response()->json([
             'ok' => true,
             'unread_count' => 0,
+            'notifications' => [],
             'nav_badges' => $this->navBadges->countsForUser($user),
         ]);
     }

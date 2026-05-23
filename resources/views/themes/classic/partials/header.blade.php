@@ -8,16 +8,16 @@
         : ($sfShowContact ? route('cms.page', 'contact') : route('cms.page').'#hz-contact');
     $phone = $settings?->phone ?? null;
 @endphp
-<header class="hz-header hz-header--dark">
-    <div class="hz-container hz-header__inner">
-        <a href="{{ route('cms.page') }}" class="hz-logo">
+<header class="cl-header">
+    <div class="hz-container cl-header__inner">
+        <a href="{{ route('cms.page') }}" class="cl-logo">
             @if ($sfLogoUrl)
                 <img src="{{ $sfLogoUrl }}" alt="{{ $sfCompany }}">
             @else
-                <span class="hz-logo__badge">{{ $sfCompany }}</span>
+                <span class="cl-logo__text">{{ $sfCompany }}</span>
             @endif
         </a>
-        <nav class="hz-nav" aria-label="Main">
+        <nav class="cl-nav" aria-label="Main">
             <a href="{{ route('cms.page') }}">Home</a>
             @if ($sfShowAbout)
                 <a href="{{ $aboutUrl }}">About</a>
@@ -35,9 +35,9 @@
                 <a href="{{ $contactUrl }}">Contact</a>
             @endif
         </nav>
-        <div class="hz-header__cta">
+        <div class="cl-header__cta">
             @if ($phone)
-                <a href="tel:{{ preg_replace('/\D+/', '', $phone) }}" class="hz-header__phone">
+                <a href="tel:{{ preg_replace('/\D+/', '', $phone) }}" class="cl-header__phone">
                     <i class="fa-solid fa-phone" aria-hidden="true"></i> {{ $phone }}
                 </a>
             @endif
@@ -47,12 +47,12 @@
                 <a href="{{ route('tenant_login') }}" class="hz-btn hz-btn--login hz-btn--sm">Log In</a>
                 <a href="{{ route('tenant_register') }}" class="hz-btn hz-btn--gold hz-btn--sm">Get started</a>
             @endauth
-            <button type="button" class="hz-menu-toggle" id="hz-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="hz-mobile-nav">
+            <button type="button" class="cl-menu-toggle" id="cl-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="cl-mobile-nav">
                 <i class="fa-solid fa-bars" aria-hidden="true"></i>
             </button>
         </div>
     </div>
-    <nav class="hz-mobile-nav hz-mobile-nav--dark" id="hz-mobile-nav" aria-label="Mobile">
+    <nav class="cl-mobile-nav" id="cl-mobile-nav" aria-label="Mobile">
         <a href="{{ route('cms.page') }}">Home</a>
         @if ($sfShowAbout)
             <a href="{{ $aboutUrl }}">About</a>

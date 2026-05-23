@@ -89,7 +89,7 @@
         if (!list) return;
 
         if (!items.length) {
-            list.innerHTML = '<li class="p-3 text-muted tc-notification-list__empty">No notifications yet</li>';
+            list.innerHTML = '<li class="p-3 text-muted tc-notification-list__empty">No unread notifications</li>';
             return;
         }
 
@@ -156,9 +156,20 @@
                 'Accept': 'application/json',
             },
             credentials: 'same-origin',
-        }).then(function () {
-            poll(false);
-        });
+        })
+            .then(function (r) {
+                if (!r.ok) throw new Error('mark all read failed');
+                return r.json();
+            })
+            .then(function (data) {
+                updateBadge(data.unread_count || 0);
+                updateSummary(data.unread_count || 0);
+                updateNavBadges(data.nav_badges);
+                renderList(data.notifications || []);
+            })
+            .catch(function () {
+                poll(false);
+            });
     }
 
     function showBrowserAlert(item) {
@@ -177,37 +188,26 @@
     }
 
     function showToast(item) {
-        if (typeof Swal === 'undefined') {
+        if (typeof window.TcPanelCenterAlert === 'function') {
+            window.TcPanelCenterAlert({
+                type: normalizeToastType(item.type),
+                title: item.title || 'Notification',
+                message: item.message || '',
+            });
             return;
         }
 
-        var icon = normalizeToastType(item.type);
-        if (icon === 'error') {
-            icon = 'error';
-        } else if (icon === 'warning') {
-            icon = 'warning';
-        } else if (icon === 'success') {
-            icon = 'success';
-        } else {
-            icon = 'info';
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: normalizeToastType(item.type),
+                title: item.title || 'Notification',
+                text: item.message || '',
+                confirmButtonText: 'OK',
+            });
         }
-
-        Swal.fire({
-            toast: true,
-            position: 'top-start',
-            icon: icon,
-            title: item.title || 'Notification',
-            text: item.message || '',
-            showConfirmButton: !!item.url,
-            confirmButtonText: item.url ? 'View' : undefined,
-            timer: item.url ? 8000 : 6000,
-            timerProgressBar: true,
-        }).then(function (result) {
-            if (result.isConfirmed && item.url) {
-                window.location.href = item.url;
-            }
-        });
     }
+
+    var bootPanelMessagesShown = false;
 
     /** Session flashes from login, logout, profile, workspace (no DB row required). */
     function showBootToasts() {
@@ -216,17 +216,22 @@
             return;
         }
 
+        bootPanelMessagesShown = true;
+        bootToastIds().forEach(function (id) {
+            knownIds.add(id);
+        });
+
         messages.forEach(function (item) {
             showToast({
                 id: 'boot-msg',
                 title: item.title || 'Notification',
                 message: item.message || '',
                 type: item.type || 'info',
-                url: item.url || null,
             });
         });
 
         window.TENANT_PANEL_TOAST_MESSAGES = [];
+        window.TENANT_PANEL_TOAST_IDS = [];
     }
 
     function bootToastIds() {
@@ -273,7 +278,7 @@
                     handleNewItems(data.new);
                 }
 
-                if (isInitial) {
+                if (isInitial && !bootPanelMessagesShown) {
                     var bootIds = bootToastIds();
                     if (bootIds.length) {
                         var bootItems = (data.notifications || []).filter(function (n) {
@@ -281,13 +286,6 @@
                         });
                         if (bootItems.length) {
                             handleNewItems(bootItems);
-                        } else {
-                            var recentUnread = (data.notifications || []).filter(function (n) {
-                                return !n.read_at;
-                            }).slice(0, bootIds.length);
-                            if (recentUnread.length) {
-                                handleNewItems(recentUnread);
-                            }
                         }
                         window.TENANT_PANEL_TOAST_IDS = [];
                     }

@@ -37,12 +37,26 @@
                             </td>
                         </tr>
                         <tr>
-                            <th>Product Catalog PDF:</th>
-                            <td> {{ $product_catalog->pdf }}</td>
+                            <th>Product Catalog PDF</th>
+                            <td>
+                                @if ($product_catalog->pdf_url)
+                                    <a href="{{ route('tenant_product_catalog_pdf', $product_catalog->id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fa-solid fa-file-pdf"></i> View PDF
+                                    </a>
+                                @else
+                                    <span class="text-muted">No PDF uploaded</span>
+                                @endif
+                            </td>
                         </tr>
                         <tr>
                             <th>Image</th>
-                            <td> {{ $product_catalog->image }}</td>
+                            <td>
+                                @if ($product_catalog->image_url)
+                                    <img src="{{ $product_catalog->image_url }}" alt="{{ $product_catalog->name }}" style="max-width:200px;border-radius:6px;">
+                                @else
+                                    <span class="text-muted">No image uploaded</span>
+                                @endif
+                            </td>
                         </tr>
                         <!-- Add other fields as necessary -->
                     </tbody>

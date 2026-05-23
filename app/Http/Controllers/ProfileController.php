@@ -29,7 +29,7 @@ class ProfileController extends Controller
 
         $data['countries'] = Country::where('id', '233')->get();
         $data['states'] = State::where('country_id', '233')->get();
-        $data['cities'] = City::select('id', 'name')->where('country_id', '233')->get();
+        $data['cities'] = City::select('id', 'name')->forCountry(233)->orderBy('name')->get();
         $data['counties'] = County::get();
         return view('profile.edit_profile', $data);
     }

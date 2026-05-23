@@ -44,6 +44,9 @@ class User extends Authenticatable
         'seperate_domain',
         'catalog_data',
         'door_factors',
+        'point_factor',
+        'door_point_factor',
+        'catalog_visibility',
         'accept_terms',
         'company_name',
         'tenant_id',
@@ -59,7 +62,8 @@ class User extends Authenticatable
         'is_verified',
         'status',
         'is_verified_by_admin',
-        'address'
+        'address',
+        'login_version',
     ];
     protected $guarded = [];
 
@@ -84,6 +88,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'admin_viewed_at' => 'datetime',
             'password' => 'hashed',
+            'point_factor' => 'decimal:4',
+            'door_point_factor' => 'array',
+            'catalog_visibility' => 'array',
+            'login_version' => 'integer',
         ];
     }
     public function getInitialsAttribute()

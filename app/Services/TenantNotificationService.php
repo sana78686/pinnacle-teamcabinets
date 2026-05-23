@@ -81,13 +81,24 @@ class TenantNotificationService
     /** Admin bell after self-service registration (mail sent separately). */
     public static function registrationPendingApproval(User $user): void
     {
-        self::notifyAdminsPanel(
-            'New user registration',
-            sprintf('New registration from %s — pending approval', $user->name),
-            route('tenant_user_index', ['verified' => 0], false),
-            'info',
-            'auth',
-        );
+        if (! Schema::hasTable('notifications')) {
+            Log::warning('notifications table missing — run php artisan migrate');
+
+            return;
+        }
+
+        try {
+            self::notifyAdminsPanel(
+                'New user registration',
+                sprintf('New registration from %s — pending approval', $user->name),
+                route('tenant_user_show', $user->id, false),
+                'info',
+                'users',
+                'users_list',
+            );
+        } catch (\Throwable $e) {
+            Log::error('Registration panel notification failed: '.$e->getMessage());
+        }
     }
 
     public static function accountApproved(User $user): void

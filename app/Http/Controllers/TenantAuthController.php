@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\URL;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TenantForgotUsernameMail;
 use App\Mail\TenantResetPasswordMail;
@@ -166,15 +167,32 @@ public function postLogin(Request $request)
         ]);
 
         $tenant_user->assignRole($role->name);
-        // dd( $$role->name->all());
-         Mail::to($tenant_user->email)->send(new PendingUserVerificationMail($tenant_user));
 
-    TenantNotificationService::registrationPendingApproval($tenant_user);
+        TenantNotificationService::registrationPendingApproval($tenant_user);
 
-    $adminEmail = SiteSetting::first()?->newuser_email;
-    if ($adminEmail) {
-        Mail::to($adminEmail)->send(new AdminNewUserNotificationMail($tenant_user));
-    }
+        try {
+            Mail::to($tenant_user->email)->send(new PendingUserVerificationMail($tenant_user));
+        } catch (\Throwable $e) {
+            Log::warning('Registration confirmation email failed', [
+                'user_id' => $tenant_user->id,
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        $adminEmail = SiteSetting::first()?->newuser_email;
+        if (! $adminEmail) {
+            $adminEmail = User::role('Admin')->value('email');
+        }
+        if ($adminEmail) {
+            try {
+                Mail::to($adminEmail)->send(new AdminNewUserNotificationMail($tenant_user));
+            } catch (\Throwable $e) {
+                Log::warning('Admin new-user email failed', [
+                    'user_id' => $tenant_user->id,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        }
 
 
         return back()->with('success', 'Registration submitted. The dealer admin will review and approve your account before you can sign in.');

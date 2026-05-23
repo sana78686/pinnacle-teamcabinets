@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Services\UserDoorFactorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -15,6 +16,11 @@ class TenantAuthSessionService
     public function storeLoginSession(User $user, Request $request): void
     {
         $request->session()->put(self::SESSION_VERSION_KEY, (int) ($user->login_version ?? 0));
+
+        $payload = app(UserDoorFactorService::class)->sessionPayload($user);
+        $request->session()->put('point_factor', $payload['point_factor']);
+        $request->session()->put('door_point_factor', $payload['door_point_factor']);
+        $request->session()->put('catalog_visibility', $payload['catalog_visibility']);
     }
 
     public function sessionIsValid(User $user, Request $request): bool

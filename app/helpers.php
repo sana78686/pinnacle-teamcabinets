@@ -350,3 +350,10 @@ if (! function_exists('tenant_user_status_skin')) {
         };
     }
 }
+
+if (! function_exists('tenant_role_factor_key')) {
+    function tenant_role_factor_key(string $roleName): string
+    {
+        return \Illuminate\Support\Str::slug(strtolower(trim($roleName)), '-');
+    }
+}

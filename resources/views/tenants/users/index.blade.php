@@ -150,6 +150,7 @@
                         <th scope="col">Email</th>
                         <th scope="col">Status</th>
                         <th scope="col">Verification</th>
+                        <th scope="col">Door factors</th>
                         <th scope="col">Created On</th>
                         <th scope="col">Actions</th>
                     </tr>

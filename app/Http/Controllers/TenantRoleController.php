@@ -127,7 +127,12 @@ class TenantRoleController extends Controller
             ->pluck('role_has_permissions.permission_id','role_has_permissions.permission_id')
             ->all();
 
-        return view('tenants.roles.edit',compact('role','permission','rolePermissions'));
+        return view('tenants.roles.edit', [
+            'role' => $role,
+            'permission' => $permission,
+            'rolePermissions' => $rolePermissions,
+            'isProtected' => TenantRoleService::isProtectedRole($role->name),
+        ]);
     }
 
     /**
@@ -141,24 +146,26 @@ class TenantRoleController extends Controller
 
 public function update(Request $request, $id): RedirectResponse
 {
-    // ✅ Laravel 11-compatible validation
     $request->validate([
         'name' => 'required',
         'permission' => 'required|array',
     ]);
 
-    // Find the role
-    $role = Role::findOrFail($id); // optional: use findOrFail for better error handling
+    $role = Role::findOrFail($id);
 
-    // Update role name
-    $role->name = $request->input('name');
-    $role->save();
+    if (TenantRoleService::isProtectedRole($role->name)) {
+        if ($request->input('name') !== $role->name) {
+            return redirect()->route('tenant_role_index')
+                ->with('error', 'System role names cannot be changed.');
+        }
+    } else {
+        $role->name = $request->input('name');
+        $role->save();
+    }
 
-    // Sync permissions
     $permissionsID = array_map('intval', $request->input('permission'));
     $role->syncPermissions($permissionsID);
 
-    // Redirect with success message
     return redirect()->route('tenant_role_index')
                      ->with('success', 'Role updated successfully');
 }

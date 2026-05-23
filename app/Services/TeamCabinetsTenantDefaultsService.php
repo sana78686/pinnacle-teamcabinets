@@ -51,13 +51,7 @@ class TeamCabinetsTenantDefaultsService
             $applied['terms']++;
         }
 
-        foreach (config('team_cabinets_tenant.point_factors', []) as $role => $pct) {
-            PointFactorDefault::query()->updateOrCreate(
-                ['tenant_id' => tenant('id'), 'user_type' => $role],
-                ['point_factor_percentage' => $pct]
-            );
-            $applied['point_factors']++;
-        }
+        $applied['point_factors'] = app(PointFactorDefaultsService::class)->syncFromCiConfig();
 
         app(SalesTaxCountiesService::class)->ensureFloridaDefaults();
 

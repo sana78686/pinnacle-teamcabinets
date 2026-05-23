@@ -164,6 +164,7 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
          Route::get('users/state/autocomplete', [TenantUserController::class, 'stateAutoComplete'])->name('tenant_state_autocomplete');
          Route::get('users/city/autocomplete', [TenantUserController::class, 'cityAutoComplete'])->name('tenant_city_autocomplete');
          Route::get('users/county/autocomplete', [TenantUserController::class, 'countyAutoComplete'])->name('tenant_county_autocomplete');
+         Route::get('users/role-default', [TenantUserController::class, 'roleDefault'])->name('tenant_user_role_default');
          Route::get('users/create', [TenantUserController::class, 'create'])->name('tenant_user_create');
          Route::post('users/submit/record', [TenantUserController::class, 'store'])->name('tenant_user_store');
          Route::post('users/child/store', [TenantUserController::class, 'childStore'])->name('tenant_child_user_store');
@@ -404,6 +405,7 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
           Route::post('setting/manage_tax_fees_store', [TenantSettingController::class, 'store_tax_fees'])->name('tenant_setting_tax_fees_store');
           Route::get('setting/manage_commission', [TenantSettingController::class, 'manage_commission'])->name('tenant_setting_commission');
           Route::post('setting/manage_commission', [TenantSettingController::class, 'store_commission_defaults'])->name('tenant_setting_commission_store');
+          Route::patch('setting/manage_commission/{role}', [TenantSettingController::class, 'update_commission_role'])->name('tenant_setting_commission_update');
           Route::get('setting/manage_credit', [TenantSettingController::class, 'manage_credit'])->name('tenant_setting_manage_credit');
           Route::get('setting/manage_fuel', [TenantSettingController::class, 'manage_fuel'])->name('tenant_setting_manage_fuel');
           Route::get('quickbooks', [TenantQuickBooksController::class, 'index'])->name('tenant_quickbooks_index');

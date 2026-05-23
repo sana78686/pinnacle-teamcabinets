@@ -7,14 +7,16 @@ use App\Models\HomeSetting;
 use App\Models\ManageOtherPageContent;
 use App\Models\Page;
 use App\Models\PointFactorDefault;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 use App\Models\SiteSetting;
 use App\Services\ManageOtherPageContentService;
-use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use App\Models\SalesTaxCounty;
 use App\Support\MediaUpload;
 use App\Support\PublicUploadedFile;
 use App\Support\TenantListPaginator;
+use App\Services\PointFactorDefaultsService;
 use App\Services\SalesTaxCountiesService;
 use App\Services\TaxValuesService;
 use App\Services\StorefrontBrandCssService;
@@ -384,17 +386,26 @@ class TenantSettingController extends Controller
         return $values;
     }
 
-    public function manage_commission()
+    public function manage_commission(PointFactorDefaultsService $pointFactorDefaults)
     {
+        if (PointFactorDefault::query()->count() === 0) {
+            $pointFactorDefaults->syncFromCiConfig();
+        }
+
         $roles = Role::query()
             ->whereNotIn('name', ['admin', 'customer', 'Admin', 'Customer'])
             ->orderBy('name')
             ->get();
 
+        $defaultsByRole = [];
+        foreach ($roles as $role) {
+            $defaultsByRole[$role->name] = $pointFactorDefaults->defaultForRole($role->name);
+        }
+
         $defaults = PointFactorDefault::query()
             ->pluck('point_factor_percentage', 'user_type');
 
-        return view('tenants.setting.manage_commission', compact('roles', 'defaults'));
+        return view('tenants.setting.manage_commission', compact('roles', 'defaults', 'defaultsByRole'));
     }
 
     public function store_commission_defaults(Request $request)
@@ -421,7 +432,32 @@ class TenantSettingController extends Controller
         return redirect()
             ->route('tenant_setting_commission')
             ->with('success', 'Default door point factors saved.');
-}
+    }
+
+    public function update_commission_role(Request $request, string $role): JsonResponse
+    {
+        $validated = $request->validate([
+            'default_factor' => 'required|numeric|min:0|max:1',
+        ]);
+
+        $roleKey = tenant_role_factor_key(urldecode($role));
+
+        PointFactorDefault::query()->updateOrCreate(
+            [
+                'tenant_id' => tenant('id'),
+                'user_type' => $roleKey,
+            ],
+            ['point_factor_percentage' => $validated['default_factor']]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Saved',
+            'role' => $roleKey,
+            'default_factor' => (float) $validated['default_factor'],
+            'percent' => round((float) $validated['default_factor'] * 100, 2),
+        ]);
+    }
 
 
 

@@ -49,144 +49,15 @@
     <div class="m-2 card-body tc-form-page">
         @include('partial.message')
 
-        <form method="POST" action="{{ route('tenant_user_update', $user->id) }}">
+        <form method="POST" action="{{ route('tenant_user_update', $user->id) }}" id="tenant-user-form" data-ajax="1"
+            data-redirect="{{ route('tenant_user_index') }}">
             @csrf
             @method('PUT')
-            <div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-lg" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="importModalLabel">Edit Product Catalog Visibility & Point Factors
-                            </h5>
-                            <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="container">
-                                <div class="row">
-                                    <!-- Left column: Catalog Checkboxes -->
-                                    <div class="col-lg-4">
-                                        <h6>Visibility To User</h6>
-                                        <hr>
-                                        <div class="form-group">
-                                            <div class="checkbox-group">
-                                                @forelse ($product_catalogs as $product_catalog)
-                                                    <div class="form-check">
-                                                        <input type="checkbox"
-                                                            name="catalog_visibility[{{ $product_catalog->id }}]"
-                                                            id="checkbox-primary-{{ $product_catalog->id }}"
-                                                            class="form-check-input product-catalog-checkbox"
-                                                            data-catalog-id="{{ $product_catalog->id }}"
-                                                            value="{{ $product_catalog->id }}"
-                                                            {{ isset($selected_catalogs) && in_array($product_catalog->id, $selected_catalogs) ? 'checked' : '' }}>
-                                                        <label class="form-check-label"
-                                                            for="checkbox-primary-{{ $product_catalog->id }}">
-                                                            {{ $product_catalog->name }}
-                                                        </label>
-                                                    </div>
-                                                @empty
-                                                    <!-- Empty state: Still allow user to add catalogs later -->
-                                                @endforelse
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Right column: Door Colors & Factors -->
-                                    <div class="col-lg-8">
-                                        <h6>Door Point Factors</h6>
-                                        <hr>
-                                        @forelse ($product_catalogs as $product_catalog)
-                                            <div class="door-colors-container" data-catalog-id="{{ $product_catalog->id }}"
-                                                style="{{ isset($selected_catalogs) && in_array($product_catalog->id, $selected_catalogs) ? 'display:block;' : 'display:none;' }}">
-
-                                                @forelse ($door_colors->where('productCatalog.id', $product_catalog->id) as $door_color)
-                                                    <div class="mb-2 col-lg-12">
-                                                        <div class="form-group">
-                                                            <strong class="f-w-400">
-                                                                {{ $door_color->product_label }} - ({{ $door_color->productCatalog->name }})
-                                                            </strong>
-                                                            <input type="text"
-                                                                name="door_factors[{{ $product_catalog->id }}][{{ $door_color->id }}]"
-                                                                placeholder="Door Point Factor for {{ $door_color->product_label }}"
-                                                                class="form-control"
-                                                                value="{{ $doorFactorValue($product_catalog->id, $door_color->id) }}">
-                                                        </div>
-                                                    </div>
-                                                @empty
-                                                    <!-- Empty state: No door colors available, but user can set later -->
-                                                @endforelse
-
-                                            </div>
-                                        @empty
-                                            <!-- Empty state: No catalogs yet, so no door factors will be displayed -->
-                                        @endforelse
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {{-- <div class="modal-body">
-                            <div class="container">
-                                <div class="row">
-                                    <!-- Left column: Catalog Checkboxes -->
-                                    <div class="col-lg-4">
-                                        <h6>Visibility To User</h6>
-                                        <hr>
-                                        <div class="form-group">
-                                            <div class="checkbox-group">
-                                                @foreach ($product_catalogs as $product_catalog)
-                                                    <div class="form-check">
-                                                        <input type="checkbox"
-                                                            name="catalog_visibility[{{ $product_catalog->id }}]"
-                                                            id="checkbox-primary-{{ $product_catalog->id }}"
-                                                            class="form-check-input product-catalog-checkbox"
-                                                            data-catalog-id="{{ $product_catalog->id }}"
-                                                            value="{{ $product_catalog->id }}"
-                                                            {{ in_array($product_catalog->id, $selected_catalogs) ? 'checked' : '' }}>
-                                                        <label class="form-check-label"
-                                                            for="checkbox-primary-{{ $product_catalog->id }}">
-                                                            {{ $product_catalog->name }}
-                                                        </label>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Right column: Door Colors & Factors -->
-                                    <div class="col-lg-8">
-                                        <h6>Door Point Factors</h6>
-                                        <hr>
-
-                                        @foreach ($product_catalogs as $product_catalog)
-                                            <div class="door-colors-container" data-catalog-id="{{ $product_catalog->id }}"
-                                                style="{{ in_array($product_catalog->id, $selected_catalogs) ? 'display:block;' : 'display:none;' }}">
-
-                                                @foreach ($door_colors->where('productCatalog.id', $product_catalog->id) as $door_color)
-                                                    <div class="mb-2 col-lg-12">
-                                                        <div class="form-group">
-                                                            <strong class="f-w-400">
-                                                                {{ $door_color->product_label }} -
-                                                                ({{ $door_color->productCatalog->name }})
-                                                            </strong>
-                                                            <input type="text"
-                                                                name="door_factors[{{ $product_catalog->id }}][{{ $door_color->id }}]"
-                                                                placeholder="Door Point Factor for {{ $door_color->product_label }}"
-                                                                class="form-control"
-                                                                value="{{ $existing_factors[$product_catalog->id]->where('door_style', $door_color->id)->first()->factor ?? '' }}">
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-
-                                            </div>
-                                        @endforeach
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div> --}}
-                    </div>
-                </div>
-            </div>
+            @include('tenants.users.partials.door-factor-modal', [
+                'selected_catalogs' => $selected_catalogs,
+                'doorFactorValue' => $doorFactorValue,
+                'modalTitle' => 'Edit Product Catalog Visibility & Point Factors',
+            ])
             <div class="m-2 row">
                 {{-- <a href="#" class="pull-right btn btn-outline-dark btn-md btn-import" data-toggle="tooltip">
                     + Product Catalog - (Door point Factors)
@@ -227,6 +98,15 @@
                                 </option>
                             @endforeach
                         </select>
+                    </div>
+                </div>
+
+                <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4 ">
+                    <div class="form-group">
+                        <strong>Point factor (commission):<span class="txt-danger">*</span></strong>
+                        <input type="number" step="0.0001" min="0" max="1" name="point_factor" id="user-point-factor"
+                            class="form-control b-r-0" value="{{ $user_point_factor ?? '' }}"
+                            placeholder="e.g. 0.24">
                     </div>
                 </div>
 
@@ -475,7 +355,7 @@
                     </div>
                 </div>
                 <div class="text-center col-xs-12 col-sm-12 col-md-12">
-                    <button type="submit" class="mt-2 mb-3 btn btn-primary btn-sm"> Update User</button>
+                    <button type="submit" class="mt-2 mb-3 btn btn-primary btn-sm" data-tc-user-submit>Update User</button>
                 </div>
             </div>
         </form>
@@ -662,6 +542,25 @@
                             "");
                     }
                 });
+            });
+        });
+    </script>
+    <script src="{{ tenant_panel_asset('js/tenant-user-door-factors.js') }}?v=1"></script>
+    <script src="{{ tenant_panel_asset('js/tenant-user-form.js') }}?v=1"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            TenantUserDoorFactors({
+                pointFactorDefaults: @json($point_factor_defaults ?? []),
+                roleDefaultUrl: @json(route('tenant_user_role_default')),
+                csrf: @json(csrf_token()),
+                getSelectedRole: function () {
+                    const el = document.getElementById('search_role');
+                    if (!el || !el.value) {
+                        return null;
+                    }
+                    const text = el.options[el.selectedIndex]?.text || '';
+                    return { id: el.value, text: text };
+                },
             });
         });
     </script>

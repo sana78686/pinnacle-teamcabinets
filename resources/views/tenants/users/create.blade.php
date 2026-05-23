@@ -48,87 +48,10 @@
 
     <div class="m-2 card-body tc-form-page">
         @include('partial.message')
-        <form method="POST" action="{{ route('tenant_user_store') }}">
+        <form method="POST" action="{{ route('tenant_user_store') }}" id="tenant-user-form" data-ajax="1"
+            data-redirect="{{ route('tenant_user_index') }}">
             @csrf
-            <!-- Product Catalog Visibility Modal -->
-            <div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-lg" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">Product Catalog Visibility & their Point Factors
-                            </h5>
-                            <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            @if ($door_factor_setup_incomplete ?? false)
-                                @include('partials.tenant-door-factor-setup-empty', [
-                                    'context' => 'modal',
-                                    'missingDefaults' => ! ($has_point_factor_defaults ?? false),
-                                    'missingCatalogs' => ! ($has_product_catalogs ?? false),
-                                    'missingDoorStyles' => ! ($has_door_styles ?? false),
-                                ])
-                            @else
-                            <div class="container">
-                                <div class="row">
-                                    <!-- Left column: Checkboxes -->
-                                    <div class="col-lg-4">
-                                        <h6>Visibility To User</h6>
-                                        <hr>
-                                        <div class="form-group">
-                                            <div class="checkbox-group">
-                                                @foreach ($product_catalogs as $product_catalog)
-                                                    <div class="form-check">
-                                                        <input type="checkbox"
-                                                            name="catalog_visibility[{{ $product_catalog->id }}]"
-                                                            id="checkbox-primary-{{ $product_catalog->id }}"
-                                                            class="form-check-input product-catalog-checkbox"
-                                                            data-catalog-id="{{ $product_catalog->id }}"
-                                                            value="{{ $product_catalog->id }}">
-                                                        <label class="form-check-label"
-                                                            for="checkbox-primary-{{ $product_catalog->id }}">
-                                                            {{ $product_catalog->name }}
-                                                        </label>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Right column: Door Colors -->
-                                    <div class="col-lg-8">
-                                        <h6>Door Point Factors</h6>
-                                        <hr>
-
-                                        @foreach ($product_catalogs as $product_catalog)
-                                            <div class="door-colors-container" data-catalog-id="{{ $product_catalog->id }}"
-                                                style="display: none;">
-                                                @foreach ($door_colors->where('productCatalog.id', $product_catalog->id) as $door_color)
-                                                    <div class="mb-2 col-lg-12">
-                                                        <div class="form-group">
-                                                            <strong class="f-w-400">{{ $door_color->product_label }} -
-                                                                ({{ $door_color->productCatalog->name }})
-                                                            </strong>
-                                                            <input type="text"
-                                                                name="door_factors[{{ $product_catalog->id }}][{{ $door_color->id }}]"
-                                                                placeholder="Door point factor for {{ $door_color->product_label }}"
-                                                                class="form-control door-factor-input"
-                                                                inputmode="decimal"
-                                                                autocomplete="off">
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                            @endif
-                        </div>
-
-                    </div>
-                </div>
-            </div>
+            @include('tenants.users.partials.door-factor-modal', ['selected_catalogs' => []])
             <div class="m-2 row">
                 {{-- <a href="#" class="pull-right btn btn-outline-dark btn-md btn-import" data-toggle="tooltip">
                     + Product Catalog - (Door point Factors)
@@ -173,6 +96,15 @@
                         <select class="js-example-basic-single col-sm-12 form-control b-r-0" id="search_role" name="role_id"
                             data-toggle="tooltip" title="Select the role of the user, such as Admin or Customer" autofocus>
                         </select>
+                    </div>
+                </div>
+                <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4 ">
+                    <div class="form-group">
+                        <strong>Point factor (commission):<span class="txt-danger">*</span></strong>
+                        <input type="number" step="0.0001" min="0" max="1" name="point_factor" id="user-point-factor"
+                            class="form-control b-r-0" placeholder="Auto-filled from role (e.g. 0.24)"
+                            data-toggle="tooltip" title="Commission point factor — auto-filled when you select a role">
+                        <small class="text-muted">Decimal under 1 (e.g. 0.24 = 24%). Filled from role default.</small>
                     </div>
                 </div>
                 <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
@@ -336,7 +268,7 @@
                     </div>
                 </div>
                 <div class="text-center col-xs-12 col-sm-12 col-md-12">
-                    <button type="submit" class="mt-2 mb-3 btn btn-primary btn-sm"> Create User</button>
+                    <button type="submit" class="mt-2 mb-3 btn btn-primary btn-sm" data-tc-user-submit>Create User</button>
                 </div>
             </div>
         </form>
@@ -553,183 +485,29 @@
             });
         });
     </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const catalogCheckboxes = document.querySelectorAll('.product-catalog-checkbox');
-            const doorColorsContainer = document.getElementById('door-colors-container');
-
-            catalogCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const catalogId = this.dataset.catalogId;
-                    const doorColorDivs = doorColorsContainer.querySelectorAll(
-                        `.catalog-door-colors[data-catalog-id="${catalogId}"]`
-                    );
-
-                    if (this.checked) {
-                        doorColorDivs.forEach(div => {
-                            div.style.display = 'block';
-                        });
-                    } else {
-                        doorColorDivs.forEach(div => {
-                            div.style.display = 'none';
-                        });
-                    }
-                });
-            });
-        });
-    </script>
-    <script>
-        $(document).ready(function() {
-            $(".btn-import").on("click", function(e) {
-                e.preventDefault();
-                var el = document.getElementById('importModal');
-                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                    bootstrap.Modal.getOrCreateInstance(el).show();
-                } else {
-                    $('#importModal').modal('show');
-                }
-            });
-            @if ($door_factor_setup_incomplete ?? false)
-            var importModalEl = document.getElementById('importModal');
-            if (importModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                bootstrap.Modal.getOrCreateInstance(importModalEl).show();
-            }
-            @endif
-        });
-    </script>
-
-    <script>
-        (function () {
-            const pointFactorDefaults = @json($point_factor_defaults ?? []);
-            const emptyState = document.getElementById('door-factor-empty');
-            const setState = document.getElementById('door-factor-set');
-            const countEl = document.getElementById('door-factor-count');
-            const applyDefaultBtn = document.getElementById('apply-default-factors');
-
-            function doorFactorInputs() {
-                return document.querySelectorAll('.door-factor-input');
-            }
-
-            function filledCount() {
-                let n = 0;
-                doorFactorInputs().forEach(function (input) {
-                    if (String(input.value || '').trim() !== '') {
-                        n++;
-                    }
-                });
-                return n;
-            }
-
-            function updateDoorFactorStatus() {
-                const count = filledCount();
-                if (!emptyState || !setState) {
-                    return;
-                }
-                if (count > 0) {
-                    emptyState.classList.add('d-none');
-                    setState.classList.remove('d-none');
-                    if (countEl) {
-                        countEl.textContent = String(count);
-                    }
-                } else {
-                    emptyState.classList.remove('d-none');
-                    setState.classList.add('d-none');
-                }
-            }
-
-            function roleDefaultKey(roleName) {
-                if (!roleName) {
-                    return null;
-                }
-                const base = String(roleName).toLowerCase().trim().replace(/\s+/g, '-');
-                if (pointFactorDefaults[base] !== undefined) {
-                    return base;
-                }
-                const plural = base.endsWith('s') ? base : base + 's';
-                if (pointFactorDefaults[plural] !== undefined) {
-                    return plural;
-                }
-                const singular = base.replace(/s$/, '');
-                if (pointFactorDefaults[singular] !== undefined) {
-                    return singular;
-                }
-                return null;
-            }
-
-            function applyDefaultFactors() {
-                const $role = $('#search_role');
-                const selected = $role.select2('data')[0];
-                const key = roleDefaultKey(selected ? selected.text : '');
-                if (!key) {
-                    return;
-                }
-                const value = pointFactorDefaults[key];
-                doorFactorInputs().forEach(function (input) {
-                    if (String(input.value || '').trim() === '') {
-                        input.value = value;
-                    }
-                });
-                updateDoorFactorStatus();
-            }
-
+    @if (! ($door_factor_setup_incomplete ?? false))
+        <script src="{{ tenant_panel_asset('js/tenant-user-door-factors.js') }}?v=1"></script>
+        <script src="{{ tenant_panel_asset('js/tenant-user-form.js') }}?v=1"></script>
+        <script>
             document.addEventListener('DOMContentLoaded', function () {
-                document.querySelectorAll('.product-catalog-checkbox').forEach(function (checkbox) {
-                    checkbox.addEventListener('change', function () {
-                        const catalogId = this.dataset.catalogId;
-                        const doorColorsContainer = document.querySelector(
-                            '.door-colors-container[data-catalog-id="' + catalogId + '"]'
-                        );
-                        if (!doorColorsContainer) {
-                            return;
-                        }
-                        if (this.checked) {
-                            doorColorsContainer.style.display = 'block';
-                        } else {
-                            doorColorsContainer.style.display = 'none';
-                            doorColorsContainer.querySelectorAll('.door-factor-input').forEach(function (input) {
-                                input.value = '';
-                            });
-                        }
-                        updateDoorFactorStatus();
-                    });
+                TenantUserDoorFactors({
+                    pointFactorDefaults: @json($point_factor_defaults ?? []),
+                    roleDefaultUrl: @json(route('tenant_user_role_default')),
+                    csrf: @json(csrf_token()),
+                    getSelectedRole: function () {
+                        const data = $('#search_role').select2('data');
+                        return data && data[0] ? { id: data[0].id, text: data[0].text } : null;
+                    },
                 });
-
-                doorFactorInputs().forEach(function (input) {
-                    input.addEventListener('input', updateDoorFactorStatus);
-                });
-
-                $('#search_role').on('select2:select', function (e) {
-                    const key = roleDefaultKey(e.params.data.text);
-                    if (applyDefaultBtn) {
-                        if (key) {
-                            applyDefaultBtn.classList.remove('d-none');
-                        } else {
-                            applyDefaultBtn.classList.add('d-none');
-                        }
-                    }
-                }).on('select2:clear', function () {
-                    if (applyDefaultBtn) {
-                        applyDefaultBtn.classList.add('d-none');
-                    }
-                });
-
-                if (applyDefaultBtn) {
-                    applyDefaultBtn.addEventListener('click', function () {
-                        const checked = document.querySelectorAll('.product-catalog-checkbox:checked');
-                        if (checked.length === 0) {
-                            var el = document.getElementById('importModal');
-                            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                                bootstrap.Modal.getOrCreateInstance(el).show();
-                            }
-                            alert('Select at least one product catalog, then apply default door factors.');
-                            return;
-                        }
-                        applyDefaultFactors();
-                    });
+                @if ($door_factor_setup_incomplete ?? false)
+                var importModalEl = document.getElementById('importModal');
+                if (importModalEl && window.bootstrap && bootstrap.Modal) {
+                    bootstrap.Modal.getOrCreateInstance(importModalEl).show();
                 }
-
-                updateDoorFactorStatus();
+                @endif
             });
-        })();
-    </script>
+        </script>
+    @else
+        <script src="{{ tenant_panel_asset('js/tenant-user-form.js') }}?v=1"></script>
+    @endif
 @endsection

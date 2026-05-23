@@ -10,13 +10,16 @@
                     <i data-feather="home"></i><span>Dashboard</span>
                 </a>
             </li>
-            <li class="tc-nav-has-children {{ request()->routeIs('tenant_user_*') ? 'tc-nav-active' : '' }}">
-                <a href="#"><i data-feather="users"></i><span>Users</span></a>
+            <li class="tc-nav-has-children {{ request()->routeIs('tenant_user_*') ? 'tc-nav-active' : '' }}" data-nav-module="users">
+                <a href="#">
+                    <i data-feather="users"></i><span>Users</span>
+                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['users'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="users" {{ (int) ($tcNavBadges['users'] ?? 0) <= 0 ? 'hidden' : '' }} aria-hidden="true"></span>
+                </a>
                 @include('layouts.tenant.partials.nav-dropdown', [
                     'title' => 'Users',
                     'items' => [
                         ['url' => route('tenant_user_create'), 'icon' => 'user-plus', 'label' => 'Create User'],
-                        ['url' => route('tenant_user_index'), 'icon' => 'list', 'label' => 'Users List'],
+                        ['url' => route('tenant_user_index'), 'icon' => 'list', 'label' => 'Users List', 'badge_key' => 'users_list'],
                     ],
                 ])
             </li>

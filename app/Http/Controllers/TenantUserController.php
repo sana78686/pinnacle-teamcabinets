@@ -42,16 +42,28 @@ use Maatwebsite\Excel\Facades\Excel;
 
 use Maatwebsite\Excel\Facades\Excel as FacadesExcel;
 use App\Services\AdminRecordViewService;
+use App\Services\TenantNavBadgeService;
 use App\Services\TenantNotificationService;
+use App\Services\UserDoorFactorService;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 use App\Support\TenantListPaginator;
 
 class TenantUserController extends Controller
 {
+    public function __construct(
+        protected UserDoorFactorService $doorFactors
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): View|JsonResponse
+    public function index(Request $request, TenantNavBadgeService $navBadges): View|JsonResponse
     {
+        if (Auth::user()?->hasRole('Admin')) {
+            $navBadges->markListSeen(Auth::user(), 'users_list');
+        }
+
         $savedColumns = UserColumnPreference::where('user_id', Auth::id())
             ->where('module', 'users')
             ->first();
@@ -124,7 +136,11 @@ class TenantUserController extends Controller
 
     protected function userListQuery(Request $request): Builder
     {
-        $query = User::query();
+        $query = User::query()
+            ->withCount([
+                'catalogVisibilities as catalogs_configured',
+                'doorFactors as door_styles_configured',
+            ]);
 
         $search = TenantListPaginator::search($request);
         if ($search !== '') {
@@ -187,36 +203,21 @@ class TenantUserController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreUserRequest $request): RedirectResponse|JsonResponse
     {
-        // Log::info('Request Data', $request->all());dd($request->header('Content-Type'));
-        // dd($request->all());
-
         try {
             $role = Role::where('id', $request->role_id)->orWhere('name', $request->role)->first();
-            Log::info('Role Found');
-            if (!$role) {
-                Log::info('Role Not Found');
-                return back()->with('error', 'Selected role does not exist.');
+            if (! $role) {
+                return $this->userFormErrorResponse($request, 'Selected role does not exist.');
             }
-            $validatedData = $request->validate([
-                'role_id'      => 'required',
-                'username'     => 'required',
-                'name'         => 'required',
-                'phone'        => 'required',
-                'email'        => 'required|email|unique:users,email',
-                'country_id'   => 'required',
-                'state_id'     => 'required',
-                'password'     => 'nullable|string|min:8',
-                // 'city_id'    => 'required',
-            ]);
 
+            $validatedData = $request->validated();
             $plainPassword = $request->filled('password')
                 ? (string) $request->password
                 : Str::password(12);
 
-            Log::info('Validated Data', $validatedData);
-            // dd($validatedData, $validatedData['name']);
+            $pointFactor = $this->doorFactors->resolvePointFactor($request, $role->name);
+
             $user = User::create([
                 'name' => $validatedData['name'],
                 'email' => $validatedData['email'],
@@ -225,32 +226,22 @@ class TenantUserController extends Controller
                 'phone' => $validatedData['phone'],
                 'country_id' => $validatedData['country_id'],
                 'state_id' => $validatedData['state_id'],
-                // 'city_id' => $validatedData['city_id'],
                 'city_name' => $request->city_name,
                 'county_name' => $request->county_name,
                 'zip_code' => $request->zip_code,
                 'address' => $request->address,
                 'note' => $request->note,
-                // 'is_taxable_user' => $request->is_taxable_user,
                 'company_name' => $request->business_name,
-                // 'gross_sale' => $request->gross_sale,
                 'status' => $request->status,
+                'point_factor' => $pointFactor,
                 'admin_viewed_at' => now(),
             ]);
 
-            Log::info('User Created');
-            if($request->is_taxable_user || $request->is_taxable_user === 'on')
-            {
-                $user->update([
-
-                'is_taxable_user' => 1,
-                ]);
+            if ($request->is_taxable_user || $request->is_taxable_user === 'on') {
+                $user->update(['is_taxable_user' => 1]);
             }
 
-            Log::info('Tax Exempted');
             $user->assignRole($role->name);
-
-            Log::info('Role Assigned');
 
             if ($request->status === 'approved') {
                 $user->update([
@@ -259,69 +250,20 @@ class TenantUserController extends Controller
                 ]);
             }
 
-            // DB::beginTransaction();
-            try {
-                // Ensure catalog_visibility exists
-                if ($request->has('catalog_visibility')) {
-                    foreach ($request->input('catalog_visibility', []) as $catalog_id) {
-                        // Save catalog visibility
-                        $catalogVisibility = UsersCatalogVisibility::create([
-                            'user_id' => $user->id,
-                            'catalog_id' => $catalog_id,
-                        ]);
+            $this->doorFactors->persistForUser($user, $request);
+            $this->sendUserRegisteredByAdminEmail($user, $plainPassword);
 
-                        Log::info('Catalog Provides');
+            $message = 'User created successfully. Login details were emailed to '.$user->email.'.';
 
-                        // Ensure door factors exist for this catalog
-                        if ($request->has("door_factors.$catalog_id")) {
-                            foreach ($request->input("door_factors.$catalog_id", []) as $door_color_id => $factor) {
-                                $factor = trim($factor); // Remove whitespace
-
-                                if (!empty($factor)) { // Save only if factor is not empty
-                                    UsersCatalogDoorPointFactor::create([
-                                        'user_catalog_visibility_id' => $catalogVisibility->id,
-                                        'user_id' => $user->id,
-                                        'catalog_id' => $catalog_id,
-                                        'door_style' => $door_color_id, // The door color ID
-                                        'factor' => $factor,
-                                    ]);
-
-                                    Log::info('Assigned Door Factors');
-                                }
-                            }
-                        }
-                    }
-                }
-
-                $this->sendUserRegisteredByAdminEmail($user, $plainPassword);
-
-                return redirect()->route('tenant_user_index')->with(
-                    'success',
-                    'User created successfully. Login details were emailed to '.$user->email.'.'
-                );
-            } catch (\Exception $e) {
-                // DB::rollBack(); // Rollback on failure
-
-                // **Log the error**
-                Log::error('Error in store method:', [
-                    'message' => $e->getMessage(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'trace' => $e->getTraceAsString()
-                ]);
-
-                session()->flash('error', 'User cannot be created. Reason: ' . $e->getMessage());
-                // Redirect back to the registration form
-                return redirect()->back();
-            }
-
-            return redirect()->route('tenant_user_index')
-            ->with('success', 'User created successfully');
+            return $this->userFormSuccessResponse($request, $message);
         } catch (\Exception $e) {
-            // Flash error message
-            session()->flash('error', 'User cannot be created. Reason: ' . $e->getMessage());
-            // Redirect back to the registration form
-            return redirect()->back();
+            Log::error('Error in store method:', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return $this->userFormErrorResponse($request, 'User cannot be created. Reason: '.$e->getMessage());
         }
     }
 
@@ -391,6 +333,15 @@ class TenantUserController extends Controller
         $data['existing_factors'] = UsersCatalogDoorPointFactor::where('user_id', $id)
                             ->get()
                             ->groupBy('catalog_id');
+        $data['point_factor_defaults'] = PointFactorDefault::query()
+            ->pluck('point_factor_percentage', 'user_type')
+            ->map(fn ($v) => (string) $v)
+            ->all();
+        $data['has_point_factor_defaults'] = count($data['point_factor_defaults']) > 0;
+        $data['has_product_catalogs'] = $data['product_catalogs']->isNotEmpty();
+        $data['has_door_styles'] = $data['door_colors']->isNotEmpty();
+        $data['user_point_factor'] = $data['user']->point_factor;
+
         foreach ($door_factors as $factor) {
         $existing_factors[$factor->catalog_id][$factor->door_style] = $factor->factor;
         }
@@ -406,114 +357,65 @@ class TenantUserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id): RedirectResponse
+    public function update(UpdateUserRequest $request, $id): RedirectResponse|JsonResponse
     {
-        // dd($request->all());
-        // Find the user by ID
         $user = User::find($id);
         $role = Role::where('id', $request->role_id)->orWhere('name', $request->role)->first();
 
-        if (!$user) {
-            return redirect()->route('tenant_user_index')->with('error', 'User not found.');
+        if (! $user) {
+            return $this->userFormErrorResponse($request, 'User not found.', route('tenant_user_index'));
         }
 
         if ($blocked = $this->adminUserManagementBlockedResponse($user)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Admin users cannot be edited here.'], 403);
+            }
+
             return $blocked;
         }
 
-        // Validate the request data
-        $validatedData = $request->validate([
-            'name' => 'required',
-            'email' => 'required|email',
-            'role_id' => 'required'
-        ]);
-        // If password is not provided, retain the old password
-        if (empty($validatedData['password'])) {
-            unset($validatedData['password']); // Remove password from data
-        } else {
-            $validatedData['password'] = Hash::make($validatedData['password']);
-        }
+        $request->validated();
 
-        $user->username         = $request->username;
-        $user->name         = $request->name;
-        $user->phone         = $request->phone;
-        $user->email         = $request->email;
-        $user->country_id         = $request->country_id;
-        $user->state_id         = $request->state_id;
-        $user->city_name         = $request->city_name;
-        $user->county_name         = $request->county_name;
-        $user->zip_code         = $request->zip_code;
-        $user->address         = $request->address;
-        $user->note            = $request->note;
-        $user->company_name    = $request->business_name;
-        $user->gross_sale      = $request->gross_sale;
-        $user->status          = $request->status;
+        $user->username = $request->username;
+        $user->name = $request->name;
+        $user->phone = $request->phone;
+        $user->email = $request->email;
+        $user->country_id = $request->country_id;
+        $user->state_id = $request->state_id;
+        $user->city_name = $request->city_name;
+        $user->county_name = $request->county_name;
+        $user->zip_code = $request->zip_code;
+        $user->address = $request->address;
+        $user->note = $request->note;
+        $user->company_name = $request->business_name;
+        $user->gross_sale = $request->gross_sale;
+        $user->status = $request->status;
+        $user->point_factor = $this->doorFactors->resolvePointFactor($request, $role?->name);
         $user->save();
-        // Update the user
-        // $user->update($validatedData);
 
         $user->update([
             'is_taxable_user' => ($request->is_taxable_user || $request->is_taxable_user === 'on') ? 1 : 0,
         ]);
 
-        if($request->password)
-        {
-            $user->update([
-
-            'password' => Hash::make($request->password),
-            ]);
+        if ($request->password) {
+            $user->update(['password' => Hash::make($request->password)]);
         }
 
-        Log::info('Tax Exempted');
-        // Remove old roles and assign new ones
         DB::table('model_has_roles')->where('model_id', $id)->delete();
         $user->assignRole($role->name);
 
-        DB::beginTransaction();
         try {
-            // Delete old catalog visibility records
-            UsersCatalogVisibility::where('user_id', $user->id)->forceDelete();
-            UsersCatalogDoorPointFactor::where('user_id', $user->id)->forceDelete();
+            $this->doorFactors->persistForUser($user, $request);
 
-            $catalogVisibility = $request->input('catalog_visibility', []);
-
-            foreach ($catalogVisibility as $catalog_id) {
-                $catalogVisibility = UsersCatalogVisibility::create([
-                    'user_id' => $user->id,
-                    'catalog_id' => $catalog_id,
-                ]);
-
-                // Ensure door factors exist for this catalog
-                if ($request->has("door_factors.$catalog_id")) {
-                    foreach ($request->input("door_factors.$catalog_id", []) as $door_color_id => $factor) {
-                        $factor = trim($factor); // Remove whitespace
-
-                        if (!empty($factor)) { // Save only if factor is not empty
-                            UsersCatalogDoorPointFactor::create([
-                                'user_catalog_visibility_id' => $catalogVisibility->id,
-                                'user_id' => $user->id,
-                                'catalog_id' => $catalog_id,
-                                'door_style' => $door_color_id,
-                                'factor' => $factor,
-                            ]);
-                        }
-                    }
-                }
-            }
-
-            DB::commit();
-            return redirect()->route('tenant_user_index')->with('success', 'Data updated successfully!');
+            return $this->userFormSuccessResponse($request, 'User updated successfully.');
         } catch (\Exception $e) {
-            DB::rollBack();
-
             Log::error('Error updating catalog visibility:', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->route('tenant_user_index')->with('error', 'An error occurred. Check logs for details.');
+            return $this->userFormErrorResponse($request, 'An error occurred while saving door factors.');
         }
     }
 
@@ -578,6 +480,13 @@ public function updateStatus(Request $request, $id)
     Log::info("Updating status for user ID: $id");
 
     $user = User::findOrFail($id);
+
+    if (tenant_user_has_admin_role($user)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Admin status cannot be changed from the user list.',
+        ]);
+    }
 
     $newStatus = $request->status;
 
@@ -644,6 +553,57 @@ public function updateStatus(Request $request, $id)
                 ->get();
 
         return response()->json($data);
+    }
+
+    public function roleDefault(Request $request): JsonResponse
+    {
+        $role = null;
+        if ($request->filled('role_id')) {
+            $role = Role::query()->find($request->query('role_id'));
+        }
+        if (! $role && $request->filled('role')) {
+            $role = Role::query()->where('name', $request->query('role'))->first();
+        }
+
+        if (! $role) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Role not found.',
+            ], 404);
+        }
+
+        $default = $this->doorFactors->roleDefaultFactor($role->name);
+
+        return response()->json([
+            'success' => true,
+            'role' => $role->name,
+            'default_factor' => $default,
+        ]);
+    }
+
+    protected function userFormSuccessResponse(Request $request, string $message): RedirectResponse|JsonResponse
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'redirect' => route('tenant_user_index'),
+            ]);
+        }
+
+        return redirect()->route('tenant_user_index')->with('success', $message);
+    }
+
+    protected function userFormErrorResponse(Request $request, string $message, ?string $redirectRoute = null): RedirectResponse|JsonResponse
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+            ], 422);
+        }
+
+        return redirect()->back()->with('error', $message);
     }
     public function countryAutoComplete(Request $request)
 

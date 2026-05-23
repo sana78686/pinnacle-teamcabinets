@@ -98,8 +98,14 @@
                             <div class="col-xs-12 col-sm-12 col-md-12">
                                 <div class="form-group">
                                     <strong>Name:</strong>
-                                    <input type="text" name="name" placeholder="Name" class="form-control"
-                                        value="{{ $role->name }}">
+                                    @if ($isProtected ?? false)
+                                        <input type="text" class="form-control" value="{{ $role->name }}" readonly>
+                                        <input type="hidden" name="name" value="{{ $role->name }}">
+                                        <small class="text-muted">System role names cannot be changed.</small>
+                                    @else
+                                        <input type="text" name="name" placeholder="Name" class="form-control"
+                                            value="{{ $role->name }}">
+                                    @endif
                                 </div>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12">

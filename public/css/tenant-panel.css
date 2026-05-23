@@ -2692,6 +2692,14 @@
     border-color: #e2e8f0;
 }
 
+.tc-user-status-select--readonly {
+    display: inline-block;
+    pointer-events: none;
+    cursor: default;
+    background-image: none;
+    padding-right: 0.65rem;
+}
+
 .tc-verify-pill {
     display: inline-flex;
     align-items: center;
@@ -3784,4 +3792,23 @@ button.tc-verify-pill {
         display: block;
         padding: 0 !important;
     }
+}
+
+.tc-commission-row--saved td {
+    background-color: #ecfdf5 !important;
+}
+
+.tc-commission-row--saving td {
+    opacity: 0.7;
+}
+
+.tc-door-factor-summary {
+    display: inline-block;
+    font-size: 0.8125rem;
+    color: #0f766e;
+    background: #ecfdf5;
+    border: 1px solid #99f6e4;
+    border-radius: 999px;
+    padding: 0.15rem 0.55rem;
+    white-space: nowrap;
 }

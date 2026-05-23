@@ -129,6 +129,41 @@ class Page extends Model
             });
     }
 
+    /** Tenant panel list: all pages except blog articles (includes system About/Blog/Contact pages). */
+    public function scopePanelList(Builder $query): Builder
+    {
+        $blogId = static::findBlogPage()?->id;
+
+        if (! $blogId) {
+            return $query;
+        }
+
+        return $query->where(function (Builder $q) use ($blogId) {
+            $q->whereNull('parent_id')
+                ->orWhere('parent_id', '!=', $blogId);
+        });
+    }
+
+    public function isReservedSystemPage(): bool
+    {
+        return $this->parent_id === null
+            && in_array($this->slug, self::reservedTopLevelSlugs(), true);
+    }
+
+    public function panelEditUrl(): string
+    {
+        if ($this->isBlogPost()) {
+            return route('pages.edit', $this->id);
+        }
+
+        return match ($this->slug) {
+            self::SLUG_ABOUT, 'about-us' => route('tenant_storefront_about'),
+            self::SLUG_BLOG => route('tenant_storefront_blog'),
+            'contact', 'contact-us' => route('tenant_contact_page_settings'),
+            default => route('pages.edit', $this->id),
+        };
+    }
+
     /** Blog posts (children of the blog index page). */
     public function scopeBlogPosts(Builder $query): Builder
     {

@@ -35,7 +35,7 @@
                                 <div class="form-group">
                                     <strong for="logo"
                                         title="Provide your website domain name (e.g., example.com).">Logo</strong>
-                                    <input class="form-control" id="logo" name="logo" type="file" required autofocus>
+                                    <input class="form-control" id="logo" name="logo" type="file" accept="image/*" required autofocus>
                                 </div>
 
                             </div>

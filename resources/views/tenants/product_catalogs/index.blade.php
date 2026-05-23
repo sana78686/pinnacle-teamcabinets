@@ -70,7 +70,7 @@
                                     <div class="form-group">
                                         <label class="form-label">Product Catalog Image</label>
                                         <input type="file" class="form-control" id="image" name="image"
-                                            accept="image/jpg,image/jpeg,image/png" required>
+                                            accept="image/*" required>
                                         <span class="err" style="color: red;"></span>
                                     </div>
                                 </div>
@@ -177,7 +177,7 @@
                                 </td>
                                 <td>
                                     @if ($catalog->pdf_url)
-                                        <a href="{{ route('tenant_product_catalog_pdf', $catalog->id) }}" class="btn btn-sm btn-outline-primary">
+                                        <a href="{{ route('tenant_product_catalog_pdf', $catalog->id) }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">
                                             <i class="fa-solid fa-file-pdf"></i> View PDF
                                         </a>
                                     @else
@@ -355,7 +355,7 @@
                                         ? `<img src="${item.image_url}" alt="" class="tc-catalog-thumb" width="56" height="56">`
                                         : '<span class="text-muted">—</span>';
                                     const pdfCell = item.pdf_view_url
-                                        ? `<a href="${item.pdf_view_url}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-file-pdf"></i> View PDF</a>`
+                                        ? `<a href="${item.pdf_view_url}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener"><i class="fa-solid fa-file-pdf"></i> View PDF</a>`
                                         : '<span class="text-muted">—</span>';
                                     row.innerHTML = `
                                     <td>${item.id}</td>

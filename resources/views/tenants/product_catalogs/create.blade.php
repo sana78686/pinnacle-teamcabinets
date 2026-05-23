@@ -30,20 +30,20 @@
             </div>
 
             <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
-                <div class="form-group">
-                    <label class="form-label">Product Catalog Image</label>
-                    <input type="file" class="form-control" id="image" name="image"
-                        accept="image/jpg,image/jpeg,image/png" required>
-                    <span class="err" style="color: red;"></span>
-                </div>
+                @include('layouts.tenant.partials.image-upload-field', [
+                    'name' => 'image',
+                    'label' => 'Product Catalog Image',
+                    'wrapperClass' => 'form-group',
+                ])
             </div>
 
             <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
-                <div class="form-group">
-                    <label class="form-label">Product Catalog PDF</label>
-                    <input type="file" class="form-control" id="pdf" name="pdf" accept="application/pdf">
-                    <span class="err" style="color: red;"></span>
-                </div>
+                @include('layouts.tenant.partials.image-upload-field', [
+                    'name' => 'pdf',
+                    'label' => 'Product Catalog PDF',
+                    'mediaType' => 'pdf',
+                    'wrapperClass' => 'form-group',
+                ])
             </div>
 
             <div class="text-center col-xs-12 col-sm-12 col-md-12">

@@ -8,6 +8,7 @@ use App\Models\Country;
 use App\Models\County;
 use App\Models\State;
 use App\Models\User;
+use App\Support\ImageUpload;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -55,7 +56,7 @@ class ProfileController extends Controller
             'zip_code' => 'nullable|string|max:20',
             'description' => 'nullable|string',
             'address' => 'nullable|string',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'logo' => ImageUpload::rule(),
         ]);
 
         // Handle logo upload
@@ -113,7 +114,7 @@ class ProfileController extends Controller
         try {
             // Validate form data
             $validator = Validator::make($request->all(), [
-                'logo'  => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'logo' => ImageUpload::rule(required: true),
                 'username'      => 'required|string|max:255|unique:users,username,' . Auth::id(),
                 'full_name'     => 'required|string|max:255',
                 'company_name'  => 'required|string|max:255',

@@ -28,7 +28,7 @@
                 <div class="form-group">
                     <label class="form-label">Customer Name</label>
                     <input type="" class="form-control" id="catalogue_image" name="catalogue_image"
-                        accept="image/jpg,image/jpeg,image/png" required>
+                        accept="image/*" required>
                     <span class="err" style="color: red;"></span>
                 </div>
             </div>
@@ -36,7 +36,7 @@
                 <div class="form-group">
                     <label class="form-label">Invoice number </label>
                     <input type="" class="form-control" id="catalogue_image" name="catalogue_image"
-                        accept="image/jpg,image/jpeg,image/png" required>
+                        accept="image/*" required>
                     <span class="err" style="color: red;"></span>
                 </div>
             </div>
@@ -51,7 +51,7 @@
                 <div class="form-group">
                     <label class="form-label">Invoice Date</label>
                     <input type="" class="form-control" id="catalogue_image" name="catalogue_image"
-                        accept="image/jpg,image/jpeg,image/png" required>
+                        accept="image/*" required>
                     <span class="err" style="color: red;"></span>
                 </div>
             </div>

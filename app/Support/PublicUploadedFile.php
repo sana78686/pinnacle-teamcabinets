@@ -8,10 +8,19 @@ use Illuminate\Support\Facades\Storage;
 
 class PublicUploadedFile
 {
-    /** Delete a file stored under public/ or on a Laravel disk. */
+    public static function isExternalUrl(?string $path): bool
+    {
+        if ($path === null || $path === '') {
+            return false;
+        }
+
+        return str_starts_with($path, 'http://') || str_starts_with($path, 'https://');
+    }
+
+    /** Delete a file stored under public/ or on a Laravel disk (skips external URLs). */
     public static function delete(?string $relativePath, ?string $disk = null): void
     {
-        if (! $relativePath) {
+        if (! $relativePath || self::isExternalUrl($relativePath)) {
             return;
         }
 
@@ -30,37 +39,67 @@ class PublicUploadedFile
     }
 
     /**
-     * Apply remove flag, new upload, or keep the current path.
+     * Apply remove flag, file upload, external URL, or keep current path.
      *
-     * @return string|null Updated relative path (null when removed)
+     * @return string|null Updated path or external URL (null when removed)
      */
     public static function resolve(
         Request $request,
         string $field,
         ?string $currentPath,
         ?string $uploadDir = null,
-        ?string $disk = null
+        ?string $disk = null,
+        ?string $urlField = null
     ): ?string {
+        return self::resolveMedia($request, $field, $currentPath, $uploadDir, $disk, $urlField);
+    }
+
+    /**
+     * @return string|null Updated path or external URL (null when removed)
+     */
+    public static function resolveMedia(
+        Request $request,
+        string $field,
+        ?string $currentPath,
+        ?string $uploadDir = null,
+        ?string $disk = null,
+        ?string $urlField = null
+    ): ?string {
+        $urlField = $urlField ?? $field.'_url';
+        $url = trim((string) $request->input($urlField, ''));
+
         if ($request->boolean('remove_'.$field)) {
             self::delete($currentPath, $disk);
 
             return null;
         }
 
-        if (! $request->hasFile($field)) {
-            return $currentPath;
+        if ($request->hasFile($field)) {
+            self::delete($currentPath, $disk);
+
+            return self::storeUpload($request->file($field), $uploadDir, $disk);
         }
 
-        self::delete($currentPath, $disk);
+        if ($url !== '') {
+            if ($currentPath && ! self::isExternalUrl($currentPath)) {
+                self::delete($currentPath, $disk);
+            }
 
-        $file = $request->file($field);
+            return $url;
+        }
+
+        return $currentPath;
+    }
+
+    protected static function storeUpload(?UploadedFile $file, ?string $uploadDir, ?string $disk): ?string
+    {
         if (! $file instanceof UploadedFile || ! $uploadDir) {
-            return $currentPath;
+            return null;
         }
+
+        $filename = time().'_'.preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
 
         if ($disk) {
-            $filename = time().'_'.preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
-
             return $file->storeAs(trim($uploadDir, '/'), $filename, $disk);
         }
 
@@ -69,7 +108,6 @@ class PublicUploadedFile
             mkdir($dir, 0755, true);
         }
 
-        $filename = time().'_'.preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
         $file->move($dir, $filename);
 
         return trim($uploadDir, '/').'/'.$filename;

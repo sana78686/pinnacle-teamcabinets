@@ -21,16 +21,16 @@
                 @include('layouts.tenant.partials.image-upload-field', [
                     'name' => 'logo',
                     'label' => 'Logo',
-                    'previewUrl' => ($settings && $settings->logo) ? tenant_static_asset($settings->logo) : null,
+                    'currentPath' => $settings->logo ?? null,
                 ])
             </div>
             <div class="col-md-6 col-lg-3">
                 @include('layouts.tenant.partials.image-upload-field', [
                     'name' => 'favicon',
                     'label' => 'Favicon',
-                    'previewUrl' => ($settings && $settings->favicon) ? tenant_static_asset($settings->favicon) : null,
+                    'currentPath' => $settings->favicon ?? null,
                     'previewClass' => 'tc-settings-preview-img tc-settings-preview-img--favicon',
-                    'hint' => 'Shown in browser tab on your public site (32×32 or 64×64 PNG recommended).',
+                    'hint' => 'Shown in browser tab (32×32 or 64×64 PNG recommended). Upload or paste a link.',
                 ])
             </div>
             <div class="col-md-6 col-lg-3">
@@ -122,7 +122,7 @@
                 @include('layouts.tenant.partials.image-upload-field', [
                     'name' => 'og_image',
                     'label' => 'Open Graph image',
-                    'previewUrl' => ($settings && $settings->og_image) ? tenant_static_asset($settings->og_image) : null,
+                    'currentPath' => $settings->og_image ?? null,
                 ])
             </div>
         </div>

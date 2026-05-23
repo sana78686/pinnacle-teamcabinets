@@ -6,6 +6,7 @@ use App\Exports\BulletinExport;
 use App\Imports\BulletinImport;
 use App\Models\Bulletin;
 use Illuminate\Http\Request;
+use App\Support\MediaUpload;
 use App\Support\PublicUploadedFile;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -38,12 +39,15 @@ class TenantBulletinController extends Controller
         $bulletin->user_option = $request->user_option;
         $bulletin->bulletin_title = $request->bulletin_title;
         $bulletin->bulletin_description = $request->bulletin_description;
-        if($request->hasFile('image')){
-            $file = $request->file('image');
-            $fileName = time().'_'.$file->getClientOriginalExtension();
-            $filepath =$file->storeAs('images',$fileName,'public');
-            $bulletin->image=$filepath;
-        }
+        $request->validate(MediaUpload::imageOrPdfFieldRules('image'));
+
+        $bulletin->image = PublicUploadedFile::resolve(
+            $request,
+            'image',
+            null,
+            'images',
+            'public'
+        );
         $bulletin->save();
         return redirect()->back();
     }
@@ -72,6 +76,8 @@ class TenantBulletinController extends Controller
     public function update(Request $request, string $id)
     {
         $bulletin = Bulletin::findOrFail($id);
+
+        $request->validate(MediaUpload::imageOrPdfFieldRules('image'));
 
         $bulletin->user_option = $request->user_option;
         $bulletin->bulletin_title = $request->bulletin_title;

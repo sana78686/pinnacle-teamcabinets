@@ -12,6 +12,7 @@ use App\Services\ManageOtherPageContentService;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use App\Models\SalesTaxCounty;
+use App\Support\MediaUpload;
 use App\Support\PublicUploadedFile;
 use App\Support\TenantListPaginator;
 use App\Services\SalesTaxCountiesService;
@@ -148,14 +149,14 @@ class TenantSettingController extends Controller
 {
     // 🔹 Validate inputs
     $request->validate([
-        'logo' => 'nullable|image|max:2048',
-        'favicon' => 'nullable|image|max:1024',
-        'og_image' => 'nullable|image|max:4096',
+        ...MediaUpload::imageFieldRules('logo'),
+        ...MediaUpload::imageFieldRules('favicon', 1024),
+        ...MediaUpload::imageFieldRules('og_image', 4096),
         'site_meta_title' => 'nullable|string|max:255',
         'site_meta_description' => 'nullable|string|max:1000',
         'site_meta_keywords' => 'nullable|string|max:500',
-        'banner_image' => 'nullable|image|max:4096',
-        'aboutus_image' => 'nullable|image|max:4096',
+        ...MediaUpload::imageFieldRules('banner_image', 4096),
+        ...MediaUpload::imageFieldRules('aboutus_image', 4096),
         'phone' => 'required|string|max:20',
         'contactus_phone' => 'nullable|string|max:20',
         'newuser_phone' => 'nullable|string|max:20',

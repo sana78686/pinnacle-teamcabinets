@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tenant;
+use App\Support\ImageUpload;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -101,7 +102,7 @@ $tenantCount = $tenant->count();
         try {
             // Validate form data
             $validator = Validator::make($request->all(), [
-                'company_logo'  => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'company_logo' => ImageUpload::rule(required: true),
                 'username'      => 'required|string|max:255|unique:users,username,' . Auth::id(),
                 'full_name'     => 'required|string|max:255',
                 'company_name'  => 'required|string|max:255',

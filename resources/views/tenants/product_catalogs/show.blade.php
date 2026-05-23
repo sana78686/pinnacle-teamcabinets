@@ -40,7 +40,7 @@
                             <th>Product Catalog PDF</th>
                             <td>
                                 @if ($product_catalog->pdf_url)
-                                    <a href="{{ route('tenant_product_catalog_pdf', $product_catalog->id) }}" class="btn btn-sm btn-outline-primary">
+                                    <a href="{{ route('tenant_product_catalog_pdf', $product_catalog->id) }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">
                                         <i class="fa-solid fa-file-pdf"></i> View PDF
                                     </a>
                                 @else

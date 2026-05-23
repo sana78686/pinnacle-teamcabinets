@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProductCatalog;
+use App\Support\MediaUpload;
+use App\Support\PublicUploadedFile;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -29,19 +31,12 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $data = $request->validate(array_merge([
             'name' => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg',
-            'pdf' => 'nullable|mimes:pdf',
-        ]);
+        ], MediaUpload::imageFieldRules('image'), MediaUpload::pdfFieldRules('pdf')));
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('product_catalogs/images', 'public');
-        }
-
-        if ($request->hasFile('pdf')) {
-            $data['pdf'] = $request->file('pdf')->store('product_catalogs/pdfs', 'public');
-        }
+        $data['image'] = PublicUploadedFile::resolve($request, 'image', null, 'product_catalogs/images', 'public');
+        $data['pdf'] = PublicUploadedFile::resolve($request, 'pdf', null, 'product_catalogs/pdfs', 'public');
 
         ProductCatalog::create($data);
         return response()->json(['success' => 'Catalog created successfully']);
@@ -64,20 +59,13 @@ class ProductController extends Controller
 
         $catalog = ProductCatalog::findOrFail($id);
 
-        $data = $request->validate([
+        $data = $request->validate(array_merge([
             'name' => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg',
-            'pdf' => 'nullable|mimes:pdf',
             'status' => 'required|boolean',
-        ]);
+        ], MediaUpload::imageFieldRules('image'), MediaUpload::pdfFieldRules('pdf')));
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('product_catalogs/images', 'public');
-        }
-
-        if ($request->hasFile('pdf')) {
-            $data['pdf'] = $request->file('pdf')->store('product_catalogs/pdfs', 'public');
-        }
+        $data['image'] = PublicUploadedFile::resolve($request, 'image', $catalog->image, 'product_catalogs/images', 'public');
+        $data['pdf'] = PublicUploadedFile::resolve($request, 'pdf', $catalog->pdf, 'product_catalogs/pdfs', 'public');
 
         $catalog->update($data);
         return response()->json(['success' => 'Catalog updated successfully']);

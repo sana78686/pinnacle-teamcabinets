@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\HomeSetting;
+use App\Support\MediaUpload;
 use App\Support\PublicUploadedFile;
 use Illuminate\Support\Facades\Schema;
 
@@ -23,8 +24,8 @@ class HomeSettingsController extends Controller
 {
     // 🔹 Validate inputs
     $request->validate([
-        'banner_image' => 'nullable|image|max:2048',
-        'aboutus_image' => 'nullable|image|max:2048',
+        ...MediaUpload::imageFieldRules('banner_image'),
+        ...MediaUpload::imageFieldRules('aboutus_image'),
 
         'benner_title' => 'nullable|string|max:255',
         'benner_description' => 'nullable|string|max:65000',

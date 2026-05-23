@@ -13,11 +13,12 @@
 
 @section('setting_content')
 @include('layouts.tenant.partials.website-designing-nav')
+@include('partial.message')
 
     <div class="tc-settings-toolbar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <div>
             <h5 class="mb-1 tc-settings-form-title">Pages</h5>
-            <p class="mb-0 text-muted tc-field-hint">Custom storefront pages only. Use <strong>Articles</strong> for blog posts and <strong>About Us</strong> for your about page.</p>
+            <p class="mb-0 text-muted tc-field-hint">Custom pages and system pages (About, Blog, Contact). Use <strong>Articles</strong> for blog posts. Avoid reserved slugs like <code>about</code>, <code>blog</code>, <code>contact</code> when creating new pages.</p>
         </div>
         <a href="{{ route('pages.create') }}" class="btn btn-primary btn-sm">
             <i data-feather="plus" class="tc-btn-icon"></i> Create Page
@@ -41,7 +42,14 @@
                 @forelse ($pages as $page)
                     <tr>
                         <td>{{ $page->id }}</td>
-                        <td>{{ $page->title }}</td>
+                        <td>
+                            {{ $page->title }}
+                            @if ($page->isReservedSystemPage())
+                                <span class="badge badge-info ms-1">System</span>
+                            @elseif ($page->parent_id)
+                                <span class="badge badge-light border ms-1">Child</span>
+                            @endif
+                        </td>
                         <td><code>{{ $page->slug }}</code></td>
                         <td>{{ $page->parent?->title ?? '—' }}</td>
                         <td>
@@ -51,13 +59,15 @@
                         </td>
                         <td>{{ $page->order_no }}</td>
                         <td class="text-end text-nowrap">
-                            <a href="{{ route('pages.edit', $page->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                            <form method="POST" action="{{ route('pages.destroy', $page->id) }}" class="d-inline"
-                                onsubmit="return confirm('Delete this page?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                            </form>
+                            <a href="{{ $page->panelEditUrl() }}" class="btn btn-warning btn-sm">Edit</a>
+                            @unless ($page->isReservedSystemPage())
+                                <form method="POST" action="{{ route('pages.destroy', $page->id) }}" class="d-inline"
+                                    onsubmit="return confirm('Delete this page?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            @endunless
                         </td>
                     </tr>
                 @empty

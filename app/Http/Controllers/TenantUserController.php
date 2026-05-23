@@ -14,6 +14,8 @@ use App\Mail\UserAccountDeactivationMail;
 use App\Mail\UserRegisteredByAdminMail;
 use Illuminate\Support\Facades\Mail;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -41,16 +43,15 @@ use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Facades\Excel as FacadesExcel;
 use App\Services\AdminRecordViewService;
 use App\Services\TenantNotificationService;
+use App\Support\TenantListPaginator;
 
 class TenantUserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|JsonResponse
     {
-        $query = User::query();
-
         $savedColumns = UserColumnPreference::where('user_id', Auth::id())
             ->where('module', 'users')
             ->first();
@@ -59,16 +60,75 @@ class TenantUserController extends Controller
 
         $data['columns'] = $savedColumns ? json_decode($savedColumns->columns, true) : $defaultColumns;
 
-        if ($request->filled('name')) {
-            $query->where('name', 'LIKE', '%'.$request->name.'%');
+        $search = TenantListPaginator::search($request);
+        $perPage = TenantListPaginator::perPage($request);
+        $users = $this->userListQuery($request)->latest()->paginate($perPage)->withQueryString();
+
+        $data['users'] = $users;
+        $data['search'] = $search;
+        $data['perPage'] = $perPage;
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'rows' => view('tenants.users.partials.list-rows', [
+                    'users' => $users,
+                    'search' => $search,
+                ])->render(),
+                'pagination' => $users->total() > 0
+                    ? view('partials.tenant-pagination', ['paginator' => $users])->render()
+                    : '',
+                'meta' => [
+                    'total' => $users->total(),
+                    'from' => $users->firstItem() ?? 0,
+                    'to' => $users->lastItem() ?? 0,
+                ],
+                'url' => $users->url($users->currentPage()),
+            ]);
         }
 
-        if ($request->filled('username')) {
-            $query->where('username', 'LIKE', '%'.$request->username.'%');
+        return view('tenants.users.index', $data);
+    }
+
+    public function autocomplete(Request $request): JsonResponse
+    {
+        $q = trim((string) $request->get('q', ''));
+        if (strlen($q) < 2) {
+            return response()->json([]);
         }
 
-        if ($request->filled('email')) {
-            $query->where('email', 'LIKE', '%'.$request->email.'%');
+        $users = User::query()
+            ->where(function (Builder $query) use ($q) {
+                $this->applyUserListSearch($query, $q);
+            })
+            ->with('roles')
+            ->select(['id', 'name', 'username', 'email'])
+            ->limit(12)
+            ->get();
+
+        return response()->json($users->map(function (User $user) {
+            $role = $user->getRoleNames()->first() ?? 'N/A';
+
+            return [
+                'id' => $user->id,
+                'label' => $user->name ?: ($user->username ?: $user->email),
+                'subtitle' => trim(($user->email ?? '').' · '.$role, ' · '),
+                'value' => $user->name ?: ($user->username ?: $user->email),
+            ];
+        })->values());
+    }
+
+    public function search(Request $request): JsonResponse
+    {
+        return $this->autocomplete($request);
+    }
+
+    protected function userListQuery(Request $request): Builder
+    {
+        $query = User::query();
+
+        $search = TenantListPaginator::search($request);
+        if ($search !== '') {
+            $this->applyUserListSearch($query, $search);
         }
 
         if ($request->query('verified') === '0') {
@@ -77,26 +137,20 @@ class TenantUserController extends Controller
             $query->where('is_verified_by_admin', true);
         }
 
-        $data['users'] = $query->latest()->paginate(tenant_list_per_page())->withQueryString();
-
-        return view('tenants.users.index', $data);
+        return $query;
     }
 
-    public function search(Request $request)
+    protected function applyUserListSearch(Builder $query, string $search): void
     {
-        $field = $request->field;
-        $query = $request->query('query', '');
-
-        if (!in_array($field, ['name', 'username', 'email'])) {
-            return response()->json([], 400);
-        }
-
-
-        $results = User::where($field, 'LIKE', '%' . $query . '%')
-            ->select('id', 'name', 'username', 'email')
-            ->get();
-
-        return response()->json($results);
+        $term = '%'.$search.'%';
+        $query->where(function ($q) use ($term) {
+            $q->where('name', 'like', $term)
+                ->orWhere('username', 'like', $term)
+                ->orWhere('email', 'like', $term)
+                ->orWhereHas('roles', function ($roleQuery) use ($term) {
+                    $roleQuery->where('name', 'like', $term);
+                });
+        });
     }
 
     /**
@@ -301,10 +355,15 @@ class TenantUserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id, AdminRecordViewService $adminView): View
+    public function edit($id, AdminRecordViewService $adminView): View|RedirectResponse
     {
         $data = [];
         $edit_user = User::findOrFail($id);
+
+        if ($blocked = $this->adminUserManagementBlockedResponse($edit_user)) {
+            return $blocked;
+        }
+
         $adminView->markViewed($edit_user, Auth::user());
         $data['user'] = User::with(['catalogVisibilities'])->find($id); // Eager load the catalogVisibilities relationship
         $data['product_catalogs'] = ProductCatalog::where('status', 1)->get();
@@ -356,6 +415,10 @@ class TenantUserController extends Controller
 
         if (!$user) {
             return redirect()->route('tenant_user_index')->with('error', 'User not found.');
+        }
+
+        if ($blocked = $this->adminUserManagementBlockedResponse($user)) {
+            return $blocked;
         }
 
         // Validate the request data
@@ -468,6 +531,10 @@ class TenantUserController extends Controller
         // Find the user by ID
         $user = User::findOrFail($id);
 
+        if ($blocked = $this->adminUserManagementBlockedResponse($user)) {
+            return $blocked;
+        }
+
         //update status to "block"  before status
 
         $user->status="block";
@@ -514,17 +581,18 @@ public function updateStatus(Request $request, $id)
 
     $newStatus = $request->status;
 
-    if (!in_array($newStatus, ['active', 'deactive'])) {
+    $allowed = array_keys(tenant_user_status_options());
+    if (! in_array($newStatus, $allowed, true)) {
         return response()->json(['success' => false, 'message' => 'Invalid status']);
     }
 
+    $previousStatus = $user->status;
     $user->status = $newStatus;
     $user->save();
 
-    // ✅ Send the appropriate email based on new status
-    if ($newStatus === 'active') {
+    if ($newStatus === 'active' && $previousStatus !== 'active') {
         Mail::to($user->email)->send(new UserAccountActivationMail($user));
-    } elseif ($newStatus === 'deactive') {
+    } elseif ($newStatus === 'deactive' && $previousStatus !== 'deactive') {
         Mail::to($user->email)->send(new UserAccountDeactivationMail($user));
         TenantNotificationService::accountDeactivated($user);
     }
@@ -534,6 +602,17 @@ public function updateStatus(Request $request, $id)
         'message' => 'User status updated successfully.'
     ]);
 }
+
+    protected function adminUserManagementBlockedResponse(User $user): ?RedirectResponse
+    {
+        if (! tenant_user_has_admin_role($user)) {
+            return null;
+        }
+
+        return redirect()
+            ->route('tenant_user_index')
+            ->with('error', 'Admin users cannot be edited or deleted here. Update your account from Settings → Profile.');
+    }
 
     protected function sendUserRegisteredByAdminEmail(User $user, string $plainPassword): void
     {

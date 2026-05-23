@@ -20,7 +20,7 @@
                 @include('layouts.tenant.partials.image-upload-field', [
                     'name' => 'banner_image',
                     'label' => 'Banner Image or Video',
-                    'previewUrl' => ($settings && $settings->banner_image) ? asset($settings->banner_image) : null,
+                    'currentPath' => $settings->banner_image ?? null,
                     'accept' => 'image/*,video/*',
                 ])
             </div>
@@ -52,7 +52,7 @@
                 @include('layouts.tenant.partials.image-upload-field', [
                     'name' => 'aboutus_image',
                     'label' => 'About Us Image',
-                    'previewUrl' => ($settings && $settings->aboutus_image) ? asset($settings->aboutus_image) : null,
+                    'currentPath' => $settings->aboutus_image ?? null,
                 ])
             </div>
             <div class="col-md-8">
@@ -210,6 +210,6 @@
 @endsection
 
 @section('setting_script')
-<script src="{{ tenant_static_asset('js/tenant-image-upload.js') }}?v=1"></script>
+<script src="{{ tenant_static_asset('js/tenant-image-upload.js') }}?v=2"></script>
 <script src="{{ tenant_static_asset('js/tenant-website-faqs.js') }}?v=1"></script>
 @endsection

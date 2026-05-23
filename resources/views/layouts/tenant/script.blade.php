@@ -52,6 +52,6 @@
 @endif
 <script src="{{ $panelAsset('js/tenant-panel-search.js') }}?v=1"></script>
 <script src="{{ $panelAsset('js/tenant-panel-mobile.js') }}?v=1"></script>
-<script src="{{ $panelAsset('js/tenant-image-upload.js') }}?v=1"></script>
+<script src="{{ $panelAsset('js/tenant-image-upload.js') }}?v=2"></script>
 @endauth
 <!-- Plugin used-->

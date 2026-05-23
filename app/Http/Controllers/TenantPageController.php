@@ -29,9 +29,10 @@ class TenantPageController extends Controller
     public function index()
     {
         $pages = Page::query()
-            ->cmsOnly()
+            ->panelList()
             ->with('parent')
             ->orderBy('order_no')
+            ->orderBy('title')
             ->paginate(tenant_list_per_page())
             ->withQueryString();
 
@@ -65,16 +66,29 @@ class TenantPageController extends Controller
     public function store(Request $request)
     {
         $tenantId = tenant('id');
+        if (! $tenantId) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Tenant context was lost. Refresh the page and try again.');
+        }
+
         $slug = Str::slug((string) $request->input('slug', ''));
 
         $request->merge(['slug' => $slug]);
 
         $request->validate([
-            'title' => 'required',
+            'title' => 'required|string|max:255',
             'slug' => [
                 'required',
-                Rule::unique('pages', 'slug')->where(fn ($q) => $q->where('tenant_id', $tenantId)),
+                'string',
+                'max:255',
+                Rule::unique(Page::class, 'slug')->where(fn ($q) => $q->where('tenant_id', $tenantId)),
             ],
+            'content' => 'nullable|string',
+            'status' => 'required|in:draft,published',
+            'order_no' => 'nullable|integer|min:0',
+            'parent_id' => 'nullable|integer|exists:pages,id',
         ]);
 
         $blog = Page::findBlogPage();
@@ -118,11 +132,22 @@ class TenantPageController extends Controller
                 ->withErrors(['slug' => 'That URL is reserved for a system page (About, Blog, Contact). Use the matching section under Website Designing.']);
         }
 
-        Page::create(array_merge($request->only((new Page)->getFillable()), [
-            'tenant_id' => $tenantId,
-            'slug' => $slug,
-            'parent_id' => $isArticle ? $blog->id : ($parentId ?: null),
-        ]));
+        try {
+            $page = Page::create(array_merge($request->only((new Page)->getFillable()), [
+                'tenant_id' => $tenantId,
+                'slug' => $slug,
+                'parent_id' => $isArticle ? $blog->id : ($parentId ?: null),
+                'order_no' => (int) $request->input('order_no', 0),
+                'status' => $request->input('status', 'draft'),
+            ]));
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Could not save the page. Please try again.');
+        }
 
         if ($isArticle) {
             return redirect()
@@ -130,7 +155,9 @@ class TenantPageController extends Controller
                 ->with('success', 'Article saved successfully.');
         }
 
-        return redirect()->route('pages.index')->with('success', 'Page created successfully.');
+        return redirect()
+            ->route('pages.index')
+            ->with('success', 'Page "'.$page->title.'" created successfully.');
     }
 
     public function edit(Page $page)
@@ -363,7 +390,7 @@ class TenantPageController extends Controller
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:1000',
             'meta_keywords' => 'nullable|string|max:500',
-            'og_image' => 'nullable|image|max:4096',
+            ...\App\Support\MediaUpload::imageFieldRules('og_image', 4096),
         ]);
 
         $data = $request->only((new Page)->getFillable());

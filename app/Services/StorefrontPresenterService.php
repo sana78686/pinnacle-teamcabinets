@@ -34,7 +34,7 @@ class StorefrontPresenterService
             return null;
         }
 
-        return tenant_static_asset(ltrim($path, '/'));
+        return tenant_media_url($path);
     }
 
     public function companyName(): string

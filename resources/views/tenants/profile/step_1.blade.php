@@ -51,7 +51,7 @@
                                             <label for="logo"
                                                 title="Provide your website domain name (e.g., example.com).">Company
                                                 Logo</label>
-                                            <input class="form-control" id="logo" name="logo" type="file"
+                                            <input class="form-control" id="logo" name="logo" type="file" accept="image/*"
                                                 autofocus>
                                         </div>
 

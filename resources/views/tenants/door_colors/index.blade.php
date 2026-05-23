@@ -21,18 +21,20 @@
 @endsection
 @section('products_content')
 
- <!-- Button to open modal -->
-<button class="btn btn-info btn-sm" data-toggle="modal" data-target="#doorColorModal">Add Door Color</button>
+<button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#doorColorModal">
+    Add Door Color
+</button>
+<a href="{{ route('tenant_door_style_create') }}" class="btn btn-sm btn-light ms-2">Open full form</a>
 
 <!-- Modal -->
-<div class="modal fade" id="doorColorModal" tabindex="-1" role="dialog" aria-labelledby="doorColorModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="doorColorModal" tabindex="-1" aria-labelledby="doorColorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
         <form id="doorColorForm" enctype="multipart/form-data">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Create Door Color</h5>
+                    <h5 class="modal-title" id="doorColorModalLabel">Create door style</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <!-- Catalog Dropdown -->
@@ -52,11 +54,11 @@
                         <input type="text" name="product_label" id="product_label" class="form-control" required>
                     </div>
 
-                    <!-- Image -->
-                    <div class="form-group">
-                        <label for="image">Image</label>
-                        <input type="file" name="image" id="image" class="form-control">
-                    </div>
+                    @include('layouts.tenant.partials.image-upload-field', [
+                        'name' => 'image',
+                        'label' => 'Image',
+                        'wrapperClass' => 'form-group',
+                    ])
 
                     <!-- Status -->
                     <div class="form-group form-check">
@@ -70,8 +72,8 @@
                 </div>
 
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success">Save</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </form>
@@ -97,7 +99,7 @@
                     <td>{{ $doorColor->product_label }}</td>
                     <td>
                         @if($doorColor->image)
-                            <img src="{{ asset($doorColor->image) }}" alt="Image" width="50">
+                            <img src="{{ tenant_media_url($doorColor->image) }}" alt="Image" width="50">
                         @else
                             N/A
                         @endif
@@ -136,53 +138,63 @@
 
 @endsection
 @section('products_script')
-    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-    {{-- <script src="{{ route('/') }}/assets/main/js/datatable/datatables/jquery.dataTables.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.buttons.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/jszip.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/buttons.colVis.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/pdfmake.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/vfs_fonts.js"></script> --}}
- <script>
-    $('#doorColorForm').on('submit', function(e) {
-    e.preventDefault();
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('doorColorForm');
+    const modalEl = document.getElementById('doorColorModal');
+    if (!form) {
+        return;
+    }
 
-    const form = this;
-    const formData = new FormData(form);
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
 
-    // Clear old errors
-    $('#formErrors').addClass('d-none').html('');
+        const formData = new FormData(form);
+        const errorsBox = document.getElementById('formErrors');
+        errorsBox.classList.add('d-none');
+        errorsBox.innerHTML = '';
 
-    $.ajax({
-        url: "{{ route('tenant_door_style_store') }}", // Make sure the route matches
-        method: "POST",
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(res) {
-            $('#doorColorModal').modal('hide');
-            form.reset();
-
-            // Optional: Show success alert or refresh the table
-            alert('Door Color Created!');
-            location.reload(); // or reload the list via AJAX
-        },
-        error: function(xhr) {
-            if (xhr.status === 422) {
-                let errors = xhr.responseJSON.errors;
-                let errorHtml = '<ul>';
-                for (let key in errors) {
-                    errorHtml += `<li>${errors[key][0]}</li>`;
+        fetch("{{ route('tenant_door_style_store') }}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+        })
+            .then(function (response) {
+                if (response.ok) {
+                    return response.json().catch(function () {
+                        return { ok: true };
+                    });
                 }
-                errorHtml += '</ul>';
-                $('#formErrors').removeClass('d-none').html(errorHtml);
-            } else {
-                alert('An unexpected error occurred.');
-            }
-        }
+                return response.json().then(function (data) {
+                    throw { status: response.status, data: data };
+                });
+            })
+            .then(function () {
+                if (modalEl && window.bootstrap) {
+                    const instance = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
+                    instance.hide();
+                }
+                form.reset();
+                window.location.reload();
+            })
+            .catch(function (err) {
+                if (err.status === 422 && err.data && err.data.errors) {
+                    let html = '<ul class="mb-0">';
+                    Object.keys(err.data.errors).forEach(function (key) {
+                        html += '<li>' + err.data.errors[key][0] + '</li>';
+                    });
+                    html += '</ul>';
+                    errorsBox.innerHTML = html;
+                    errorsBox.classList.remove('d-none');
+                } else {
+                    alert('Could not save door style. Try the full Add door style page.');
+                }
+            });
     });
 });
-
-    </script>
+</script>
 @endsection
 

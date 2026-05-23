@@ -68,7 +68,7 @@
                                     'missingCatalogs' => ! ($has_product_catalogs ?? false),
                                     'missingDoorStyles' => ! ($has_door_styles ?? false),
                                 ])
-                            @endif
+                            @else
                             <div class="container">
                                 <div class="row">
                                     <!-- Left column: Checkboxes -->
@@ -123,6 +123,7 @@
                                     </div>
                                 </div>
                             </div>
+                            @endif
                         </div>
 
                     </div>
@@ -141,7 +142,7 @@
                             + Set door point factors for product catalogs
                         </a>
 
-                        <div id="door-factor-empty" class="tc-door-factor-prompt mt-2">
+                        <div id="door-factor-empty" class="mt-2 {{ ($door_factor_setup_incomplete ?? false) ? '' : 'tc-door-factor-prompt' }}">
                             @if ($door_factor_setup_incomplete ?? false)
                                 @include('partials.tenant-door-factor-setup-empty', [
                                     'missingDefaults' => ! ($has_point_factor_defaults ?? false),
@@ -149,8 +150,12 @@
                                     'missingDoorStyles' => ! ($has_door_styles ?? false),
                                 ])
                             @else
-                                <p class="mb-2 text-muted small">No door point factors set yet. Select catalogs and enter a factor for each door style.</p>
-                                <button type="button" class="btn btn-sm btn-primary btn-import">Add door point factors</button>
+                                <p class="tc-door-factor-setup-note__text mb-0 text-muted small">
+                                    No door point factors set yet. Select catalogs and enter a factor for each door style, or
+                                    <button type="button" class="btn btn-link btn-sm tc-door-factor-setup-note__action p-0 align-baseline btn-import">
+                                        add door point factors
+                                    </button>.
+                                </p>
                                 <button type="button" class="btn btn-sm btn-outline-secondary d-none" id="apply-default-factors">
                                     Apply default for role
                                 </button>

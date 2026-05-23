@@ -59,11 +59,14 @@
                                     </div>
                                 </div>
                                 <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
-                                    <div class="form-group">
-                                        <strong>Image:</strong>
-                                        <input type="file" class="form-control"value="{{ $product->image }}"
-                                            name="image" required>
-                                    </div>
+                                    @include('layouts.tenant.partials.image-upload-field', [
+                                        'name' => 'image',
+                                        'label' => 'Schematic Image',
+                                        'currentPath' => $product->image
+                                            ? (str_contains($product->image, '/') ? $product->image : 'product/images/'.$product->image)
+                                            : null,
+                                        'wrapperClass' => 'form-group',
+                                    ])
                                 </div>
                                 {{-- <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
                                 <div class="form-group">

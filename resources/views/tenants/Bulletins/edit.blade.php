@@ -52,12 +52,14 @@
                                     </div>
                                 </div>
                                 <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
-                                    <div class="form-group">
-                                        <label>Select File<span class="asterisk"> *</span></label>
-                                        <input name="image" id="bulletin_file" type="file" class="form-control"
-                                        value="{{ $bulletin->image }}" accept=".jpg,.jpeg,.pdf,.doc,.docx">
-                                        <span   class="err" style="color: red;"></span>
-                                    </div>
+                                    @include('layouts.tenant.partials.image-upload-field', [
+                                        'name' => 'image',
+                                        'id' => 'bulletin_file',
+                                        'label' => 'Image or PDF',
+                                        'currentPath' => $bulletin->image,
+                                        'accept' => 'image/*,application/pdf',
+                                        'wrapperClass' => 'form-group',
+                                    ])
                                 </div>
                                 <div class="form-group">
                                     <input name="btn_submit" id="btnSubmit" type="submit" class="btn btn-info"

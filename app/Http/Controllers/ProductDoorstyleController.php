@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\DoorColors;
     use Illuminate\Http\Request;
+use App\Support\MediaUpload;
 use App\Support\PublicUploadedFile;
     use Illuminate\Support\Facades\Auth;
 
@@ -41,7 +42,7 @@ class ProductDoorstyleController extends Controller
         $request->validate([
             'product_catalog_id' => 'nullable|integer|exists:product_catalogs,id',
             'product_label' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ...MediaUpload::imageFieldRules('image'),
             'status' => 'nullable|boolean',
         ]);
 
@@ -53,19 +54,12 @@ class ProductDoorstyleController extends Controller
 
         $data['tenant_id'] = Auth::user()->tenant_id;
 
-        // ✅ Handle image upload properly
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = time() . '_' . $file->getClientOriginalName();
-
-            // Move file to uploads directory
-            $file->move(public_path('uploads/door_style'), $filename);
-
-            // Save correct path in DB
-            $data['image'] = 'uploads/door_style/' . $filename;
-
-            logger("✅ Image uploaded successfully to: " . $data['image']);
-        }
+        $data['image'] = PublicUploadedFile::resolve(
+            $request,
+            'image',
+            null,
+            'uploads/door_style'
+        );
 
         $userId = Auth::id();
         $data['created_by'] = $userId;
@@ -75,17 +69,31 @@ class ProductDoorstyleController extends Controller
 
         DoorColors::create($data);
 
-        return redirect()->route('tenants.door_color.index')
-            ->with('success', 'Door color created successfully.');
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Door style created successfully.',
+            ]);
+        }
+
+        return redirect()->route('tenant_door_style_index')
+            ->with('success', 'Door style created successfully.');
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        throw $e;
     } catch (\Throwable $e) {
-        logger()->error("❌ Error in DoorColor@store: " . $e->getMessage(), [
+        logger()->error('Error in DoorColor@store: '.$e->getMessage(), [
             'line' => $e->getLine(),
             'file' => $e->getFile(),
-            'trace' => $e->getTraceAsString(),
         ]);
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'message' => 'Failed to create door style: '.$e->getMessage(),
+            ], 500);
+        }
+
         return back()
-            ->with('error', 'Failed to create door color: ' . $e->getMessage())
+            ->with('error', 'Failed to create door style: '.$e->getMessage())
             ->withInput();
     }
 }
@@ -117,7 +125,7 @@ class ProductDoorstyleController extends Controller
         $request->validate([
             'product_catalog_id' => 'nullable|integer|exists:product_catalogs,id',
             'product_label' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ...MediaUpload::imageFieldRules('image'),
             'status' => 'nullable|boolean',
         ]);
 

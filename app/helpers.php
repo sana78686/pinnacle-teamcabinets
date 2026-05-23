@@ -108,6 +108,27 @@ if (! function_exists('tenant_static_asset')) {
     }
 }
 
+if (! function_exists('tenant_media_url')) {
+    /** Local public path, storage path, or external https:// URL → browser URL. */
+    function tenant_media_url(?string $path): ?string
+    {
+        if ($path === null || $path === '') {
+            return null;
+        }
+
+        if (\App\Support\PublicUploadedFile::isExternalUrl($path)) {
+            return $path;
+        }
+
+        $path = ltrim($path, '/');
+        if (str_starts_with($path, 'public/')) {
+            return asset('storage/'.substr($path, 7));
+        }
+
+        return tenant_static_asset($path);
+    }
+}
+
 if (! function_exists('tenant_panel_asset_is_local')) {
     function tenant_panel_asset_is_local(): bool
     {
@@ -169,7 +190,7 @@ if (! function_exists('tenant_list_per_page')) {
 
 if (! function_exists('tenant_admin_unviewed_row_class')) {
     /**
-     * Yellow highlight class for admin list rows not yet opened (CI is_viewed parity).
+     * Light-yellow row class for admin list rows not yet opened (CI is_viewed parity).
      */
     function tenant_admin_unviewed_row_class(object $record): string
     {
@@ -276,5 +297,56 @@ if (! function_exists('pinnacle_public_asset_url')) {
         $fullPath = public_path($relativePath);
 
         return is_file($fullPath) ? asset($relativePath) : null;
+    }
+}
+
+if (! function_exists('tenant_user_has_admin_role')) {
+    /** Tenant panel Admin accounts are managed via profile settings, not user CRUD. */
+    function tenant_user_has_admin_role(?\App\Models\User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ((int) ($user->is_super_user ?? 0) === 1) {
+            return true;
+        }
+
+        try {
+            return $user->hasRole('Admin');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+}
+
+if (! function_exists('tenant_user_status_options')) {
+    /** @return array<string, string> value => label */
+    function tenant_user_status_options(): array
+    {
+        return [
+            'approved' => 'Approved',
+            'un-approved' => 'Unapproved',
+            'active' => 'Active',
+            'deactive' => 'Deactive',
+            'block' => 'Block',
+        ];
+    }
+}
+
+if (! function_exists('tenant_user_status_skin')) {
+    /**
+     * UI class + label for user status dropdowns / pills.
+     *
+     * @return array{label: string, skin: string}
+     */
+    function tenant_user_status_skin(?string $status): array
+    {
+        return match ($status) {
+            'approved', 'active' => ['label' => $status === 'active' ? 'Active' : 'Approved', 'skin' => 'green'],
+            'un-approved', 'pending' => ['label' => 'Unapproved', 'skin' => 'amber'],
+            'block', 'deactive' => ['label' => $status === 'deactive' ? 'Deactive' : 'Block', 'skin' => 'red'],
+            default => ['label' => $status ? ucfirst(str_replace('-', ' ', $status)) : 'Unknown', 'skin' => 'neutral'],
+        };
     }
 }

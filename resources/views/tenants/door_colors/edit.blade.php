@@ -41,7 +41,7 @@
         @include('layouts.tenant.partials.image-upload-field', [
             'name' => 'image',
             'label' => 'Image',
-            'previewUrl' => (isset($doorColor) && $doorColor->image) ? asset('storage/'.$doorColor->image) : null,
+            'currentPath' => $doorColor->image ?? null,
             'wrapperClass' => 'form-group',
         ])
  </div>

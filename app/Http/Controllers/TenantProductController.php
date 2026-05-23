@@ -10,6 +10,8 @@ use App\Models\DoorColors;
 use App\Models\Product;
 use App\Models\ProductCatalog;
 use App\Models\ProductSection;
+use App\Support\MediaUpload;
+use App\Support\PublicUploadedFile;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -93,11 +95,14 @@ public function store(Request $request)
     $product->manufacture_date = $request->manufcature_date;
     $product->qty = $request->qty;
     $product->description = $request->description;
-    if ($request->hasFile('image')) {
-        $imageName = time() . '.' . $request->image->extension();
-        $request->image->move(public_path('product/images'), $imageName);
-        $product->image = $imageName;
-    }
+    $request->validate(MediaUpload::imageFieldRules('image'));
+
+    $product->image = PublicUploadedFile::resolve(
+        $request,
+        'image',
+        null,
+        'product/images'
+    );
 
     $product->save();
 
@@ -133,11 +138,18 @@ public function store(Request $request)
         $product->weight = $request->weight;
         $product->cost = $request->cost;
         $product->description = $request->description;
-        if ($request->hasFile('image')) {
-        $imageName = time() . '.' . $request->image->extension();
-        $request->image->move(public_path('product/images'), $imageName);
-        $product->image = $imageName;
-    }
+        $request->validate(MediaUpload::imageFieldRules('image'));
+
+        $currentImage = $product->image
+            ? (str_contains($product->image, '/') ? $product->image : 'product/images/'.$product->image)
+            : null;
+
+        $product->image = PublicUploadedFile::resolve(
+            $request,
+            'image',
+            $currentImage,
+            'product/images'
+        );
 
     $product->save();
 

@@ -116,7 +116,7 @@
                     @include('layouts.tenant.partials.image-upload-field', [
                         'name' => 'og_image',
                         'label' => 'Open Graph image (optional)',
-                        'previewUrl' => $page->og_image ? tenant_static_asset($page->og_image) : null,
+                        'currentPath' => $page->og_image,
                     ])
                 </div>
             </div>

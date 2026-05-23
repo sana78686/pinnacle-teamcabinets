@@ -6,6 +6,7 @@ use App\Models\Page;
 use App\Models\Product;
 use App\Models\ProductCatalog;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class TenantPanelSearchService
@@ -45,7 +46,11 @@ class TenantPanelSearchService
                 'type' => 'Users',
                 'label' => $user->name ?: $user->username,
                 'meta' => $user->email,
-                'url' => route('tenant_user_edit', $user->id),
+                'url' => tenant_user_has_admin_role($user)
+                    ? (Auth::id() === $user->id
+                        ? route(Auth::user()?->hasRole('Admin') ? 'tenant_setting_profile' : 'tenant_profile')
+                        : route('tenant_user_show', $user->id))
+                    : route('tenant_user_edit', $user->id),
                 'icon' => 'user',
             ];
         }

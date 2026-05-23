@@ -109,10 +109,11 @@
                 </div>
 
                 <div class="p-2 col-lg-4">
-                    <div class="form-group">
-                        <label>Schematic Image</label>
-                        <input type="file" class="form-control" name="image" accept="image/*">
-                    </div>
+                    @include('layouts.tenant.partials.image-upload-field', [
+                        'name' => 'image',
+                        'label' => 'Schematic Image',
+                        'wrapperClass' => 'form-group',
+                    ])
                 </div>
 
                 <div class="text-center col-12">

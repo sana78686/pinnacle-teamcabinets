@@ -106,7 +106,7 @@ public function postLogin(Request $request)
 
         return redirect()->route('tenant_dashboard')
             ->with('tenant_panel_toast_ids', $toastIds)
-            ->with('tenant_panel_toast_messages', [TenantNotificationService::loginWelcomeToast($user)]);
+            ->with('tenant_panel_toast_messages', TenantNotificationService::loginToastsForUser($user));
     }
 
     return redirect()->back()

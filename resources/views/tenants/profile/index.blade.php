@@ -24,7 +24,7 @@
         <aside class="tc-profile-card tc-profile-card--summary">
             <div class="tc-profile-avatar-wrap">
                 @if ($user->logo && file_exists(public_path($user->logo)))
-                    <img src="{{ tenant_static_asset($user->logo) }}" alt="" class="tc-profile-avatar-img">
+                    <img src="{{ tenant_media_url($user->logo) }}" alt="" class="tc-profile-avatar-img">
                 @else
                     <div class="tc-profile-avatar" aria-hidden="true">{{ $user->initials }}</div>
                 @endif
@@ -80,9 +80,9 @@
                                 'name' => 'logo',
                                 'id' => 'profile_logo',
                                 'label' => 'Profile photo',
-                                'previewUrl' => ($user->logo && file_exists(public_path($user->logo))) ? tenant_static_asset($user->logo) : null,
+                                'currentPath' => $user->logo ?? null,
                                 'wrapperClass' => '',
-                                'hint' => 'Optional. JPG, PNG, or SVG up to 2MB.',
+                                'hint' => 'Optional. '.\App\Support\MediaUpload::hint(),
                             ])
                         </div>
                         <div class="col-md-6">

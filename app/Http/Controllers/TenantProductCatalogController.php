@@ -7,6 +7,7 @@ use App\Imports\Productcatalog_Import;
 use App\Models\ProductCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Support\MediaUpload;
 use App\Support\PublicUploadedFile;
 class TenantProductCatalogController extends Controller
 {
@@ -76,31 +77,30 @@ class TenantProductCatalogController extends Controller
 
         // dd($request->all());
 
+        $request->validate(array_merge([
+            'name' => 'required|string|max:255',
+        ], MediaUpload::imageFieldRules('image'), MediaUpload::pdfFieldRules('pdf')));
+
         $product_catalog = new ProductCatalog();
         $product_catalog->name = $request->name;
-
 
         // if ($request->hasFile('image')) {
         //     $product_catalog->image = $request->file('image')->store('public/images');
         // }
 
-        if ($request->hasFile('image')) {
-            $product_catalog->image = PublicUploadedFile::resolve(
-                $request,
-                'image',
-                null,
-                $this->catalogUploadDir('images')
-            );
-        }
+        $product_catalog->image = PublicUploadedFile::resolve(
+            $request,
+            'image',
+            null,
+            $this->catalogUploadDir('images')
+        );
 
-        if ($request->hasFile('pdf')) {
-            $product_catalog->pdf = PublicUploadedFile::resolve(
-                $request,
-                'pdf',
-                null,
-                $this->catalogUploadDir('pdfs')
-            );
-        }
+        $product_catalog->pdf = PublicUploadedFile::resolve(
+            $request,
+            'pdf',
+            null,
+            $this->catalogUploadDir('pdfs')
+        );
 
         $product_catalog->created_by = Auth::user()->id;
         $product_catalog->status = 1;
@@ -121,13 +121,56 @@ class TenantProductCatalogController extends Controller
     {
         $product_catalog = ProductCatalog::findOrFail($id);
 
-        if (! $product_catalog->pdf || ! $product_catalog->pdf_url) {
+        if (! $product_catalog->pdf) {
             return redirect()
                 ->route('tenant_product_catalog_index')
                 ->with('error', 'No PDF file is attached to this catalog.');
         }
 
-        return view('tenants.product_catalogs.pdf', compact('product_catalog'));
+        if (PublicUploadedFile::isExternalUrl($product_catalog->pdf)) {
+            return redirect()->away($product_catalog->pdf);
+        }
+
+        $absolutePath = $this->resolveCatalogPdfPath($product_catalog);
+        if ($absolutePath) {
+            return response()->file($absolutePath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="'.basename($absolutePath).'"',
+            ]);
+        }
+
+        if ($product_catalog->pdf_url) {
+            return redirect()->away($product_catalog->pdf_url);
+        }
+
+        return redirect()
+            ->route('tenant_product_catalog_index')
+            ->with('error', 'PDF file could not be found on the server.');
+    }
+
+    protected function resolveCatalogPdfPath(ProductCatalog $catalog): ?string
+    {
+        $relative = ltrim((string) $catalog->pdf, '/');
+        if ($relative === '') {
+            return null;
+        }
+
+        if (str_starts_with($relative, 'public/')) {
+            $relative = substr($relative, 7);
+        }
+
+        $candidates = [
+            public_path($relative),
+            storage_path('app/public/'.$relative),
+        ];
+
+        foreach ($candidates as $path) {
+            if (is_file($path)) {
+                return $path;
+            }
+        }
+
+        return null;
     }
     /**
      * Show the form for editing the specified resource.
@@ -145,11 +188,9 @@ class TenantProductCatalogController extends Controller
 
     $product_catalog = ProductCatalog::findOrFail($id);
 
-    $request->validate([
+    $request->validate(array_merge([
         'name' => 'required|string|max:255',
-        'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        'pdf' => 'nullable|mimes:pdf|max:5120',
-    ]);
+    ], MediaUpload::imageFieldRules('image'), MediaUpload::pdfFieldRules('pdf')));
 
     $product_catalog->name = $request->name;
 

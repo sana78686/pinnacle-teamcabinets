@@ -34,24 +34,20 @@ class TenantNotificationService
         try {
             $countBefore = $user->notifications()->count();
 
-            $user->notify(new PanelNotification(
-                'Welcome back',
-                sprintf('Welcome back, %s! You are now logged in.', $user->name),
-                route('tenant_dashboard'),
-                'success',
-                ['database'],
-                'auth',
-            ));
-
-            if (self::userIsAdmin($user) && ! SiteSetting::query()->exists()) {
-                $user->notify(self::welcomeNotification());
+            if (self::shouldSendPinnacleWelcome($user)) {
+                self::notifyWelcomeOnce($user);
+            } else {
+                self::notifyWelcomeBackOnce($user);
             }
 
             $created = $user->notifications()->count() - $countBefore;
+            if ($created <= 0) {
+                return [];
+            }
 
             return $user->notifications()
                 ->latest()
-                ->take(max($created, 1))
+                ->take($created)
                 ->pluck('id')
                 ->all();
         } catch (\Throwable $e) {
@@ -59,6 +55,16 @@ class TenantNotificationService
 
             return [];
         }
+    }
+
+    /** Toast payload(s) for session flash after login (shows even if bell poll is slow). */
+    public static function loginToastsForUser(User $user): array
+    {
+        if (self::shouldSendPinnacleWelcome($user)) {
+            return [];
+        }
+
+        return [self::loginWelcomeToast($user)];
     }
 
     /** Toast payload for session flash after login (shows even if bell poll is slow). */
@@ -231,7 +237,7 @@ class TenantNotificationService
         $user->notify(new PanelNotification($title, $message, $url, $type, ['database'], $module));
     }
 
-    /** @deprecated Use notifyOnLogin; kept for registration before first sign-in */
+    /** Called during tenant provisioning (before or after first login). */
     public static function notifyWelcomePanelIfNeeded(): void
     {
         if (SiteSetting::query()->exists()) {
@@ -239,11 +245,55 @@ class TenantNotificationService
         }
 
         foreach (self::adminRecipients() as $admin) {
-            if ($admin->notifications()->where('data->list_key', 'pinnacle_welcome')->exists()) {
-                continue;
-            }
-            $admin->notify(self::welcomeNotification());
+            self::notifyWelcomeOnce($admin);
         }
+    }
+
+    public static function notifyWelcomeOnce(User $user): void
+    {
+        if (self::userHasNotification($user, 'pinnacle_welcome')) {
+            return;
+        }
+
+        $user->notify(self::welcomeNotification());
+    }
+
+    public static function notifyWelcomeBackOnce(User $user): void
+    {
+        if (self::userHasNotification($user, 'auth_welcome_back', now()->subHour())) {
+            return;
+        }
+
+        $user->notify(self::welcomeBackNotification($user));
+    }
+
+    protected static function shouldSendPinnacleWelcome(User $user): bool
+    {
+        return self::userIsAdmin($user) && ! SiteSetting::query()->exists();
+    }
+
+    protected static function userHasNotification(User $user, string $listKey, ?\DateTimeInterface $since = null): bool
+    {
+        $query = $user->notifications()->where('data->list_key', $listKey);
+
+        if ($since !== null) {
+            $query->where('created_at', '>=', $since);
+        }
+
+        return $query->exists();
+    }
+
+    protected static function welcomeBackNotification(User $user): PanelNotification
+    {
+        return new PanelNotification(
+            'Welcome back',
+            sprintf('Welcome back, %s! You are now logged in.', $user->name),
+            route('tenant_dashboard'),
+            'success',
+            ['database'],
+            'auth',
+            'auth_welcome_back',
+        );
     }
 
     protected static function welcomeNotification(): PanelNotification

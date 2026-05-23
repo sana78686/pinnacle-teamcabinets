@@ -157,6 +157,7 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
          Route::get('users/child/index', [TenantUserController::class, 'role_child'])->name('tenant_user_child_index');
          Route::get('users/child/create', [TenantUserController::class, 'child_create'])->name('tenant_user_child_create');
          Route::get('/users/search', [TenantUserController::class, 'search'])->name('tenant_user_search');
+         Route::get('users/autocomplete', [TenantUserController::class, 'autocomplete'])->name('tenant_user_autocomplete');
          Route::get('users/role/autocomplete', [TenantUserController::class, 'roleAutoComplete'])->name('tenant_role_autocomplete');
          Route::get('users/child/role/autocomplete', [TenantUserController::class, 'childRoleAutoComplete'])->name('tenant_child_role_autocomplete');
          Route::get('users/country/autocomplete', [TenantUserController::class, 'countryAutoComplete'])->name('tenant_country_autocomplete');

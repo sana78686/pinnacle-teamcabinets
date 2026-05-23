@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Mail\PasswordChanged;
 use App\Services\TenantAuthSessionService;
 use App\Services\TenantNotificationService;
+use App\Support\MediaUpload;
 use App\Support\PublicUploadedFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -120,7 +121,7 @@ class TenantProfileController extends Controller
         $user = User::findOrFail(Auth::id());
 
         $validated = $request->validate([
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ...MediaUpload::imageFieldRules('logo'),
             'username' => 'required|string|max:255|unique:users,username,'.$user->id,
             'full_name' => 'required|string|max:255',
             'company_name' => 'nullable|string|max:255',

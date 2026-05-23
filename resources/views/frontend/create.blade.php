@@ -64,7 +64,7 @@
                     'required' => true,
                     'placeholder' => 'about-us',
                     'value' => old('slug'),
-                    'hint' => 'Example: about-us, contact, services',
+                    'hint' => 'Use a unique slug (e.g. services, warranty). Do not use about, blog, contact, or privacy-policy — those are system pages.',
                 ])
             </div>
         </div>

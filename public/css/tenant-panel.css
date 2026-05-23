@@ -1060,17 +1060,17 @@
     font-size: 0.8rem;
 }
 
-/* Admin list: unviewed rows (CI yellow highlight until opened) */
+/* Admin list: unviewed / new rows (light yellow until admin opens the record) */
 .tc-admin-datatable tr.tc-row-unviewed > td,
 .table tr.tc-row-unviewed > td,
 #userTable tr.tc-row-unviewed > td {
-    background-color: #fff3cd !important;
+    background-color: #fffbea !important;
 }
 
 .tc-admin-datatable tr.tc-row-unviewed:hover > td,
 .table tr.tc-row-unviewed:hover > td,
 #userTable tr.tc-row-unviewed:hover > td {
-    background-color: #ffe69c !important;
+    background-color: #fff8dc !important;
 }
 
 /* Nav module indicators (admin: orders, quotes, stock check) */
@@ -1808,6 +1808,10 @@
     margin-top: 0.35rem;
 }
 
+.tc-image-upload__url .form-label {
+    font-weight: 500;
+}
+
 .tc-settings-panel .tc-settings-form .row.g-3 {
     --bs-gutter-x: 0.75rem;
     --bs-gutter-y: 0.5rem;
@@ -2252,9 +2256,47 @@
     white-space: normal;
 }
 
-.tc-door-factor-setup-empty .btn {
-    margin-right: 0.35rem;
-    margin-bottom: 0.35rem;
+.tc-door-factor-setup-note {
+    padding: 0.75rem 0.9rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.tc-door-factor-setup-note--modal {
+    margin-bottom: 0;
+}
+
+.tc-door-factor-setup-note__text {
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: #475569;
+}
+
+.tc-door-factor-setup-note__link {
+    font-weight: 600;
+    color: #1d4ed8;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.tc-door-factor-setup-note__link:hover,
+.tc-door-factor-setup-note__link:focus {
+    color: #1e40af;
+    border-bottom-color: #93c5fd;
+}
+
+.tc-door-factor-setup-note__action {
+    font-weight: 600;
+    color: #1d4ed8;
+    text-decoration: none;
+}
+
+.tc-door-factor-setup-note__action:hover,
+.tc-door-factor-setup-note__action:focus {
+    color: #1e40af;
+    text-decoration: underline;
 }
 
 /* User list — blinking approval / point-factor notices */
@@ -2462,6 +2504,58 @@
     min-width: 4.25rem;
 }
 
+/* Users list — autocomplete + live search */
+.tc-users-search-wrap {
+    position: relative;
+}
+
+.tc-users-autocomplete {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 1050;
+    margin: 0;
+    padding: 0.25rem 0;
+    list-style: none;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.tc-users-autocomplete__item {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.tc-users-autocomplete__item:hover,
+.tc-users-autocomplete__item:focus {
+    background: #f1f5f9;
+}
+
+.tc-users-autocomplete__label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.tc-users-autocomplete__sub {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.tc-users-list--loading .tc-admin-datatable {
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
 /* CI-style list toolbar (legacy) */
 .tc-list-toolbar__label {
     font-size: 0.875rem;
@@ -2488,6 +2582,206 @@
     border-bottom: 2px solid #e2e8f0;
     font-weight: 600;
     font-size: 0.875rem;
+    color: #1e293b;
+    vertical-align: middle;
+}
+
+.tc-admin-datatable .table tbody td {
+    vertical-align: middle;
+    font-size: 0.875rem;
+    color: #334155;
+}
+
+.tc-admin-datatable .table tbody tr:hover > td {
+    background-color: #f8fafc;
+}
+
+.tc-admin-datatable .table.table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-bg-type: #fcfdfe;
+}
+
+.tc-admin-datatable .table thead tr.tc-admin-datatable__filters th {
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 500;
+    padding: 0.4rem 0.5rem;
+}
+
+.tc-admin-datatable .table thead tr.tc-admin-datatable__filters input {
+    width: 100%;
+    font-size: 0.8125rem;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    background: #f8fafc;
+}
+
+.tc-admin-datatable .table thead tr.tc-admin-datatable__filters input:focus {
+    border-color: #94a3b8;
+    background: #fff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(79, 107, 154, 0.15);
+}
+
+.tc-admin-datatable .table tfoot th {
+    background: #f8fafc;
+    border-top: 2px solid #e2e8f0;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: #64748b;
+}
+
+.tc-admin-datatable .tc-role-badge {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #334155;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+}
+
+/* Users list — status dropdown & verification pill */
+.tc-user-status-select {
+    min-width: 9.25rem;
+    max-width: 100%;
+    padding: 0.35rem 1.75rem 0.35rem 0.65rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.25;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    appearance: none;
+    background-repeat: no-repeat;
+    background-position: right 0.45rem center;
+    background-size: 0.65rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.tc-user-status-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.tc-user-status-select--green {
+    color: #166534;
+    background-color: rgba(34, 197, 94, 0.14);
+    border-color: rgba(34, 197, 94, 0.35);
+}
+
+.tc-user-status-select--amber {
+    color: #92400e;
+    background-color: rgba(250, 204, 21, 0.2);
+    border-color: rgba(234, 179, 8, 0.45);
+}
+
+.tc-user-status-select--red {
+    color: #991b1b;
+    background-color: rgba(248, 113, 113, 0.16);
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+.tc-user-status-select--neutral {
+    color: #334155;
+    background-color: rgba(241, 245, 249, 0.9);
+    border-color: #e2e8f0;
+}
+
+.tc-verify-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    border: 1px solid transparent;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    white-space: nowrap;
+}
+
+.tc-verify-pill__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.tc-verify-pill--verified {
+    color: #166534;
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.tc-verify-pill--verified .tc-verify-pill__dot {
+    background: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.28);
+}
+
+.tc-verify-pill--pending {
+    color: #92400e;
+    background: rgba(250, 204, 21, 0.18);
+    border-color: rgba(234, 179, 8, 0.4);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.tc-verify-pill--pending .tc-verify-pill__dot {
+    background: #eab308;
+    box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.25);
+}
+
+.tc-verify-pill--pending:hover {
+    background: rgba(250, 204, 21, 0.28);
+    border-color: rgba(202, 138, 4, 0.55);
+}
+
+.tc-verify-pill--pending:active {
+    transform: scale(0.98);
+}
+
+button.tc-verify-pill {
+    padding: 0.35rem 0.7rem;
+}
+
+.tc-users-action-btn {
+    font-weight: 600;
+    border-radius: 8px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.tc-users-action-btn--green {
+    background: rgba(34, 197, 94, 0.18) !important;
+    border: 1px solid rgba(34, 197, 94, 0.45) !important;
+    color: #166534 !important;
+}
+
+.tc-users-action-btn--green:hover,
+.tc-users-action-btn--green:focus {
+    background: rgba(34, 197, 94, 0.28) !important;
+    border-color: #22c55e !important;
+    color: #14532d !important;
+}
+
+.tc-users-action-btn--amber {
+    background: rgba(250, 204, 21, 0.22) !important;
+    border: 1px solid rgba(234, 179, 8, 0.5) !important;
+    color: #92400e !important;
+}
+
+.tc-users-action-btn--amber:hover,
+.tc-users-action-btn--amber:focus {
+    background: rgba(250, 204, 21, 0.32) !important;
+    border-color: #ca8a04 !important;
+    color: #78350f !important;
 }
 
 .tc-admin-datatable__edit {
@@ -2500,6 +2794,14 @@
 .tc-admin-datatable__edit:hover {
     color: #1d4ed8;
     text-decoration: underline;
+}
+
+.tc-admin-datatable__actions {
+    white-space: nowrap;
+}
+
+.tc-admin-datatable__actions .text-muted {
+    color: #94a3b8 !important;
 }
 
 /* Short global loader (replaces theme typewriter animation) */

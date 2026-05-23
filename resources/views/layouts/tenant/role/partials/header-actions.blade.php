@@ -16,7 +16,6 @@
         <li class="d-none d-md-flex align-items-center txt-muted f-12 px-1" aria-hidden="true">|</li>
     @endif
 
-    @include('layouts.tenant.partials.panel-search')
     <li>
         <a class="tc-header-icon-btn" href="#!" onclick="javascript:toggleFullScreen(); return false;" aria-label="Fullscreen">
             <i data-feather="maximize"></i>
@@ -48,15 +47,9 @@
                 <span class="tc-header-dropdown__role">{{ $tcUserRole }}</span>
             </li>
             <li class="tc-header-dropdown__item">
-                <a href="{{ Auth::user()->hasRole('Admin') ? route('tenant_setting_profile') : route('tenant_profile') }}" role="menuitem">
+                <a href="{{ route('tenant_profile') }}" role="menuitem">
                     <i data-feather="user" aria-hidden="true"></i>
-                    <span>{{ __('Profile') }}</span>
-                </a>
-            </li>
-            <li class="tc-header-dropdown__item">
-                <a href="{{ route('tenant_settings_hub') }}" role="menuitem">
-                    <i data-feather="settings" aria-hidden="true"></i>
-                    <span>{{ __('Settings') }}</span>
+                    <span>{{ __('My Profile') }}</span>
                 </a>
             </li>
             <li class="tc-header-dropdown__item">

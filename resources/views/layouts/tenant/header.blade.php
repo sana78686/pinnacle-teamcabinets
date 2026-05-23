@@ -15,7 +15,7 @@
 
         <div class="pn-header__actions tc-pn-header__actions nav-right right-menu flex-shrink-0 d-flex align-items-center">
             @auth
-                @include('layouts.tenant.partials.header-actions')
+                @include(tenant_user_is_panel_admin() ? 'layouts.tenant.partials.header-actions' : 'layouts.tenant.role.partials.header-actions')
             @endauth
         </div>
 

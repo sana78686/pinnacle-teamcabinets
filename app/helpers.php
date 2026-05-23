@@ -351,6 +351,58 @@ if (! function_exists('tenant_user_status_skin')) {
     }
 }
 
+if (! function_exists('tenant_user_is_panel_admin')) {
+    function tenant_user_is_panel_admin(?\App\Models\User $user = null): bool
+    {
+        return tenant_user_has_admin_role($user ?? auth()->user());
+    }
+}
+
+if (! function_exists('tenant_panel_layout')) {
+    /** Blade layout for the authenticated tenant panel (admin vs dealer/rep/etc.). */
+    function tenant_panel_layout(): string
+    {
+        return tenant_user_is_panel_admin()
+            ? 'layouts.tenant.master'
+            : 'layouts.tenant.role.master';
+    }
+}
+
+if (! function_exists('tenant_panel_display_name')) {
+    function tenant_panel_display_name(?\App\Models\User $user = null): string
+    {
+        $user ??= auth()->user();
+        if (! $user) {
+            return 'User';
+        }
+
+        $name = trim((string) ($user->name ?? ''));
+        if ($name !== '' && strcasecmp($name, (string) ($user->username ?? '')) !== 0) {
+            return $name;
+        }
+
+        return trim((string) ($user->username ?? $name ?: 'User'));
+    }
+}
+
+if (! function_exists('tenant_panel_role_label')) {
+    function tenant_panel_role_label(?\App\Models\User $user = null): string
+    {
+        $user ??= auth()->user();
+        if (! $user) {
+            return 'User';
+        }
+
+        try {
+            $role = $user->getRoleNames()->first();
+        } catch (\Throwable) {
+            $role = null;
+        }
+
+        return $role ?: 'User';
+    }
+}
+
 if (! function_exists('tenant_role_factor_key')) {
     function tenant_role_factor_key(string $roleName): string
     {

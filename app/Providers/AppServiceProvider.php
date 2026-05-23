@@ -58,9 +58,12 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer([
             'layouts.tenant.master',
+            'layouts.tenant.role.master',
             'layouts.tenant.header',
             'layouts.tenant.admin_sidebar',
+            'layouts.tenant.role_sidebar',
             'layouts.tenant.partials.header-actions',
+            'layouts.tenant.role.partials.header-actions',
             'layouts.tenant.partials.tenant-logo',
             'layouts.tenant.partials.*',
         ], TenantPanelComposer::class);

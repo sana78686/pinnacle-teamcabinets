@@ -1,4 +1,4 @@
-@extends('layouts.light.master')
+@extends('layouts.tenant.role.master')
 @section('title', 'Order Menu')
 
 @section('breadcrumb-title')

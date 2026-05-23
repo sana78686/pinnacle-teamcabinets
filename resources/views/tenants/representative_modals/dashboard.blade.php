@@ -1,27 +1,21 @@
+@extends('layouts.tenant.role.master')
 
-@extends('layouts.light.master')
-
-@section('title', tenant('id'))
-
-@section('css')
-@endsection
-
-@section('style')
-@endsection
+@section('title', 'Dashboard')
 
 @section('breadcrumb-title')
-    <h2>{{ ucfirst(tenant('id')) }}
-     <span>Menu </span></h2>
+    <h2>Dashboard</h2>
 @endsection
 
 @section('breadcrumb-items')
-    {{-- <li class="breadcrumb-item">Starter Kit</li>
-    <li class="breadcrumb-item">Menu Options</li>
-    <li class="breadcrumb-item active">Vertical Menu</li> --}}
+    <li class="breadcrumb-item active">Home</li>
 @endsection
 
 @section('content')
-@endsection
-
-@section('script')
+    <div class="container-fluid">
+        <div class="card tc-dash-card">
+            <div class="card-body">
+                <p class="mb-0 text-muted">Welcome, {{ tenant_panel_display_name() }}.</p>
+            </div>
+        </div>
+    </div>
 @endsection

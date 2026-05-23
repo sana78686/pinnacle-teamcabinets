@@ -1,4 +1,4 @@
-@if (!empty($tcShowTrialBanner) && $tcTrialEndsAt)
+@if (tenant_user_is_panel_admin() && !empty($tcShowTrialBanner) && $tcTrialEndsAt)
 @php
     $trialDate = $tcTrialEndsAt->format('M j, Y');
     $company = tenant('company_name') ?? tenant('name') ?? 'Your portal';

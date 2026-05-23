@@ -1,4 +1,4 @@
-@extends($inSettings ? 'layouts.tenant.settings' : 'layouts.tenant.master')
+@extends($inSettings ? 'layouts.tenant.settings' : tenant_panel_layout())
 
 @section('title', 'Profile')
 

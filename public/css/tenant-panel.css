@@ -1,5 +1,56 @@
 /* Tenant panel shell — page header then navbar (flush, no gap) */
 
+/* Role user panel — vertical icon sidebar + sticky header (no top navbar) */
+.tc-role-panel {
+    --tc-role-sidebar-width: 90px;
+    --tc-role-sidebar-open-width: 300px;
+}
+
+/* Role header is shorter than admin header + navbar */
+.tc-role-panel .tc-chrome.tc-compact-chrome.tc-sticky-top {
+    --tc-chrome-sticky-offset: 3.25rem;
+}
+
+.tc-role-panel.page-wrapper .page-body-wrapper .iconsidebar-menu {
+    top: var(--tc-chrome-sticky-offset, 3.25rem);
+    height: calc(100vh - var(--tc-chrome-sticky-offset, 3.25rem));
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.tc-role-panel.page-wrapper .page-body-wrapper .iconsidebar-menu .iconMenu-bar {
+    height: calc(100vh - var(--tc-chrome-sticky-offset, 3.25rem));
+    padding-top: 0;
+    margin-top: 0;
+}
+
+.tc-role-panel.page-wrapper .page-body-wrapper .iconsidebar-menu .iconMenu-bar .iconbar-mainmenu {
+    top: var(--tc-chrome-sticky-offset, 3.25rem);
+    height: calc(100vh - var(--tc-chrome-sticky-offset, 3.25rem));
+}
+
+/* chat_sidebar sits between sidebar and page-body — theme sibling margin never applies */
+.tc-role-panel.page-wrapper .page-body-wrapper > .page-body {
+    margin-left: var(--tc-role-sidebar-width) !important;
+    width: calc(100% - var(--tc-role-sidebar-width)) !important;
+    margin-top: 0 !important;
+    padding-top: 0.75rem;
+}
+
+.tc-role-panel.page-wrapper .page-body-wrapper > .iconsidebar-menu:not(.iconbar-mainmenu-close):not(.iconbar-second-close) ~ .page-body {
+    margin-left: var(--tc-role-sidebar-open-width) !important;
+    width: calc(100% - var(--tc-role-sidebar-open-width)) !important;
+}
+
+.tc-role-panel.page-wrapper .page-body-wrapper > .iconsidebar-menu.iconbar-second-close ~ .page-body {
+    margin-left: 0 !important;
+    width: 100% !important;
+}
+
+.tc-role-panel .tc-role-panel__header {
+    flex-shrink: 0;
+}
+
 .tc-panel-shell .page-body,
 .tc-panel-shell .page-body-wrapper,
 .tc-panel-shell .page-main-header {
@@ -178,7 +229,7 @@
 .tc-compact-chrome .tc-profile-trigger__text {
     text-align: right;
     line-height: 1.2;
-    max-width: 140px;
+    max-width: 180px;
 }
 
 .tc-compact-chrome .tc-profile-trigger__name {
@@ -288,6 +339,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 240px;
+}
+
+.tc-role-panel .tc-page-header-row {
+    background: transparent;
 }
 
 .tc-page-header-row {

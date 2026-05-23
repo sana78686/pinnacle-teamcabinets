@@ -1,4 +1,4 @@
-{{-- Admin tenant panel layout — use layouts.tenant.role.master for non-admin roles --}}
+{{-- Role user panel: Pinnacle header + vertical icon sidebar (no top navbar) --}}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,33 +7,16 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Poco admin is super flexible, powerful, clean &amp; modern responsive bootstrap 4 admin template with unlimited possibilities.">
-    <meta name="keywords"
-        content="admin template, Poco admin template, dashboard template, flat admin template, responsive admin template, web app">
-    <meta name="author" content="pixelstrap">
     <link rel="icon" href="{{ tenant_static_asset('assets/logo/pinnacle-favicon.png') }}" type="image/x-icon">
     <link rel="shortcut icon" href="{{ tenant_static_asset('assets/logo/pinnacle-favicon.png') }}" type="image/x-icon">
     <title>{{ config('app.name', 'Laravel') }} - @yield('title')</title>
     @include('layouts.tenant.css')
-    <style>
-        .table-sm th,
-        .table-sm td {
-            padding: .75rem;
-            font-size: 90%;
-        }
-
-        body {
-            font-family: ;
-        }
-    </style>
     @yield('style')
     @yield('head')
 </head>
 
-<body>
+<body class="light-only">
     @php($tcLayout = $tcLayout ?? tenant_layout_flags())
-    <!-- Loader starts-->
     <div class="loader-wrapper tc-loader" aria-hidden="true">
         <p class="tc-loader-text mb-0">Loading…</p>
     </div>
@@ -50,42 +33,26 @@
             else document.addEventListener('DOMContentLoaded', hide);
         })();
     </script>
-    <!-- Loader ends-->
-    @php($tcIsPanelAdmin = tenant_user_is_panel_admin())
-    <div class="page-wrapper vertical {{ $tcIsPanelAdmin ? 'tc-panel-shell' : 'tc-role-panel' }}">
-        <div class="tc-chrome tc-compact-chrome tc-sticky-top{{ $tcIsPanelAdmin ? '' : ' tc-role-panel__header' }}">
+    <div class="page-wrapper vertical tc-role-panel">
+        <div class="tc-chrome tc-compact-chrome tc-sticky-top tc-role-panel__header">
             @include('layouts.tenant.header')
-            @if ($tcIsPanelAdmin)
-                @include('layouts.tenant.admin_sidebar')
-            @endif
         </div>
-        <!-- Page Body Start-->
         <div class="page-body-wrapper">
-            @unless ($tcIsPanelAdmin)
-                @include('layouts.tenant.sidebar')
-            @endunless
-            <!-- Right sidebar Start-->
+            @include('layouts.tenant.sidebar')
             @include('layouts.tenant.chat_sidebar')
-            <!-- Right sidebar Ends-->
-            <div class="page-body tc-form-page{{ $tcIsPanelAdmin ? ' p-0' : '' }}">
+            <div class="page-body tc-form-page">
                 @include('partial.message')
                 @auth
                     @include('layouts.tenant.partials.trial-marquee')
                 @endauth
                 <div class="container-fluid">
-                    @if (View::hasSection('breadcrumb-title') || View::hasSection('breadcrumb-items') || ! empty($tcFrontendUrl ?? null))
+                    @if (View::hasSection('breadcrumb-title') || View::hasSection('breadcrumb-items'))
                         <div class="page-header tc-page-header-row pb-0 pt-1">
                             <div class="row align-items-center g-2">
                                 <div class="col-12 col-lg-6 main-header">
                                     <div class="tc-page-header-heading">
                                         @hasSection('breadcrumb-title')
                                             @yield('breadcrumb-title')
-                                        @endif
-                                        @if (! empty($tcFrontendUrl))
-                                            @hasSection('breadcrumb-title')
-                                                <span class="tc-page-header-sep" aria-hidden="true">—</span>
-                                            @endif
-                                            @include('layouts.tenant.partials.storefront-link-inline')
                                         @endif
                                     </div>
                                     @hasSection('breadcrumb-subtitle')
@@ -104,9 +71,7 @@
                         </div>
                     @endif
                 </div>
-                <!-- Container-fluid starts-->
                 @yield('content')
-                <!-- Container-fluid Ends-->
             </div>
         </div>
     </div>

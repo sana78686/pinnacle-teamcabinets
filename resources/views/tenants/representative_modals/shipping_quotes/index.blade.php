@@ -1,4 +1,4 @@
-@extends('layouts.light.master')
+@extends('layouts.tenant.role.master')
 @section('title', 'Shipping Quotes Menu')
 
 @section('css')

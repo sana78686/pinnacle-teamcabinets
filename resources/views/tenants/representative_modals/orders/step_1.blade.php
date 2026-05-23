@@ -1,4 +1,4 @@
-@extends('layouts.light.master')
+@extends('layouts.tenant.role.master')
 @section('title', 'Order')
 @section('css')
     <link rel="stylesheet" type="text/css" href="{{ route('/') }}/assets/main/css/owlcarousel.css">

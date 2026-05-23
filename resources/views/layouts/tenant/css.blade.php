@@ -48,5 +48,5 @@
 @endif
 <link rel="stylesheet" href="{{ $panelAsset('css/tenant-forms.css') }}?v=8">
 <link rel="stylesheet" href="{{ $panelAsset('css/pinnacle-theme.css') }}?v=10">
-<link rel="stylesheet" href="{{ $panelAsset('css/tenant-panel.css') }}?v=57">
+<link rel="stylesheet" href="{{ $panelAsset('css/tenant-panel.css') }}?v=60">
 <link rel="stylesheet" href="{{ $panelAsset('css/tenant-responsive.css') }}?v=1">

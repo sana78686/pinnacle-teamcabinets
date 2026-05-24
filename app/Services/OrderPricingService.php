@@ -48,20 +48,52 @@ class OrderPricingService
             'door_key' => $doorKey,
             'door_trees' => [
                 'user' => $this->doorFactorTree($actingUser, $catalogId),
+                'user_full' => $this->doorFactorTree($actingUser),
                 'parent' => $parentUser ? $this->doorFactorTree($parentUser, $catalogId) : [],
+                'parent_full' => $parentUser ? $this->doorFactorTree($parentUser) : [],
                 'representative' => $repUser ? $this->doorFactorTree($repUser, $catalogId) : [],
+                'representative_full' => $repUser ? $this->doorFactorTree($repUser) : [],
             ],
             'cus_rep_id' => $repIds['cus_rep_id'],
             'cus_parent_id' => $repIds['cus_parent_id'],
         ];
     }
 
+    /**
+     * CI cart unit price: base cost × door factor (direct multiply, no point markup).
+     */
+    public function cartUnitCost(float $rawCost, array $context): float
+    {
+        $factor = $this->doorFactorForCatalogDoor($context);
+        if ($factor > 0) {
+            return round($rawCost * $factor, 2);
+        }
+
+        return round($rawCost, 2);
+    }
+
+    /** @deprecated Use cartUnitCost — kept for callers expecting adjustedCost. */
     public function adjustedCost(float $rawCost, array $context): float
     {
-        $afterPoint = $rawCost * $this->pointMultiplier((float) ($context['point_factor'] ?? 0));
-        $doorFactor = (float) ($context['user_door_point'] ?? $context['door_factor'] ?? 0);
+        return $this->cartUnitCost($rawCost, $context);
+    }
 
-        return round($afterPoint * $this->doorMultiplier($doorFactor), 2);
+    protected function doorFactorForCatalogDoor(array $context): float
+    {
+        $catalogKey = (string) ($context['catalog_key'] ?? '');
+        $doorKey = (string) ($context['door_key'] ?? '');
+        $tree = $context['door_trees']['user'] ?? [];
+
+        if ($catalogKey !== '' && $doorKey !== '' && is_array($tree)) {
+            $val = $tree[$catalogKey][$doorKey] ?? null;
+            if ($val !== null && $val !== '' && strtolower((string) $val) !== 'null') {
+                return (float) $val;
+            }
+        }
+
+        $scalar = (float) ($context['user_door_point'] ?? $context['door_factor'] ?? 0);
+
+        return $scalar > 0 ? $scalar : 0.0;
     }
 
     /**
@@ -70,18 +102,19 @@ class OrderPricingService
     public function lineMeta(Product $product, array $context): array
     {
         $raw = (float) preg_replace('/[^\d.]/', '', (string) $product->cost);
-        $adjusted = $this->adjustedCost($raw, $context);
+        $cartUnit = $this->cartUnitCost($raw, $context);
 
         return [
             'raw_cost' => $raw,
-            'adjusted_cost' => $adjusted,
+            'cart_unit_cost' => $cartUnit,
+            'adjusted_cost' => $cartUnit,
             'weight' => (float) preg_replace('/[^\d.]/', '', (string) $product->weight),
             'assemble_cost' => (float) preg_replace('/[^\d.]/', '', (string) $product->assemble_cost),
             'details' => $product->value_1 ?: ($product->description ?: ''),
             'product_img' => $product->image ? asset($product->image) : '',
-            'parent_door_point' => json_encode($context['door_trees']['parent'] ?? []),
-            'representative_door_point' => json_encode($context['door_trees']['representative'] ?? []),
-            'user_door_point' => json_encode($context['door_trees']['user'] ?? []),
+            'parent_door_point' => json_encode($context['door_trees']['parent_full'] ?? $context['door_trees']['parent'] ?? []),
+            'representative_door_point' => json_encode($context['door_trees']['representative_full'] ?? $context['door_trees']['representative'] ?? []),
+            'user_door_point' => json_encode($context['door_trees']['user_full'] ?? $context['door_trees']['user'] ?? []),
         ];
     }
 
@@ -177,6 +210,52 @@ class OrderPricingService
                 continue;
             }
             $tree[$catKey][$doorKey] = (string) $row->factor;
+        }
+
+        if ($tree !== []) {
+            return $tree;
+        }
+
+        return $this->doorFactorTreeFromUserJson($user, $catalogId);
+    }
+
+    /**
+     * CI user_register.door_point_factor JSON when relational rows are missing.
+     *
+     * @return array<string, array<string, string>>
+     */
+    protected function doorFactorTreeFromUserJson(User $user, ?int $catalogId = null): array
+    {
+        $raw = $user->door_point_factor;
+        if (! is_array($raw) || $raw === []) {
+            return [];
+        }
+
+        $tree = [];
+        foreach ($raw as $catalogName => $doors) {
+            if (! is_array($doors)) {
+                continue;
+            }
+            $catKey = is_string($catalogName) ? $this->catalogKey($catalogName) : (string) $catalogName;
+            if ($catKey === '') {
+                continue;
+            }
+            if ($catalogId !== null) {
+                $catalog = ProductCatalog::query()->find($catalogId);
+                if ($catalog && $this->catalogKey($catalog->name) !== $catKey) {
+                    continue;
+                }
+            }
+            foreach ($doors as $doorLabel => $factor) {
+                if ($factor === null || $factor === '' || strtolower((string) $factor) === 'null') {
+                    continue;
+                }
+                $doorKey = is_string($doorLabel) ? $this->doorKey($doorLabel) : (string) $doorLabel;
+                if ($doorKey === '') {
+                    continue;
+                }
+                $tree[$catKey][$doorKey] = (string) $factor;
+            }
         }
 
         return $tree;

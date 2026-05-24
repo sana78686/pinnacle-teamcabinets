@@ -63,6 +63,7 @@ class User extends Authenticatable
         'status',
         'is_verified_by_admin',
         'address',
+        'note',
         'login_version',
     ];
     protected $guarded = [];

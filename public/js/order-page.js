@@ -26,6 +26,8 @@
     const cfg = {
         catalogId: parseInt(pageAttr('catalog-id'), 10) || pageAttr('catalog-id'),
         doorId: parseInt(pageAttr('door-id'), 10) || pageAttr('door-id'),
+        catalogName: pageAttr('catalog-name') || '',
+        doorLabel: pageAttr('door-label') || '',
         csrf: pageAttr('csrf'),
         accordionSearchPrefix: pageAttr('accordion-search-prefix'),
         autosaveUrl: pageAttr('autosave-url'),
@@ -104,6 +106,55 @@
         return Number.isFinite(n) ? n : fallback !== undefined ? fallback : 0;
     }
 
+    /** CI catalog/door keys: spaces → underscores (ARTSTAR, Shaker_White). */
+    function ciFactorKey(label) {
+        return String(label || '')
+            .trim()
+            .split(' ')
+            .join('_');
+    }
+
+    function parseDoorTree(raw) {
+        if (!raw) {
+            return null;
+        }
+        if (typeof raw === 'object') {
+            return raw;
+        }
+        try {
+            return JSON.parse(raw);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function ciDoorFactorFromTree(tree, catalogName, doorLabel) {
+        if (!tree) {
+            return '';
+        }
+        const catKey = ciFactorKey(catalogName);
+        const doorKey = ciFactorKey(doorLabel);
+        const byCat = tree[catKey];
+        if (!byCat || byCat[doorKey] === undefined || byCat[doorKey] === null) {
+            return '';
+        }
+        const val = String(byCat[doorKey]).replace(/,/g, '');
+        if (val === '' || val.toLowerCase() === 'null') {
+            return '';
+        }
+        return val;
+    }
+
+    /** CI cart unit: base cost × door factor (direct multiply). */
+    function ciCartUnitCost(rawCost, doorTreeRaw, catalogName, doorLabel) {
+        const raw = num(rawCost, 0);
+        const factor = ciDoorFactorFromTree(parseDoorTree(doorTreeRaw), catalogName, doorLabel);
+        if (factor === '') {
+            return raw;
+        }
+        return parseFloat((raw * parseFloat(factor)).toFixed(2));
+    }
+
     function normalizeSavedLine(p) {
         const qty = parseInt(p.quantity ?? p.product_quantity ?? p.cabinet_quantity, 10) || 1;
         const cost = num(p.cost ?? p.product_cost, 0);
@@ -134,24 +185,32 @@
         };
     }
 
+    function rowAttr($row, name) {
+        const v = $row.attr('data-' + name);
+        return v === undefined || v === '' ? undefined : v;
+    }
+
     function lineFromPicker($src) {
-        const doorColor = $('.product_img_name').val() || '';
+        const doorColor = $('.product_img_name').val() || cfg.doorLabel || '';
+        const catalogName = cfg.catalogName || '';
+        const raw = num(rowAttr($src, 'cost1') ?? rowAttr($src, 'cost'), 0);
+        const cartCost = ciCartUnitCost(raw, rowAttr($src, 'door-point'), catalogName, doorColor);
         return normalizeSavedLine({
-            product_id: $src.data('cabinetid') || $src.data('productId'),
-            sku: $src.data('sku'),
-            label: $src.data('label'),
-            description: $src.data('description'),
-            weight: $src.data('weight'),
-            cost: $src.data('cost'),
-            cost1: $src.data('cost1') ?? $src.data('cost'),
-            cabinet_id: $src.data('cabinet'),
-            product_details: $src.data('details'),
-            assemble_cost: $src.data('ass-cost'),
+            product_id: rowAttr($src, 'cabinetid') || $src.data('cabinetid') || $src.data('productId'),
+            sku: rowAttr($src, 'sku') || $src.data('sku'),
+            label: rowAttr($src, 'label') || $src.data('label'),
+            description: rowAttr($src, 'description') || $src.data('description'),
+            weight: num(rowAttr($src, 'weight') ?? $src.data('weight'), 0),
+            cost: cartCost,
+            cost1: raw,
+            cabinet_id: rowAttr($src, 'cabinet') || $src.data('cabinet'),
+            product_details: rowAttr($src, 'details') || $src.data('details'),
+            assemble_cost: num(rowAttr($src, 'ass-cost') ?? $src.data('assCost'), 0),
             product_color: doorColor,
-            parent_door_factor: $src.data('parent-point'),
-            representative_door_factor: $src.data('representative-point'),
-            user_door_factor: $src.data('door-point'),
-            catalogue_name: $('input[name="catalogue_name"]').val() || '',
+            parent_door_factor: rowAttr($src, 'parent-point'),
+            representative_door_factor: rowAttr($src, 'representative-point'),
+            user_door_factor: rowAttr($src, 'door-point'),
+            catalogue_name: $('input[name="catalogue_name"]').val() || cfg.catalogName || '',
             quantity: 1,
         });
     }
@@ -405,7 +464,7 @@
         $('#detail-label').text($row.data('label') || '');
         $('#detail-sku').text('SKU: ' + ($row.data('sku') || ''));
         $('#detail-weight').text('Weight: ' + ($row.data('weight') || 0) + ' lbs');
-        $('#detail-cost').text('Cost: $' + (parseFloat($row.data('cost')) || 0).toFixed(2));
+        $('#detail-cost').text('Cost: $' + (parseFloat(rowAttr($row, 'cost1') ?? rowAttr($row, 'cost')) || 0).toFixed(2));
         $('#detail-info').text('Details: ' + ($row.data('details') || ''));
         const img = $row.data('product-img');
         if (img) {
@@ -676,6 +735,7 @@
         const name = $tile.data('label');
         const src = $tile.data('src') || $tile.find('img').attr('src') || '';
         cfg.doorId = $tile.data('door-id');
+        cfg.doorLabel = name;
         $('.product_img_name').val(name);
         $('.product_img_src').val(src);
         $('#door-heading').text(name);

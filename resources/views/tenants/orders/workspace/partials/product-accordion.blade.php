@@ -18,7 +18,6 @@
                         @php
                             $pricing = $product->pricing ?? [];
                             $rawCost = $pricing['raw_cost'] ?? (float) preg_replace('/[^\d.]/', '', (string) $product->cost);
-                            $adjCost = $pricing['adjusted_cost'] ?? $rawCost;
                             $rawWeight = $pricing['weight'] ?? (float) preg_replace('/[^\d.]/', '', (string) $product->weight);
                             $listDesc = $door->product_label.' - '.$product->sku.' - '.$product->label;
                             $details = $pricing['details'] ?? ($product->value_1 ?: ($product->description ?: ''));
@@ -31,7 +30,7 @@
                             data-description="{{ $listDesc }}"
                             data-details="{{ $details }}"
                             data-weight="{{ $rawWeight }}"
-                            data-cost="{{ $adjCost }}"
+                            data-cost="{{ $rawCost }}"
                             data-cost1="{{ $rawCost }}"
                             data-cabinet="{{ $section->id }}"
                             data-cabinetid="{{ $product->id }}"
@@ -45,7 +44,7 @@
                             <td>{{ $product->sku }}</td>
                             <td>{{ $listDesc }}</td>
                             <td>{{ $product->weight }}</td>
-                            <td>${{ number_format($adjCost, 2) }}</td>
+                            <td>${{ number_format($rawCost, 2) }}</td>
                             <td>{{ $product->qty }}</td>
                         </tr>
                     @endforeach

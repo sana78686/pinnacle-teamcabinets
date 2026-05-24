@@ -34,7 +34,7 @@ class EmailSettingsVueConfig
                     ['name' => 'smtp_host', 'label' => 'SMTP Host', 'required' => true, 'placeholder' => 'smtp.office365.com', 'tip' => config('tenant_field_tips.host')],
                     ['name' => 'smtp_username', 'label' => 'SMTP Username', 'required' => true, 'placeholder' => 'user@company.com', 'tip' => config('tenant_field_tips.username')],
                     ['name' => 'smtp_password', 'label' => 'SMTP Password', 'type' => 'password', 'placeholder' => 'Leave blank to keep current password', 'tip' => config('tenant_field_tips.password')],
-                    ['name' => 'from_email', 'label' => 'From Email', 'type' => 'email', 'required' => true, 'placeholder' => 'sales@teamcabinets.com', 'tip' => 'Address shown as the sender on outgoing mail.'],
+                    ['name' => 'from_email', 'label' => 'From Email', 'type' => 'email', 'required' => true, 'placeholder' => 'sales@teamcabinets.com', 'tip' => 'Address shown as the sender on outgoing mail.', 'note' => 'NOTE: From Email should be same as SMTP Username.'],
                     ['name' => 'from_name', 'label' => 'From Name', 'placeholder' => 'Team Cabinets', 'tip' => 'Display name for outgoing mail.'],
                     ['name' => 'smtp_port', 'label' => 'SMTP Port', 'type' => 'number', 'required' => true, 'placeholder' => '587', 'tip' => config('tenant_field_tips.port')],
                     ['name' => 'smtp_encryption', 'label' => 'Encryption', 'type' => 'select', 'required' => true, 'options' => [

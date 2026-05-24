@@ -63,7 +63,7 @@
                     ],
                 ])
             </li>
-            <li class="tc-nav-has-children {{ request()->routeIs('tenant_bulletin_*') ? 'tc-nav-active' : '' }}">
+            <li class="{{ request()->routeIs('tenant_bulletin_*') ? 'tc-nav-active' : '' }}">
                 <a href="#"><i data-feather="speaker"></i><span>Bulletins</span></a>
                 @include('layouts.tenant.partials.nav-dropdown', [
                     'title' => 'Bulletins',
@@ -72,6 +72,12 @@
                         ['url' => route('tenant_bulletin_index'), 'icon' => 'list', 'label' => 'Bulletins List'],
                     ],
                 ])
+            </li>
+            <li class="{{ request()->routeIs('tenant_support_chat_*') ? 'tc-nav-active' : '' }}" data-nav-module="support_chat">
+                <a href="{{ route('tenant_support_chat_index') }}">
+                    <i data-feather="message-circle"></i><span>Support Chat</span>
+                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['support_chat'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="support_chat" {{ (int) ($tcNavBadges['support_chat'] ?? 0) <= 0 ? 'hidden' : '' }} aria-hidden="true"></span>
+                </a>
             </li>
             <li class="{{ request()->routeIs(['tenant_settings_hub', 'tenant_site_setting', 'tenant_website_designing', 'tenant_home_setting_*', 'tenant_setting_manage_index', 'tenant_setting_manage_contact_*', 'tenant_storefront_about', 'tenant_storefront_blog', 'tenant_setting_*', 'pages.*', 'tenant_frontend_theme*']) ? 'tc-nav-active' : '' }}">
                 <a href="{{ route('tenant_settings_hub') }}">
@@ -88,6 +94,18 @@
                     'items' => [
                         ['url' => route('tenant_quotes_index'), 'icon' => 'list', 'label' => 'Quotes List', 'badge_key' => 'quotes_list'],
                         ['url' => route('tenant_shipping_quotes_index'), 'icon' => 'list', 'label' => 'Shipping Quotes List', 'badge_key' => 'shipping_quotes_list'],
+                    ],
+                ])
+            </li>
+            <li class="tc-nav-has-children {{ request()->routeIs('tenant_stock_check_*') ? 'tc-nav-active' : '' }}" data-nav-module="stock_check">
+                <a href="#">
+                    <i data-feather="search"></i><span>Stock Check</span>
+                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['stock_check'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="stock_check" {{ (int) ($tcNavBadges['stock_check'] ?? 0) <= 0 ? 'hidden' : '' }} aria-hidden="true"></span>
+                </a>
+                @include('layouts.tenant.partials.nav-dropdown', [
+                    'title' => 'Stock Check',
+                    'items' => [
+                        ['url' => route('tenant_stock_check_index'), 'icon' => 'list', 'label' => 'Stock Check Requests', 'badge_key' => 'stock_check_list'],
                     ],
                 ])
             </li>

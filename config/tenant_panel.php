@@ -8,4 +8,7 @@ return [
     /** Bell icon poll interval (milliseconds) */
     'notifications_poll_ms' => (int) env('TENANT_NOTIFICATIONS_POLL_MS', 15000),
 
+    /** Support chat message poll interval (milliseconds) */
+    'support_chat_poll_ms' => (int) env('TENANT_SUPPORT_CHAT_POLL_MS', 4000),
+
 ];

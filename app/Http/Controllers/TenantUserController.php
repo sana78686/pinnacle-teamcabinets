@@ -60,10 +60,6 @@ class TenantUserController extends Controller
      */
     public function index(Request $request, TenantNavBadgeService $navBadges): View|JsonResponse
     {
-        if (Auth::user()?->hasRole('Admin')) {
-            $navBadges->markListSeen(Auth::user(), 'users_list');
-        }
-
         $savedColumns = UserColumnPreference::where('user_id', Auth::id())
             ->where('module', 'users')
             ->first();

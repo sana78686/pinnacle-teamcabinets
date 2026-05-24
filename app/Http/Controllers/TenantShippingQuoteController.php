@@ -24,10 +24,6 @@ class TenantShippingQuoteController extends Controller
 
     public function index(Request $request, TenantNavBadgeService $navBadges): View
     {
-        if (Auth::user()->hasRole('Admin')) {
-            $navBadges->markListSeen(Auth::user(), 'shipping_quotes_list');
-        }
-
         $perPage = TenantListPaginator::perPage($request);
         $search = TenantListPaginator::search($request);
         $query = $this->workspace->listQuery(ShippingQuote::class, Auth::user());
@@ -122,6 +118,8 @@ class TenantShippingQuoteController extends Controller
         ]);
 
         $this->shippingAdminView->applyAdminShippingUpdate($record, $validated);
+
+        app(AdminRecordViewService::class)->markViewed($record, Auth::user());
 
         return redirect()
             ->route('tenant_shipping_quotes_show', $record->id)

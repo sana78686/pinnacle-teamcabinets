@@ -166,7 +166,7 @@
                 </form>
             </section>
 
-            <section class="tc-profile-card">
+            <section class="tc-profile-card" id="tc-change-password">
                 <div class="tc-profile-card__head">
                     <span class="tc-profile-card__icon"><i data-feather="lock" aria-hidden="true"></i></span>
                     <div>

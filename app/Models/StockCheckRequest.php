@@ -16,11 +16,58 @@ class StockCheckRequest extends Model
 
     protected $casts = [
         'rooms' => 'array',
+        'original_rooms' => 'array',
         'admin_viewed_at' => 'datetime',
+        'completion_date' => 'datetime',
+        'is_approved' => 'boolean',
     ];
+
+    public function billToName(): string
+    {
+        return (string) ($this->bill_to_name ?: $this->user?->name ?: '—');
+    }
+
+    public function isApproved(): bool
+    {
+        if ($this->is_approved !== null) {
+            return (bool) $this->is_approved;
+        }
+
+        return filled($this->completion_date);
+    }
+
+    /** @return array<int, mixed> */
+    public function normalizedOriginalRooms(): array
+    {
+        $rooms = $this->original_rooms;
+
+        if (is_array($rooms) && $rooms !== []) {
+            return $rooms;
+        }
+
+        return $this->normalizedRooms();
+    }
 
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /** @return array<int, mixed> */
+    public function normalizedRooms(): array
+    {
+        $rooms = $this->rooms;
+
+        if (is_array($rooms)) {
+            return $rooms;
+        }
+
+        if (is_string($rooms) && $rooms !== '') {
+            $decoded = json_decode($rooms, true);
+
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        return [];
     }
 }

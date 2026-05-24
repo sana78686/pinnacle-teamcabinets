@@ -2,38 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\StockCheckAdminMail;
-use App\Mail\StockCheckUserMail;
-use App\Models\Product;
 use App\Models\StockCheckRequest;
-use App\Models\TaxValues;
-use App\Models\User;
 use App\Services\AdminRecordViewService;
 use App\Services\OrderWorkspaceService;
-use App\Services\TenantNavBadgeService;
+use App\Services\QuoteWorkspaceService;
+use App\Services\StockCheckAdminViewService;
 use App\Support\TenantListPaginator;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\View\View;
 
 class TenantStockCheckController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request, TenantNavBadgeService $navBadges)
-    {
-        if (Auth::user()->hasRole('Admin')) {
-            $navBadges->markListSeen(Auth::user(), 'stock_check_list');
-        }
+    public function __construct(
+        protected OrderWorkspaceService $workspace,
+        protected QuoteWorkspaceService $recordWorkspace,
+        protected StockCheckAdminViewService $stockAdminView,
+    ) {}
 
+    public function index(Request $request): View
+    {
         $perPage = TenantListPaginator::perPage($request);
         $search = TenantListPaginator::search($request);
         $query = StockCheckRequest::query()
-            ->select(OrderWorkspaceService::workspaceListColumns())
-            ->with(['user:id,name,email'])
-            ->orderByDesc('updated_at');
+            ->select($this->listColumns())
+            ->with(['user:id,name,email,company_name'])
+            ->orderByDesc('id');
 
         if (! Auth::user()->hasRole('Admin')) {
             $query->where('user_id', Auth::id());
@@ -42,9 +39,11 @@ class TenantStockCheckController extends Controller
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('job_name', 'like', '%'.$search.'%')
+                    ->orWhere('bill_to_name', 'like', '%'.$search.'%')
                     ->orWhereHas('user', function ($u) use ($search) {
                         $u->where('name', 'like', '%'.$search.'%')
-                            ->orWhere('email', 'like', '%'.$search.'%');
+                            ->orWhere('email', 'like', '%'.$search.'%')
+                            ->orWhere('company_name', 'like', '%'.$search.'%');
                     });
             });
         }
@@ -62,156 +61,159 @@ class TenantStockCheckController extends Controller
         return view('tenants.representative_modals.stock_check.index', $data);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id, AdminRecordViewService $adminView)
+    public function show(Request $request, string $id, AdminRecordViewService $adminView): View
     {
-        $data['stock_check_request'] = $stockCheck = StockCheckRequest::findOrFail($id);
-        $data['rooms'] = json_decode($stockCheck->rooms, true);
+        $stockCheck = StockCheckRequest::query()->with('user')->findOrFail($id);
+
+        if (! $this->recordWorkspace->userMayAccess($stockCheck, Auth::user())) {
+            abort(403);
+        }
+
+        $viewingOrgData = $request->query('view') === 'org';
+        $rooms = $viewingOrgData
+            ? $stockCheck->normalizedOriginalRooms()
+            : $stockCheck->normalizedRooms();
 
         if (Auth::user()->hasRole('Admin')) {
             $adminView->markViewed($stockCheck, Auth::user());
+
+            return view('tenants.stock_check.show', $this->stockAdminView->viewData($stockCheck, $rooms, $viewingOrgData));
         }
 
-        if(Auth::user()->hasRole('Admin'))
-        {
-            return view('tenants.stock_check.show');
-        }
-        else
-        {
-            return view('tenants.representative_modals.stock_check.show', $data);
-        }
-        // return view('tenants.stock_check.show');
+        return view('tenants.representative_modals.stock_check.show', [
+            'stock_check_request' => $stockCheck,
+            'rooms' => $rooms,
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id, AdminRecordViewService $adminView)
+    public function edit(string $id, AdminRecordViewService $adminView): RedirectResponse
     {
-        $stockCheck = StockCheckRequest::findOrFail($id);
+        $stockCheck = StockCheckRequest::query()->findOrFail($id);
+
+        if (! $this->recordWorkspace->userMayAccess($stockCheck, Auth::user())) {
+            abort(403);
+        }
+
         $adminView->markViewed($stockCheck, Auth::user());
 
-        return view('tenants.stock_check.edit');
+        return $this->recordWorkspace->restoreToWorkspace($stockCheck, Auth::user());
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $id): JsonResponse|RedirectResponse
+    {
+        if (! Auth::user()->hasRole('Admin')) {
+            abort(403);
+        }
+
+        $stockCheck = StockCheckRequest::query()->findOrFail($id);
+
+        if ($this->stockAdminView->isShippingRequired($stockCheck)) {
+            $validated = $request->validate([
+                'total_pallets' => 'required|integer|min:1|max:999',
+                'delivery_cost' => 'required|numeric|min:0',
+                'liftgate_cost' => 'required|numeric|min:0',
+                'unload_cost' => 'required|numeric|min:0',
+                'miscellaneous_cost' => 'required|numeric|min:0',
+            ]);
+
+            $this->stockAdminView->applyDetailedShippingUpdate($stockCheck, $validated);
+        } else {
+            $validated = $request->validate([
+                'shipping_charges' => 'required|numeric|min:0',
+            ]);
+
+            $this->stockAdminView->applySimpleShippingUpdate($stockCheck, (float) $validated['shipping_charges']);
+        }
+
+        app(AdminRecordViewService::class)->markViewed($stockCheck, Auth::user());
+
+        if ($request->expectsJson()) {
+            return response()->json(['status' => true]);
+        }
+
+        return redirect()
+            ->route('tenant_stock_check_show', $stockCheck->id)
+            ->with('success', 'Stock check request updated successfully.');
+    }
+
+    public function print(string $id): View
+    {
+        if (! Auth::user()->hasRole('Admin')) {
+            abort(403);
+        }
+
+        $stockCheck = StockCheckRequest::query()->with('user')->findOrFail($id);
+        $rooms = $stockCheck->normalizedRooms();
+
+        return view('tenants.stock_check.print', [
+            'stock_check_request' => $stockCheck,
+            'rooms' => $rooms,
+            'lines' => $this->stockAdminView->viewData($stockCheck, $rooms)['lines'],
+        ]);
+    }
+
+    public function sendWarehouseEmail(Request $request, string $id): JsonResponse
+    {
+        if (! Auth::user()->hasRole('Admin')) {
+            abort(403);
+        }
+
+        $stockCheck = StockCheckRequest::query()->findOrFail($id);
+        $validated = $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $sent = $this->stockAdminView->sendWarehouseEmail($stockCheck, $validated['email']);
+
+        return response()->json(['status' => $sent]);
+    }
+
+    public function destroy(string $id): RedirectResponse
+    {
+        $stockCheck = StockCheckRequest::query()->findOrFail($id);
+
+        if (! $this->recordWorkspace->userMayAccess($stockCheck, Auth::user())) {
+            abort(403);
+        }
+
+        $stockCheck->delete();
+
+        return redirect()
+            ->route('tenant_stock_check_index')
+            ->with('success', 'Stock check quote has been deleted successfully.');
+    }
+
+    public function deleted_stock_check_list(): View
+    {
+        return view('tenants.stock_check.deleted_stock_check_list');
+    }
+
+  public function restoreDeletedproductsection($id)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    /** @return array<int, string> */
+    protected function listColumns(): array
     {
-        $stock_check_request = StockCheckRequest::findOrFail($id);
-        $stock_check_request->delete();
-        return redirect()->route('tenant_stock_check_index')
-        ->with('success', 'Stock Request Deleted Successfully');
-    }
+        $columns = [
+            'id',
+            'job_name',
+            'user_id',
+            'user_address',
+            'user_email',
+            'created_at',
+            'updated_at',
+            'admin_viewed_at',
+            'shipping_cost',
+        ];
 
-
-
-    public function deleted_stock_check_list()
-
-    {
-        // $data['product_section'] = ProductSection::onlyTrashed()->get();
-        return view('tenants.stock_check.deleted_stock_check_list');
-    }
-
-    public function restoreDeletedproductsection($id)
-    {
-        // $product_section = ProductSection::onlyTrashed()->findOrFail($id);
-        // if (!$product_section) {
-        //     session()->flash('error', 'Product Section cannot found.');
-        //     return redirect()->back();
-        // }
-        // $product_section->restore(); // Restore the user
-        // return redirect()->route('tenant_deleted_product_section_list')
-        //     ->with('success', 'product_section.'.$product_section->name.'. Restored successfully');
-    }
-    public function store(Request $request)
-    {
-
-        Log::info("Received Data:", $request->all());
-        $user = Auth::user();
-        $validated_data = $request->validate([
-            'job_name' => 'required|string',
-            'rooms' => 'req|array|required',
-            'assemble_cabinets_check' => 'required',
-            'shipping_status' => 'required|in:yes,pending',
-            'comment' => 'nullable|string'
-        ]);
-
-        Log::info($request->rooms);
-        $countryName = $user->country_id ? $user->country->name : '';
-        $stateName = $user->state_id ? $user->state->name : '';
-
-        $user_address = implode(', ', array_filter([
-            $user->address,
-            $user->city_name,
-            $user->county_name,
-            $stateName,
-            $countryName
-        ]));
-        $fuel_tax = TaxValues::where('option_key', 'fuel_charges_value')->first();
-
-        $total_assemble_cost = 0;
-        $sub_total_cost = 0;
-        $sub_total_weight = 0;
-        foreach ($request->rooms as $room) {
-            foreach ($room['products'] as $product) {
-                // Fetch the assemble cost for the product from the database
-                $productData = Product::find($product['product_id']);
-                Log::info($productData);
-                $product_assemble_cost = $productData ? $productData->assemble_cost : 0;
-                $product_cost = $productData ? $productData->cost : 0;
-                $product_weight = $productData ? $productData->weight : 0;
-
-                // Multiply by quantity and add to total
-                $total_assemble_cost += ($product_assemble_cost * $product['quantity']);
-                $sub_total_cost += ($product_cost * $product['quantity']);
-                $sub_total_weight += ($product_weight * $product['quantity']);
-
+        foreach (['bill_to_name', 'is_approved', 'completion_date'] as $column) {
+            if (Schema::hasColumn('stock_check_requests', $column)) {
+                $columns[] = $column;
             }
         }
-        Log::info($total_assemble_cost);
-        $stockCheckRequest = StockCheckRequest::create([
-            'job_name' => $request->job_name,
-            'rooms' => json_encode($request->rooms),
-            'assemble_cabinets_check' => $request->assemble_cabinets_check,
-            'shipping_status' => $request->shipping_status,
-            'comment' => $request->comment,
-            'user_id' => $user->id,
-            'user_address' => $user_address,
-            'user_email' => $user->email,
-            'user_phone' => $user->phone,
-            'sub_total_cost' => $sub_total_cost,
-            'fuel_tax' => $fuel_tax->option_value,
-        ]);
-        if($request->assemble_cabinets_check == 1)
-        {
-            Log::info("assemble cabinet check");
-            $stockCheckRequest->sub_total_assemble_cost = $total_assemble_cost;
-            $stockCheckRequest->save();
-        }
-        /***  Sum grand total */
-        $stockCheckRequest->grand_total_cost = $total_assemble_cost + $sub_total_cost;
-        $stockCheckRequest->sub_total_weight = $sub_total_weight;
-        $stockCheckRequest->save();
 
-
-        // $admins = User::where('role', 'admin')->pluck('email')->toArray();
-        // Mail::to($user->email)->send(new StockCheckUserMail());
-        // if (!empty($admins)) {
-        //     Mail::to($admins)->send(new StockCheckAdminMail());
-        // }
-        Log::info($stockCheckRequest);
-        return response()->json(['message' => 'Stock check saved successfully'], 200);
+        return $columns;
     }
 }

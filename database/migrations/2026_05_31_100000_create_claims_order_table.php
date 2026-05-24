@@ -14,6 +14,7 @@ return new class extends Migration
 
         Schema::create('claims_order', function (Blueprint $table) {
             $table->id();
+            $table->string('tenant_id')->nullable();
             $table->json('claims_product_val');
             $table->text('claims_order_message');
             $table->text('claims_order_image')->nullable();
@@ -26,6 +27,7 @@ return new class extends Migration
 
             $table->index('claims_order_id');
             $table->index('claims_order_user_id');
+            $table->index('tenant_id');
         });
     }
 

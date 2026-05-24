@@ -64,9 +64,6 @@
             @unless ($tcIsPanelAdmin)
                 @include('layouts.tenant.sidebar')
             @endunless
-            <!-- Right sidebar Start-->
-            @include('layouts.tenant.chat_sidebar')
-            <!-- Right sidebar Ends-->
             <div class="page-body tc-form-page{{ $tcIsPanelAdmin ? ' p-0' : '' }}">
                 @include('partial.message')
                 @auth

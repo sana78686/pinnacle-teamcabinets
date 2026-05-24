@@ -220,6 +220,15 @@ class OrderWorkspaceNotificationService
 
     /**
      * @param  ShippingQuote|StockCheckRequest  $record
+     * @return array<string, mixed>
+     */
+    public function stockCheckEmailData(Model $record, User $user, array $shippingCosts, int $quoteId): array
+    {
+        return $this->buildQuoteEmailData($record, $user, $shippingCosts, $quoteId);
+    }
+
+    /**
+     * @param  ShippingQuote|StockCheckRequest  $record
      */
     protected function buildQuoteEmailData(Model $record, User $user, array $shippingCosts, int $quoteId): array
     {

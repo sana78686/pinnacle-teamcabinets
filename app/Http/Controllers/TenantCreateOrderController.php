@@ -550,7 +550,7 @@ class TenantCreateOrderController extends Controller
 
             if ($clearCart) {
                 $this->clearWorkspaceCart($request);
-                session()->forget(['editing_quote_id', 'editing_shipping_quote_id']);
+                session()->forget(['editing_quote_id', 'editing_shipping_quote_id', 'editing_stock_check_id']);
             }
         } catch (ValidationException $e) {
             return response()->json([
@@ -613,6 +613,7 @@ class TenantCreateOrderController extends Controller
     {
         $quoteId = (int) ($request->input('quote_saved_id') ?: session('editing_quote_id'));
         $shippingQuoteId = (int) ($request->input('shipping_quote_saved_id') ?: session('editing_shipping_quote_id'));
+        $stockCheckId = (int) ($request->input('stock_check_saved_id') ?: session('editing_stock_check_id'));
 
         if ($modelClass === Quote::class && $quoteId > 0) {
             $quote = Quote::query()->findOrFail($quoteId);
@@ -630,6 +631,15 @@ class TenantCreateOrderController extends Controller
             }
 
             return $this->workspace->updateRecord($shippingQuote, $payload);
+        }
+
+        if ($modelClass === StockCheckRequest::class && $stockCheckId > 0) {
+            $stockCheck = StockCheckRequest::query()->findOrFail($stockCheckId);
+            if ((int) $stockCheck->user_id !== (int) $request->user()->id && ! $request->user()->hasRole('Admin')) {
+                abort(403);
+            }
+
+            return $this->workspace->updateRecord($stockCheck, $payload);
         }
 
         return $this->workspace->createRecord($modelClass, $payload);
@@ -675,6 +685,14 @@ class TenantCreateOrderController extends Controller
             $shippingQuote = ShippingQuote::query()->find($shippingQuoteId);
             if ($shippingQuote && $this->quoteWorkspace->userMayAccess($shippingQuote, $user)) {
                 $cart['order_comment'] = $this->quoteWorkspace->workspaceCommentForCart($shippingQuote);
+            }
+        }
+
+        $stockCheckId = (int) session('editing_stock_check_id');
+        if ($stockCheckId > 0) {
+            $stockCheck = StockCheckRequest::query()->find($stockCheckId);
+            if ($stockCheck && $this->quoteWorkspace->userMayAccess($stockCheck, $user)) {
+                $cart['order_comment'] = $this->quoteWorkspace->workspaceCommentForCart($stockCheck);
             }
         }
 

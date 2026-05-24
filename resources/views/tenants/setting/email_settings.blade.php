@@ -137,6 +137,7 @@
                                 </select>
                                 <textarea v-else-if="field.type === 'textarea'" class="form-control" :id="'es-' + field.name" v-model="form[field.name]" :rows="field.rows || 5" :required="field.required"></textarea>
                                 <input v-else class="form-control" :id="'es-' + field.name" :type="field.type || 'text'" v-model="form[field.name]" :required="field.required && !(formMode === 'edit' && field.name === 'smtp_password')" :placeholder="field.placeholder || ''">
+                                <small v-if="field.note" class="d-block mt-1 text-danger fw-bold">@{{ field.note }}</small>
                             </div>
                         </div>
                     </div>

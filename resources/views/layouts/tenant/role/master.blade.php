@@ -39,7 +39,6 @@
         </div>
         <div class="page-body-wrapper">
             @include('layouts.tenant.sidebar')
-            @include('layouts.tenant.chat_sidebar')
             <div class="page-body tc-form-page">
                 @include('partial.message')
                 @auth
@@ -76,6 +75,7 @@
         </div>
     </div>
     @include('layouts.tenant.script')
+    @include('layouts.tenant.partials.order-help-modal')
 </body>
 
 </html>

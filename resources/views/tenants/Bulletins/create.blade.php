@@ -28,6 +28,17 @@
                     <span class="err" style="color: red;"></span>
                 </div>
             </div>
+            <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4 user-type-wrap" style="display:none;">
+                <div class="form-group">
+                    <label>User Type<span class="asterisk"> *</span></label>
+                    <select name="target_role" id="target_role" class="form-control">
+                        <option value="">Select role</option>
+                        @foreach (\Spatie\Permission\Models\Role::query()->where('name', '!=', 'Admin')->orderBy('name')->pluck('name') as $roleName)
+                            <option value="{{ $roleName }}">{{ $roleName }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
             <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
                 <div class="form-group">
                     <label>Title<span class="asterisk"> *</span></label>
@@ -61,100 +72,28 @@
     </form>
 @endsection
 @section('script')
-    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-    {{-- <script src="{{ route('/') }}/assets/main/js/datatable/datatables/jquery.dataTables.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.buttons.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/jszip.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/buttons.colVis.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/pdfmake.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/vfs_fonts.js"></script> --}}
     <script>
-        $(document).ready(function() {
-            // Load Data
-            function loadCatalogs() {
-                $.ajax({
-                    url: "{{ route('product_catalogs.index') }}",
-                    method: "GET",
-                    success: function(data) {
-                        let rows = '';
-                        data.product_catalogs.forEach((catalog, index) => {
-                            rows += `
-                            <tr>
-                                <td>${index + 1}</td>
-                                <td>${catalog.name}</td>
-                                <td>${catalog.image ?? 'N/A'}</td>
-                                <td>${catalog.pdf ?? 'N/A'}</td>
-                                <td>
-                                    <select class="form-select status-dropdown" data-id="${catalog.id}">
-                                        <option value="1" ${catalog.status == 1 ? 'selected' : ''}>Visible</option>
-                                        <option value="0" ${catalog.status == 0 ? 'selected' : ''}>Not-Visible</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-warning editCatalog" data-id="${catalog.id}">Edit</button>
-                                    <button class="btn btn-sm btn-danger deleteCatalog" data-id="${catalog.id}">Delete</button>
-                                </td>
-                            </tr>
-                        `;
-                        });
-                        $('#catalogTable tbody').html(rows);
-                    }
-                });
-            }
-            loadCatalogs();
-            // Handle Create/Edit
-            $('#createCatalog').click(function() {
-                $('#catalogModalLabel').text('Create Catalog');
-                $('#catalogForm')[0].reset();
-                $('#catalogId').val('');
-                $('#catalogModal').modal('show');
-            });
-            $('#catalogForm').submit(function(e) {
-                e.preventDefault();
-                let formData = new FormData(this);
-                let id = $('#catalogId').val();
-                let url = id ? `/product_catalogs/${id}` : "{{ route('product_catalogs.store') }}";
-                let method = id ? 'PUT' : 'POST';
-                $.ajax({
-                    url: url,
-                    method: method,
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(response) {
-                        $('#catalogModal').modal('hide');
-                        loadCatalogs();
-                    }
-                });
-            });
-            // Handle Delete
-            $(document).on('click', '.deleteCatalog', function() {
-                let id = $(this).data('id');
-                if (confirm('Are you sure?')) {
-                    $.ajax({
-                        url: `/product_catalogs/${id}`,
-                        method: 'DELETE',
-                        success: function() {
-                            loadCatalogs();
-                        }
-                    });
+        document.addEventListener('DOMContentLoaded', function() {
+            const option = document.getElementById('select_user_send_option');
+            const roleWrap = document.querySelector('.user-type-wrap');
+            const roleSelect = document.getElementById('target_role');
+
+            function syncRoleField() {
+                const show = option && option.value === 'specific_user';
+                if (roleWrap) {
+                    roleWrap.style.display = show ? '' : 'none';
                 }
-            });
-            // Handle Status Change
-            $(document).on('change', '.status-dropdown', function() {
-                let id = $(this).data('id');
-                let status = $(this).val();
-                $.ajax({
-                    url: `/product_catalogs/${id}`,
-                    method: 'PUT',
-                    data: {
-                        status
-                    },
-                    success: function() {
-                        loadCatalogs();
+                if (roleSelect) {
+                    roleSelect.required = show;
+                    if (!show) {
+                        roleSelect.value = '';
                     }
-                });
-            });
+                }
+            }
+
+            option?.addEventListener('change', syncRoleField);
+            syncRoleField();
         });
     </script>
 @endsection
+

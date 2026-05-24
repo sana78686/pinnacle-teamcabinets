@@ -11,6 +11,7 @@ use App\Models\City;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Services\TenantDashboardService;
+use App\Services\TenantRoleDashboardService;
 use App\Services\TenantProvisioningService;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
@@ -414,6 +415,9 @@ while (
             ]);
         }
 
-        return view('tenants.representative_modals.dashboard');
+        return view('tenants.representative_modals.dashboard', app(TenantRoleDashboardService::class)->dashboardData(
+            Auth::user(),
+            (int) request('bulletin') ?: null
+        ));
     }
 }

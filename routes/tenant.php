@@ -135,6 +135,19 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
          Route::post('/notifications/read-all', [TenantNotificationController::class, 'markAllRead'])->name('tenant_notifications_read_all');
          Route::post('/notifications/{id}/read', [TenantNotificationController::class, 'markRead'])->name('tenant_notifications_read');
 
+         Route::get('support-chat', [\App\Http\Controllers\TenantSupportChatController::class, 'index'])->name('tenant_support_chat_index');
+         Route::get('support-chat/user', [\App\Http\Controllers\TenantSupportChatController::class, 'userIndex'])->name('tenant_support_chat_user');
+         Route::prefix('support-chat/api')->group(function () {
+             Route::get('threads', [\App\Http\Controllers\SupportChatApiController::class, 'threads'])->name('tenant_support_chat_api_threads');
+             Route::post('threads', [\App\Http\Controllers\SupportChatApiController::class, 'storeThread'])->name('tenant_support_chat_api_threads_store');
+             Route::get('threads/{id}/messages', [\App\Http\Controllers\SupportChatApiController::class, 'messages'])->whereNumber('id')->name('tenant_support_chat_api_messages');
+             Route::post('threads/{id}/messages', [\App\Http\Controllers\SupportChatApiController::class, 'storeMessage'])->whereNumber('id')->name('tenant_support_chat_api_send');
+             Route::post('threads/{id}/read', [\App\Http\Controllers\SupportChatApiController::class, 'markRead'])->whereNumber('id')->name('tenant_support_chat_api_read');
+             Route::delete('threads/{id}', [\App\Http\Controllers\SupportChatApiController::class, 'destroyThread'])->whereNumber('id')->name('tenant_support_chat_api_thread_destroy');
+             Route::delete('messages/{id}', [\App\Http\Controllers\SupportChatApiController::class, 'destroyMessage'])->whereNumber('id')->name('tenant_support_chat_api_message_destroy');
+             Route::get('unread-count', [\App\Http\Controllers\SupportChatApiController::class, 'unreadCount'])->name('tenant_support_chat_api_unread');
+         });
+
 
          Route::post('import', [TenantUserController::class, 'importCSV'])->name('users_import_csv');
 
@@ -153,6 +166,22 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
          Route::get('/profile', [TenantProfileController::class, 'profile'])->name('tenant_profile');
          Route::post('/profile', [TenantProfileController::class, 'updateProfile'])->name('tenant_profile_update');
          Route::post('/profile/password', [TenantProfileController::class, 'updatePassword'])->name('tenant_profile_password');
+
+        /** Rep panel: downloads, uploads, order help */
+         Route::get('downloads/index', [\App\Http\Controllers\TenantUserDownloadController::class, 'index'])->name('tenant_downloads_index');
+         Route::get('uploads/index', [\App\Http\Controllers\TenantUserUploadController::class, 'index'])->name('tenant_uploads_index');
+         Route::post('order-query', [\App\Http\Controllers\TenantOrderQueryController::class, 'store'])->name('tenant_order_query_store');
+         Route::prefix('uploads/api')->group(function () {
+             Route::get('/', [\App\Http\Controllers\UserUploadApiController::class, 'index'])->name('tenant_user_uploads_api_index');
+             Route::post('/', [\App\Http\Controllers\UserUploadApiController::class, 'store'])->name('tenant_user_uploads_api_store');
+             Route::get('{id}', [\App\Http\Controllers\UserUploadApiController::class, 'show'])->whereNumber('id')->name('tenant_user_uploads_api_show');
+             Route::post('{id}', [\App\Http\Controllers\UserUploadApiController::class, 'update'])->whereNumber('id')->name('tenant_user_uploads_api_update');
+             Route::delete('{id}', [\App\Http\Controllers\UserUploadApiController::class, 'destroy'])->whereNumber('id')->name('tenant_user_uploads_api_destroy');
+         });
+         Route::prefix('rep-workspace/api')->group(function () {
+             Route::get('{type}', [\App\Http\Controllers\RepWorkspaceListApiController::class, 'index'])->name('tenant_rep_workspace_api_index');
+             Route::delete('{type}/{id}', [\App\Http\Controllers\RepWorkspaceListApiController::class, 'destroy'])->whereNumber('id')->name('tenant_rep_workspace_api_destroy');
+         });
 
         /*** Users Routes */
          Route::get('users/index', [TenantUserController::class, 'index'])->name('tenant_user_index');
@@ -510,6 +539,8 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
           Route::get('stock_check/index', [TenantStockCheckController::class, 'index'])->name('tenant_stock_check_index');
           Route::get('stock_check/{id}/edit', [TenantStockCheckController::class, 'edit'])->name('tenant_stock_check_edit');
           Route::get('stock_check/{id}/show', [TenantStockCheckController::class, 'show'])->name('tenant_stock_check_show');
+          Route::get('stock_check/{id}/print', [TenantStockCheckController::class, 'print'])->name('tenant_stock_check_print');
+          Route::post('stock_check/{id}/warehouse-email', [TenantStockCheckController::class, 'sendWarehouseEmail'])->name('tenant_stock_check_warehouse_email');
           Route::put('stock_check/{id}', [TenantStockCheckController::class, 'update'])->name('tenant_stock_check_update');
           Route::delete('stock_check/{id}', [TenantStockCheckController::class, 'destroy'])->name('tenant_stock_check_destroy');
           Route::get('stock_check/deleted/stock_check_list', [TenantStockCheckController::class, 'deleted_stock_check_list'])->name('tenant_deleted_stock_check_list');

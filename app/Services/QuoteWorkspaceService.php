@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\ProductCatalog;
 use App\Models\Quote;
 use App\Models\ShippingQuote;
+use App\Models\StockCheckRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
@@ -60,7 +61,11 @@ class QuoteWorkspaceService
     public function restoreToWorkspace(Model $record, User $user): RedirectResponse
     {
         $resolved = $this->resolveCatalogAndDoor($record);
-        $listRoute = $record instanceof ShippingQuote ? 'tenant_shipping_quotes_index' : 'tenant_quotes_index';
+        $listRoute = match (true) {
+            $record instanceof ShippingQuote => 'tenant_shipping_quotes_index',
+            $record instanceof StockCheckRequest => 'tenant_stock_check_index',
+            default => 'tenant_quotes_index',
+        };
 
         if (! $resolved) {
             return redirect()
@@ -83,10 +88,13 @@ class QuoteWorkspaceService
 
         if ($record instanceof ShippingQuote) {
             session(['editing_shipping_quote_id' => $record->id]);
-            session()->forget('editing_quote_id');
+            session()->forget(['editing_quote_id', 'editing_stock_check_id']);
+        } elseif ($record instanceof StockCheckRequest) {
+            session(['editing_stock_check_id' => $record->id]);
+            session()->forget(['editing_quote_id', 'editing_shipping_quote_id']);
         } else {
             session(['editing_quote_id' => $record->id]);
-            session()->forget('editing_shipping_quote_id');
+            session()->forget(['editing_shipping_quote_id', 'editing_stock_check_id']);
         }
 
         return redirect()->route('tenant_order_workspace_build', [

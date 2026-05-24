@@ -23,10 +23,6 @@ class TenantClaimController extends Controller
 
     public function index(Request $request, TenantNavBadgeService $navBadges): View
     {
-        if (Auth::user()->hasRole('Admin')) {
-            $navBadges->markListSeen(Auth::user(), 'claims_list');
-        }
-
         $perPage = TenantListPaginator::perPage($request);
         $search = TenantListPaginator::search($request);
         $query = $this->claims->listQuery(Auth::user());
@@ -39,7 +35,11 @@ class TenantClaimController extends Controller
             });
         }
 
-        return view('tenants.claims.index', [
+        $view = Auth::user()->hasRole('Admin')
+            ? 'tenants.claims.index'
+            : 'tenants.claims.rep_index';
+
+        return view($view, [
             'claims' => $query->paginate($perPage)->withQueryString(),
             'perPage' => $perPage,
             'search' => $search,

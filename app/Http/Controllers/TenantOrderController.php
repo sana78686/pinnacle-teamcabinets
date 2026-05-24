@@ -31,10 +31,6 @@ class TenantOrderController extends Controller
      */
     public function index(Request $request, TenantNavBadgeService $navBadges)
     {
-        if (Auth::user()->hasRole('Admin')) {
-            $navBadges->markListSeen(Auth::user(), 'orders_list');
-        }
-
         $perPage = TenantListPaginator::perPage($request);
         $search = TenantListPaginator::search($request);
         $workspace = app(\App\Services\OrderWorkspaceService::class);

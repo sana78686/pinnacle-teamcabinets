@@ -48,5 +48,7 @@ class AdminRecordViewService
         }
 
         $record->forceFill(['admin_viewed_at' => now()])->save();
+
+        app(TenantNavBadgeService::class)->markRecordSeen($user, $record);
     }
 }

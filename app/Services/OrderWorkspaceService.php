@@ -219,7 +219,7 @@ class OrderWorkspaceService
             $attrs['grand_total_cost'] = ($payload['totals']['grand_total_cost'] ?? 0) + ($costs['shipping_cost'] ?? 0);
         }
 
-        if (in_array($modelClass, [\App\Models\Quote::class, \App\Models\ShippingQuote::class], true)) {
+        if (in_array($modelClass, [\App\Models\Quote::class, \App\Models\ShippingQuote::class, \App\Models\StockCheckRequest::class], true)) {
             $attrs = array_merge($attrs, array_filter([
                 'quote_name' => $payload['quote_name'] ?? null,
                 'product_catalog_id' => $payload['product_catalog_id'] ?? null,
@@ -227,6 +227,18 @@ class OrderWorkspaceService
                 'product_img_src' => $payload['product_img_src'] ?? null,
                 'product_img_name' => $payload['product_img_name'] ?? null,
             ], fn ($v) => $v !== null && $v !== ''));
+        }
+
+        if ($modelClass === \App\Models\StockCheckRequest::class) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn((new \App\Models\StockCheckRequest)->getTable(), 'original_rooms')) {
+                $attrs['original_rooms'] = $payload['rooms'];
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn((new \App\Models\StockCheckRequest)->getTable(), 'bill_to_name')) {
+                $attrs['bill_to_name'] = $payload['user']->name ?? null;
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn((new \App\Models\StockCheckRequest)->getTable(), 'is_approved')) {
+                $attrs['is_approved'] = false;
+            }
         }
 
         /** @var Model $record */
@@ -253,7 +265,7 @@ class OrderWorkspaceService
             'grand_total_cost' => $payload['totals']['grand_total_cost'],
         ];
 
-        if ($record instanceof \App\Models\Quote || $record instanceof \App\Models\ShippingQuote) {
+        if ($record instanceof \App\Models\Quote || $record instanceof \App\Models\ShippingQuote || $record instanceof \App\Models\StockCheckRequest) {
             $attrs = array_merge($attrs, array_filter([
                 'quote_name' => $payload['quote_name'] ?? null,
                 'product_catalog_id' => $payload['product_catalog_id'] ?? null,
@@ -261,6 +273,10 @@ class OrderWorkspaceService
                 'product_img_src' => $payload['product_img_src'] ?? null,
                 'product_img_name' => $payload['product_img_name'] ?? null,
             ], fn ($v) => $v !== null && $v !== ''));
+        }
+
+        if ($record instanceof \App\Models\StockCheckRequest && empty($record->original_rooms)) {
+            $attrs['original_rooms'] = $payload['rooms'];
         }
 
         $record->update($attrs);

@@ -10,6 +10,7 @@ return [
         'quotes' => ['quotes_list', 'shipping_quotes_list'],
         'stock_check' => ['stock_check_list'],
         'claims' => ['claims_list'],
+        'support_chat' => ['support_chat_list'],
     ],
 
     'list_keys' => [
@@ -19,5 +20,6 @@ return [
         'shipping_quotes_list',
         'stock_check_list',
         'claims_list',
+        'support_chat_list',
     ],
 ];

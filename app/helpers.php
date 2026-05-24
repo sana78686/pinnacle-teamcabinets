@@ -424,3 +424,35 @@ if (! function_exists('tenant_role_factor_key')) {
         return \Illuminate\Support\Str::slug(strtolower(trim($roleName)), '-');
     }
 }
+
+if (! function_exists('tenant_user_is_affiliate_panel')) {
+    /** CI hides commission / add-affiliate for affiliate and sub-affiliate roles. */
+    function tenant_user_is_affiliate_panel(?\App\Models\User $user = null): bool
+    {
+        $label = strtolower(tenant_panel_role_label($user));
+
+        return str_contains($label, 'affiliate');
+    }
+}
+
+if (! function_exists('tenant_manage_document_types_for_user')) {
+    /** @return list<string> */
+    function tenant_manage_document_types_for_user(?\App\Models\User $user = null): array
+    {
+        $user ??= auth()->user();
+        $types = ['all'];
+
+        if ($user) {
+            $types[] = (string) $user->id;
+            $role = tenant_panel_role_label($user);
+            $types[] = strtolower($role);
+            $types[] = tenant_role_factor_key($role);
+            $types[] = str_replace('-', '_', tenant_role_factor_key($role));
+            if (strcasecmp($role, 'Representative') === 0) {
+                $types[] = 'representatives';
+            }
+        }
+
+        return array_values(array_unique(array_filter($types)));
+    }
+}

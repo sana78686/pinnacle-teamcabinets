@@ -88,20 +88,29 @@
                                                 @foreach ($room['products'] as $each)
                                                     @php
                                                         $productData = \App\Models\Product::with('doorColor')->find(
-                                                            $each['product_id'],
+                                                            $each['product_id'] ?? null,
                                                         );
-                                                        $productWeight = $productData ? $productData->weight : 0;
-                                                        $productPrice = $productData ? $productData->price : 0;
-                                                        $productAssembleCost = $productData
-                                                            ? $productData->assemble_cost
-                                                            : 0;
-                                                        // Calculate total for each product
-                                                        $totalProductWeight = $productWeight * $each['quantity'];
-                                                        $totalProductPrice = $productPrice * $each['quantity'];
-                                                        $totalProductAssembleCost =
-                                                            $productAssembleCost * $each['quantity'];
-
+                                                        $qty = max(1, (int) ($each['quantity'] ?? 1));
+                                                        $productWeight = (float) preg_replace(
+                                                            '/[^\d.]/',
+                                                            '',
+                                                            (string) ($productData?->weight ?? ($each['weight'] ?? 0)),
+                                                        );
+                                                        $productPrice = (float) preg_replace(
+                                                            '/[^\d.]/',
+                                                            '',
+                                                            (string) ($productData?->cost ?? ($each['cost'] ?? 0)),
+                                                        );
+                                                        $productAssembleCost = (float) preg_replace(
+                                                            '/[^\d.]/',
+                                                            '',
+                                                            (string) ($productData?->assemble_cost ?? ($each['assemble_cost'] ?? 0)),
+                                                        );
+                                                        $totalProductWeight = $productWeight * $qty;
+                                                        $totalProductPrice = $productPrice * $qty;
+                                                        $totalProductAssembleCost = $productAssembleCost * $qty;
                                                     @endphp
+                                                    @if ($productData)
                                                     <tr>
                                                         <td>
                                                             @if ($productData->checkbox_status == 1)
@@ -130,25 +139,16 @@
                                                         </td>
                                                         <td>{{ $productData->label }}</td>
                                                         <td>{{ $productData->sku }} +
-                                                            {{ $productData->doorColor->product_label }}</td>
+                                                            {{ $productData->doorColor?->product_label ?? '' }}</td>
                                                         <td>{{ $productData->weight }} lbs</td>
-                                                        <td>${{ number_format($productData->cost, 2) }}</td>
-                                                        @php
-                                                            $productAssembleCost =
-                                                                $productData->cost * $each['quantity'];
-                                                        @endphp
-                                                        <td>${{ number_format($productAssembleCost, 2) }}</td>
-                                                        <td>{{ $each['quantity'] }}</td>
-                                                        @php
-
-                                                            $eachProductCost =
-                                                                $productData->assemble_cost * $each['quantity'];
-                                                        @endphp
-                                                        <td>${{ number_format($eachProductCost, 2) }}</td>
+                                                        <td>${{ number_format($productPrice * $qty, 2) }}</td>
+                                                        <td>{{ $qty }}</td>
+                                                        <td>${{ number_format($productAssembleCost * $qty, 2) }}</td>
                                                         <td>
                                                             <textarea style="width:100%; min-width:100%;" class="product_note" name="product_note1[]"></textarea>
                                                         </td>
                                                     </tr>
+                                                    @endif
                                                 @endforeach
                                             @else
                                                 <p>No products found for this room.</p>
@@ -184,16 +184,16 @@
                                 <tfoot>
                                     <tr>
                                         <th colspan="3">Sub Total</th>
-                                        <td>{{ number_format($stock_check_request->sub_total_weight, 2) }} lbs</td>
+                                        <td>{{ number_format((float) preg_replace('/[^\d.]/', '', (string) ($stock_check_request->sub_total_weight ?? 0)), 2) }} lbs</td>
                                         <td></td>
-                                        <td>${{ number_format($stock_check_request->sub_total_cost, 2) }}</td>
+                                        <td>${{ number_format((float) preg_replace('/[^\d.]/', '', (string) ($stock_check_request->sub_total_cost ?? 0)), 2) }}</td>
                                         <td></td>
-                                        <td> ${{ number_format($stock_check_request->sub_total_assemble_cost, 2) }}</td>
+                                        <td> ${{ number_format((float) preg_replace('/[^\d.]/', '', (string) ($stock_check_request->sub_total_assemble_cost ?? 0)), 2) }}</td>
                                         <td></td>
                                     </tr>
                                     <tr>
                                         <th colspan="5">Cabinetry Assembly Cost</th>
-                                        <td>${{ number_format($stock_check_request->sub_total_assemble_cost, 2) }} </td>
+                                        <td>${{ number_format((float) preg_replace('/[^\d.]/', '', (string) ($stock_check_request->sub_total_assemble_cost ?? 0)), 2) }} </td>
                                         <td></td>
                                         <td></td>
                                         <td></td>
@@ -208,9 +208,9 @@
                                         <th colspan="2">Total (<span class="note_charges">Excluding Sales Tax And
                                                 Payment Charges</span>)</th>
                                         <td></td>
-                                        <td>{{ number_format($stock_check_request->sub_total_weight, 2) }} lbs</td>
+                                        <td>{{ number_format((float) preg_replace('/[^\d.]/', '', (string) ($stock_check_request->sub_total_weight ?? 0)), 2) }} lbs</td>
                                         <td></td>
-                                        <td>${{ number_format($stock_check_request->grand_total_cost, 2) }}</td>
+                                        <td>${{ number_format((float) preg_replace('/[^\d.]/', '', (string) ($stock_check_request->grand_total_cost ?? 0)), 2) }}</td>
                                         <td></td>
                                         <td></td>
                                         <td></td>

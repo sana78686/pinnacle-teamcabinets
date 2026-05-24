@@ -1,5 +1,5 @@
 @extends('layouts.tenant.master')
-@section('title', 'Stock Check Menu')
+@section('title', 'Stock Check Requests')
 
 @section('css')
 @endsection
@@ -8,36 +8,25 @@
 @endsection
 
 @section('breadcrumb-title')
-    <h2>Stock Check<span>List </span></h2>
+    <h2>Stock Check<span>Requests </span></h2>
 @endsection
 
 @section('breadcrumb-items')
-<li class="breadcrumb-item active">Stock Check</li>
+    <li class="breadcrumb-item active">Stock Check</li>
     <li class="breadcrumb-item">List</li>
 @endsection
 
 @section('content')
 
 <div class="p-2 mt-0 card-header no-border">
-    <a   href="{{ route('tenant_deleted_stock_check_list') }}" class="btn btn-success btn-sm" data-toggle="tooltip" title="Restore a previously deleted Stock Check">
+    <a href="{{ route('tenant_deleted_stock_check_list') }}" class="btn btn-success btn-sm" data-toggle="tooltip"
+        title="Restore a previously deleted Stock Check">
         <i class="icofont icofont-spinner-alt-3"></i> Restore Stock Check
     </a>
     <a href="{{ url()->current() }}" class="btn btn-light btn-sm" data-toggle="tooltip" title="Refresh this Page.">
         <i class="icofont icofont-refresh fa fa-spin"></i>&nbsp; Refresh
     </a>
-    <div class=" pull-right">
-        <!-- Import & Export Buttons -->
-        <button class="btn btn-primary btn-sm" data-toggle="tooltip" title="Export user data to a file">
-            <i class="text-white icofont icofont-upload-alt"></i> Export
-        </button>
-
-        <button class="btn btn-dark btn-sm" data-toggle="tooltip" title="Import user data from a file">
-            <i class="text-white icofont icofont-download-alt"></i> Import
-        </button>
-    </div>
 </div>
-
-
 
 <div class="pt-0 card-body">
     @include('partials.tc-list-toolbar', [
@@ -45,90 +34,69 @@
         'perPage' => $perPage ?? tenant_list_per_page(),
         'search' => $search ?? '',
     ])
-    <div class="table-responsive table-sm tc-admin-datatable">
-        <table class="table p-0 m-0 display table-striped table-bordered table-sm" id="">
+<div class="table-responsive table-sm tc-admin-datatable">
+        <table class="table p-0 m-0 display table-striped table-bordered table-sm">
             <thead>
                 <tr>
-                    <th scope="col">#</th>
+                    <th scope="col">ID</th>
                     <th scope="col">Bill Name</th>
-                    <th scope="col">Ship Name</th>
                     <th scope="col">Job Name</th>
-                    <th scope="col">Date</th>
+                    <th scope="col">Company Name</th>
+                    <th scope="col">Created Date</th>
+                    <th scope="col">Completion Date</th>
+                    <th scope="col">Is Approved</th>
                     <th scope="col">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($stock_check_requests as $request)
                     <tr class="{{ tenant_admin_unviewed_row_class($request) }}">
-                        <td>{{ $stock_check_requests->firstItem() + $loop->index }}</td>
-                        <td>{{ $request->user?->name ?? '—' }}</td>
-                        <td>{{ $request->user_address ?? '—' }}</td>
+                        <td>{{ $request->id }}</td>
+                        <td>{{ $request->billToName() }}</td>
                         <td>{{ $request->job_name ?? '—' }}</td>
-                        <td>{{ $request->updated_at?->format('M j, Y') ?? '—' }}</td>
-                        <td>
-                            <a href="{{ route('tenant_stock_check_show', $request->id) }}" data-toggle="tooltip"
-                                title="View details of this Stock check">Show |</a>
-                            <a href="{{ route('tenant_stock_check_edit', $request->id) }}" data-toggle="tooltip"
-                                title="Edit this Stock check information">Edit |</a>
+                        <td>{{ filled($request->user?->company_name) ? $request->user->company_name : 'N/A' }}</td>
+                        <td>{{ $request->created_at?->format('Y-m-d H:i:s') ?? '—' }}</td>
+                        <td>{{ $request->completion_date?->format('Y-m-d H:i:s') ?? '' }}</td>
+                        <td>{{ $request->isApproved() ? 'Yes' : 'No' }}</td>
+                        <td class="text-nowrap">
+                            <a href="{{ route('tenant_stock_check_show', $request->id) }}">View</a> ||
+                            <a href="{{ route('tenant_stock_check_edit', $request->id) }}">Edit</a> ||
+                            <a href="{{ route('tenant_stock_check_print', $request->id) }}" target="_blank">Print</a> ||
+                            <form action="{{ route('tenant_stock_check_destroy', $request->id) }}" method="POST"
+                                class="d-inline"
+                                onsubmit="return confirm('Are you sure to delete stock check quote?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-link btn-sm p-0 align-baseline">Delete</button>
+                            </form> ||
+                            <a href="#" class="js-stock-warehouse-email" data-id="{{ $request->id }}">Send Email To
+                                Warehouse</a> ||
+                            <a href="{{ route('tenant_stock_check_show', ['id' => $request->id, 'view' => 'org']) }}">View Org
+                                Data</a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center text-muted">No stock check requests yet.</td>
+                        <td colspan="8" class="text-center text-muted">No stock check requests yet.</td>
                     </tr>
                 @endforelse
             </tbody>
-            <tfoot>
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Bill Name</th>
-                    <th scope="col">Ship Name</th>
-                    <th scope="col">Job Name</th>
-                    <th scope="col">Date</th>
-                    <th scope="col">Action</th>
-                </tr>
-            </tfoot>
         </table>
     </div>
     @include('partials.tenant-pagination', ['paginator' => $stock_check_requests])
 </div>
 
-
+@include('tenants.stock_check.partials.warehouse_email_modal')
 
 @endsection
 
 @section('script')
-
-
-
-
-
-    {{-- sweet alert  start --}}
-    <script>
-        function deleteUser(userId) {
-            // SweetAlert confirmation dialog
-            Swal.fire({
-                title: 'Are you sure?',
-                text: 'You won\'t be able to revert this!',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // If confirmed, submit the delete form
-                    document.getElementById('deleteForm' + userId).submit();
-                }
-            });
-        }
-    </script>
     @if (session('success'))
         <script>
             Swal.fire({
                 icon: 'success',
                 title: 'Success!',
-                text: '{{ session('success') }}',
+                text: @json(session('success')),
                 confirmButtonText: 'OK'
             });
         </script>
@@ -137,157 +105,99 @@
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
-                text: '{{ session('error') }}',
+                text: @json(session('error')),
                 confirmButtonText: 'OK'
             });
         </script>
     @endif
 
-    {{-- sweet alert  end --}}
-
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const deleteButtons = document.querySelectorAll('.delete-button');
+            const modalEl = document.getElementById('stockCheckWarehouseModal');
+            const emailInput = document.getElementById('stock_check_warehouse_email');
+            const requestIdInput = document.getElementById('stock_check_request_id');
+            const statusMsg = document.querySelector('#stockCheckWarehouseModal .statusMsg');
+            const submitBtn = document.querySelector('#stockCheckWarehouseModal .submitBtn');
+            const warehouseUrlTemplate = @json(route('tenant_stock_check_warehouse_email', ['id' => '__ID__']));
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-            deleteButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const form = this.closest('.delete-form');
+            function validateEmail(email) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            }
 
-                    Swal.fire({
-                        title: 'Are you sure?',
-                        text: "You can revert this within 60 days!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#3085d6',
-                        confirmButtonText: 'Yes, delete it!'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.submit(); // Submit the form if confirmed
-                        }
-                    });
+            document.querySelectorAll('.js-stock-warehouse-email').forEach(function(link) {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    requestIdInput.value = this.dataset.id || '';
+                    emailInput.value = '';
+                    statusMsg.innerHTML = '';
+                    if (window.bootstrap?.Modal) {
+                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    } else if (window.jQuery) {
+                        window.jQuery(modalEl).modal('show');
+                    }
                 });
             });
-        });
-    </script>
-    <script>
-        // Status change script
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.status-dropdown').forEach(function(dropdown) {
-                dropdown.addEventListener('change', function() {
-                    const userId = this.getAttribute('data-user-id');
-                    const newStatus = this.value;
-                    const previousValue = this.dataset.previousValue || this.value;
 
-                    Swal.fire({
-                        text: `You are about to change the user's status to ${newStatus}.`,
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Yes, change it!',
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            const csrfToken = document.querySelector(
-                                'meta[name="csrf-token"]') ? document.querySelector(
-                                'meta[name="csrf-token"]').getAttribute('content') : '';
+            window.submitStockCheckWarehouseEmail = function() {
+                const email = emailInput.value.trim();
+                const id = requestIdInput.value;
+                statusMsg.innerHTML = '';
 
-                            if (!csrfToken) {
-                                console.error('CSRF token not found!');
-                                return; // Exit if the CSRF token is missing
-                            }
+                if (email === '') {
+                    statusMsg.innerHTML = '<span class="text-danger">Please enter Warehouse Email.</span>';
+                    emailInput.focus();
+                    return;
+                }
 
-                            // Get the route URL dynamically
-                            const updateStatusUrl =
-                                '{{ route('tenant_users_update_status', ':id') }}'.replace(
-                                    ':id', userId);
+                if (!validateEmail(email)) {
+                    statusMsg.innerHTML = '<span class="text-danger">Please enter a valid Email.</span>';
+                    emailInput.focus();
+                    return;
+                }
 
-                            fetch(updateStatusUrl, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': csrfToken
-                                    },
-                                    body: JSON.stringify({
-                                        status: newStatus
-                                    })
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        Swal.fire('Updated!',
-                                            `The user's status has been updated to ${newStatus}.`,
-                                            'success');
-                                    } else {
-                                        Swal.fire('Error!',
-                                            'There was a problem updating the status.',
-                                            'error');
-                                        dropdown.value =
-                                            previousValue; // Revert if error occurs
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error:', error);
-                                    Swal.fire('Error!',
-                                        'There was a problem updating the status.',
-                                        'error');
-                                    dropdown.value = previousValue; // Revert on error
-                                });
+                submitBtn.disabled = true;
+
+                fetch(warehouseUrlTemplate.replace('__ID__', id), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify({
+                            email: email
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status) {
+                            requestIdInput.value = '';
+                            statusMsg.innerHTML =
+                                '<span class="text-success">Your email is successfully delivered.</span>';
                         } else {
-                            dropdown.value = previousValue; // Revert if canceled
+                            statusMsg.innerHTML =
+                                '<span class="text-danger">Some problem occurred, please try again.</span>';
                         }
+                    })
+                    .catch(function() {
+                        statusMsg.innerHTML =
+                            '<span class="text-danger">Some problem occurred, please try again.</span>';
+                    })
+                    .finally(function() {
+                        submitBtn.disabled = false;
+                        setTimeout(function() {
+                            statusMsg.innerHTML = '';
+                        }, 5000);
+                        setTimeout(function() {
+                            if (window.bootstrap?.Modal) {
+                                bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                            } else if (window.jQuery) {
+                                window.jQuery(modalEl).modal('hide');
+                            }
+                        }, 4500);
                     });
-
-                    this.dataset.previousValue = newStatus; // Store previous value
-                });
-            });
-        });
-    </script>
-
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Loop through all copy icons for users
-            document.querySelectorAll('.fa-copy').forEach(copyIcon => {
-                copyIcon.addEventListener('click', function() {
-                    const userId = this.id.split('-')[
-                        2]; // Extract the user ID from the copy icon ID
-                    const emailText = document.getElementById('email-' + userId)
-                        .textContent; // Get the email using the user ID
-
-                    // Use the Clipboard API to copy the email text
-                    navigator.clipboard.writeText(emailText).then(function() {
-                        // If the text is copied, show SweetAlert with the copied email
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Copied!',
-                            text: 'Email: ' +
-                                emailText, // Show the copied email in the SweetAlert message
-                            showConfirmButton: false,
-                            timer: 3000,
-                        });
-                    }).catch(function(err) {
-                        // If an error occurs while copying, show an error message
-                        console.error('Error copying text: ', err);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops!',
-                            text: 'Failed to copy the email.',
-                            confirmButtonText: 'Try Again'
-                        });
-                    });
-                });
-            });
+            };
         });
     </script>
 @endsection
-
-
-{{-- sweet alert link start --}}
-
-{{--
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"
-    integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA=="
-    crossorigin="anonymous" referrerpolicy="no-referrer"></script> --}}
-
-{{-- sweet alert link end --}}

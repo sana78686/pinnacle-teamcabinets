@@ -23,10 +23,6 @@ class TenantQuotesController extends Controller
 
     public function index(Request $request, TenantNavBadgeService $navBadges): View
     {
-        if (Auth::user()->hasRole('Admin')) {
-            $navBadges->markListSeen(Auth::user(), 'quotes_list');
-        }
-
         $perPage = TenantListPaginator::perPage($request);
         $search = TenantListPaginator::search($request);
         $query = $this->workspace->listQuery(Quote::class, Auth::user());

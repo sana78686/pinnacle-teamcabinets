@@ -35,12 +35,20 @@ class TenantBulletinController extends Controller
      */
     public function store(Request $request)
     {
-        $bulletin =new Bulletin;
-        $bulletin->user_option = $request->user_option;
-        $bulletin->bulletin_title = $request->bulletin_title;
-        $bulletin->bulletin_description = $request->bulletin_description;
-        $request->validate(MediaUpload::imageOrPdfFieldRules('image'));
+        $validated = $request->validate(array_merge([
+            'user_option' => 'required|in:every_one,specific_user',
+            'target_role' => 'nullable|string|max:100|required_if:user_option,specific_user',
+            'bulletin_title' => 'required|string|max:255',
+            'bulletin_description' => 'required|string|max:5000',
+        ], MediaUpload::imageOrPdfFieldRules('image')));
 
+        $bulletin = new Bulletin;
+        $bulletin->user_option = $validated['user_option'];
+        $bulletin->target_role = $validated['user_option'] === 'specific_user'
+            ? ($validated['target_role'] ?? null)
+            : null;
+        $bulletin->bulletin_title = $validated['bulletin_title'];
+        $bulletin->bulletin_description = $validated['bulletin_description'];
         $bulletin->image = PublicUploadedFile::resolve(
             $request,
             'image',
@@ -49,7 +57,10 @@ class TenantBulletinController extends Controller
             'public'
         );
         $bulletin->save();
-        return redirect()->back();
+
+        return redirect()
+            ->route('tenant_bulletin_index')
+            ->with('success', 'Bulletin created successfully.');
     }
 
     /**
@@ -77,11 +88,19 @@ class TenantBulletinController extends Controller
     {
         $bulletin = Bulletin::findOrFail($id);
 
-        $request->validate(MediaUpload::imageOrPdfFieldRules('image'));
+        $validated = $request->validate(array_merge([
+            'user_option' => 'required|in:every_one,specific_user',
+            'target_role' => 'nullable|string|max:100|required_if:user_option,specific_user',
+            'bulletin_title' => 'required|string|max:255',
+            'bulletin_description' => 'required|string|max:5000',
+        ], MediaUpload::imageOrPdfFieldRules('image')));
 
-        $bulletin->user_option = $request->user_option;
-        $bulletin->bulletin_title = $request->bulletin_title;
-        $bulletin->bulletin_description = $request->bulletin_description;
+        $bulletin->user_option = $validated['user_option'];
+        $bulletin->target_role = $validated['user_option'] === 'specific_user'
+            ? ($validated['target_role'] ?? null)
+            : null;
+        $bulletin->bulletin_title = $validated['bulletin_title'];
+        $bulletin->bulletin_description = $validated['bulletin_description'];
         $bulletin->image = PublicUploadedFile::resolve(
             $request,
             'image',
@@ -90,7 +109,10 @@ class TenantBulletinController extends Controller
             'public'
         );
         $bulletin->save();
-        return redirect()->route('tenant_bulletin_index');
+
+        return redirect()
+            ->route('tenant_bulletin_index')
+            ->with('success', 'Bulletin updated successfully.');
     }
 
     /**

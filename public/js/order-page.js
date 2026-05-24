@@ -601,6 +601,33 @@
         });
     }
 
+    function setWorkspaceBusy(on, message) {
+        let $overlay = $('#ow-workspace-busy');
+        if (!$overlay.length) {
+            $overlay = $(
+                '<div id="ow-workspace-busy" class="ow-workspace-busy" aria-hidden="true">' +
+                    '<div class="ow-workspace-busy__panel" role="status" aria-live="polite">' +
+                    '<div class="ow-workspace-busy__spinner"></div>' +
+                    '<p class="ow-workspace-busy__text mb-0"></p>' +
+                    '</div></div>'
+            );
+            $('body').append($overlay);
+        }
+        if (on) {
+            $overlay.find('.ow-workspace-busy__text').text(message || 'Processing your request…');
+            $overlay.addClass('is-active').attr('aria-hidden', 'false');
+        } else {
+            $overlay.removeClass('is-active').attr('aria-hidden', 'true');
+        }
+    }
+
+    function postActionBusy(url, extra, message) {
+        setWorkspaceBusy(true, message);
+        return postAction(url, extra).always(function () {
+            setWorkspaceBusy(false);
+        });
+    }
+
     function resetWorkspaceCartUi() {
         $('#ow-job-name').val('');
         $('#ow-comment').val('');
@@ -790,7 +817,7 @@
     $('#btn-print').on('click', function () {
         if (!validateCart()) return;
         const $btn = $(this).prop('disabled', true);
-        postAction(cfg.urls.print, { shipping_status: 'pending' })
+        postActionBusy(cfg.urls.print, { shipping_status: 'pending' }, 'Preparing your order…')
             .done(function (data) {
                 handleSaveResponse(data, { newTab: true });
             })
@@ -813,11 +840,11 @@
         }
         $('#ow-err-quote-name').text('');
         $('#ow-modal-quote').modal('hide');
-        postAction(cfg.urls.quote, {
+        postActionBusy(cfg.urls.quote, {
             quote_name: name,
             shipping_status: 'pending',
             quote_saved_id: $('#quote_saved_id').val() || '',
-        })
+        }, 'Saving your quote…')
             .done(handleSaveResponse)
             .fail(showError);
     });
@@ -847,14 +874,14 @@
         }
         $('#ow-err-shipping').text('');
         $('#ow-modal-shipping-info').modal('hide');
-        postAction(cfg.urls.shipping, {
+        postActionBusy(cfg.urls.shipping, {
             quote_name: name,
             ship_quote_delivery_type: delivery,
             ship_quote_liftgate_req: liftgate,
             ship_quote_unload_type: unload,
             shipping_status: 'yes',
             shipping_quote_saved_id: $('#shipping_quote_saved_id').val() || '',
-        })
+        }, 'Submitting shipping quote…')
             .done(handleSaveResponse)
             .fail(showError);
     });
@@ -866,7 +893,7 @@
 
     $('#ow-stock-confirm-no').on('click', function () {
         $('#ow-modal-stock-confirm').modal('hide');
-        postAction(cfg.urls.stock, { shipping_status: 'pending', ship_quote_type: '' })
+        postActionBusy(cfg.urls.stock, { shipping_status: 'pending', ship_quote_type: '' }, 'Submitting stock check…')
             .done(handleSaveResponse)
             .fail(showError);
     });
@@ -886,13 +913,13 @@
         }
         $('#ow-err-stock-shipping').text('');
         $('#ow-modal-stock-shipping').modal('hide');
-        postAction(cfg.urls.stock, {
+        postActionBusy(cfg.urls.stock, {
             shipping_status: 'yes',
             ship_quote_type: 'stockcheckshippingquote',
             ship_quote_delivery_type: delivery,
             ship_quote_liftgate_req: liftgate,
             ship_quote_unload_type: unload,
-        })
+        }, 'Submitting stock check…')
             .done(handleSaveResponse)
             .fail(showError);
     });

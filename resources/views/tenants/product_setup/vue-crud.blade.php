@@ -132,6 +132,7 @@
                                 <td>
                                     <img v-if="col.type === 'image' && showRecord[col.key]" :src="showRecord[col.key]" alt="" style="max-width:200px;border-radius:6px;">
                                     <a v-else-if="col.type === 'pdf' && showRecord.pdf_view_url" :href="showRecord.pdf_view_url" target="_blank" rel="noopener">View PDF</a>
+                                    <a v-else-if="col.type === 'link' && showRecord[col.key]" :href="showRecord[col.key]" target="_blank" rel="noopener">Download</a>
                                     <span v-else-if="col.type === 'status'">@{{ showRecord[col.key] ? 'Active' : 'Inactive' }}</span>
                                     <span v-else>@{{ showRecord[col.key] ?? '—' }}</span>
                                 </td>

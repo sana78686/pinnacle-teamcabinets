@@ -377,6 +377,10 @@ class TenantUserController extends Controller
 
         $request->validated();
 
+        if (! $role) {
+            return $this->userFormErrorResponse($request, 'Selected role does not exist.');
+        }
+
         $user->username = $request->username;
         $user->name = $request->name;
         $user->phone = $request->phone;
@@ -409,14 +413,22 @@ class TenantUserController extends Controller
             $this->doorFactors->persistForUser($user, $request);
 
             return $this->userFormSuccessResponse($request, 'User updated successfully.');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Error updating catalog visibility:', [
+                'user_id' => $user->id,
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
 
-            return $this->userFormErrorResponse($request, 'An error occurred while saving door factors.');
+            $message = 'An error occurred while saving door factors.';
+            if (str_contains($e->getMessage(), 'Duplicate entry')) {
+                $message = 'Could not save catalog visibility (duplicate record). Please try again.';
+            } elseif (config('app.debug')) {
+                $message .= ' '.$e->getMessage();
+            }
+
+            return $this->userFormErrorResponse($request, $message);
         }
     }
 

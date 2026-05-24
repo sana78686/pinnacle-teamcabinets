@@ -47,6 +47,7 @@ return [
         'tenant.billing.*',
         'tenant_user_role_default',
         'cart.*',
+        'tenant_nav_menu_*',
     ],
 
     /**

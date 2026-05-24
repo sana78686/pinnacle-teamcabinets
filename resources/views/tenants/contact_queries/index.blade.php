@@ -33,7 +33,8 @@
                 <th>Date</th>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Subject</th>
+                <th>Phone</th>
+                <th>Best contact</th>
                 <th class="text-end">Action</th>
             </tr>
         </thead>
@@ -41,15 +42,16 @@
             @forelse ($queries as $item)
                 <tr class="{{ tenant_admin_unviewed_row_class($item) }}">
                     <td class="text-nowrap">{{ $item->created_at?->format('M j, Y g:i A') }}</td>
-                    <td>{{ $item->name ?: '—' }}</td>
+                    <td>{{ $item->name ?: trim(($item->first_name ?? '').' '.($item->last_name ?? '')) ?: '—' }}</td>
                     <td><a href="mailto:{{ $item->email }}">{{ $item->email }}</a></td>
-                    <td>{{ $item->subject ?: '—' }}</td>
+                    <td>{{ $item->phone ?: '—' }}</td>
+                    <td>{{ $item->best_contact_method ? (config('tenant_storefront.best_contact_options')[$item->best_contact_method] ?? $item->best_contact_method) : '—' }}</td>
                     <td class="text-end text-nowrap">
                         <a href="{{ route('tenant_contact_queries_show', $item) }}" class="tc-admin-datatable__edit">View</a>
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="5" class="text-center text-muted py-4">No contact messages yet.</td></tr>
+                <tr><td colspan="6" class="text-center text-muted py-4">No contact messages yet.</td></tr>
             @endforelse
         </tbody>
     </table>

@@ -23,3 +23,6 @@ yarn-error.log
 /.zed
 *.js.download
 public/backend/*.download
+
+# Theme media — exceeds GitHub 100 MB limit (keep locally or use CDN/LFS)
+public/themes/modern/media/video/factory.mp4

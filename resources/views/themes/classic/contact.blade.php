@@ -28,48 +28,17 @@
                 <div class="hz-contact-card">
                     <h2 class="hz-contact-card__title">Send us a message</h2>
                     @if (session('success'))
-                        <div class="hz-alert hz-alert--success">{{ session('success') }}</div>
+                        <div class="sf-alert sf-alert--success">{{ session('success') }}</div>
                     @endif
                     @if ($errors->any())
-                        <div class="hz-alert hz-alert--error">
-                            <ul class="mb-0 ps-3">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
+                        <div class="sf-alert sf-alert--error">
+                            <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
                         </div>
                     @endif
                     @if ($intro)
                         <div class="hz-page-body hz-page-body--intro mb-4">{!! $intro !!}</div>
                     @endif
-                    <form action="{{ route('contact.send') }}" method="post" enctype="multipart/form-data" class="hz-contact-form">
-                        @csrf
-                        <input type="text" name="url" value="" tabindex="-1" autocomplete="off" class="hz-honeypot" aria-hidden="true">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="hz-label" for="name">Name</label>
-                                <input type="text" name="name" id="name" class="hz-input" required value="{{ old('name') }}" placeholder="Your name">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="hz-label" for="from">Email</label>
-                                <input type="email" name="from" id="from" class="hz-input" required value="{{ old('from') }}" placeholder="your@email.com">
-                            </div>
-                            <div class="col-12">
-                                <label class="hz-label" for="message">Message</label>
-                                <textarea name="message" id="message" class="hz-input" rows="6" required placeholder="How can we help?">{{ old('message') }}</textarea>
-                            </div>
-                            <div class="col-12">
-                                <label class="hz-label" for="fileUpload">Attachment <span class="hz-muted">(optional)</span></label>
-                                <input type="file" name="fileUpload" id="fileUpload" class="hz-input hz-input--file">
-                            </div>
-                            <div class="col-12">
-                                @include('partials.cloudflare-turnstile', ['class' => 'hz-turnstile-wrap'])
-                            </div>
-                            <div class="col-12">
-                                <button type="submit" class="hz-btn hz-btn--gold hz-btn--block-sm">Send</button>
-                            </div>
-                        </div>
-                    </form>
+                    @include('partials.storefront.contact-form')
                 </div>
             </div>
             <div class="col-lg-5 order-1 order-lg-2">

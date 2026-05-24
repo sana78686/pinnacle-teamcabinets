@@ -58,7 +58,8 @@
                 </a> --}}
                 <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4 ">
                     <div class="form-group">
-                        <strong>Product Catalog &amp; door factors:<span class="txt-danger">*</span></strong>
+                        <strong>Product Catalog &amp; door factors:</strong>
+                        <span class="text-muted small">(optional — user sees no catalogs in Create Order until assigned)</span>
 
                         <a href="#" class="pull-right btn-import form-control b-r-0" data-toggle="tooltip"
                             title="Open catalog visibility and door point factor settings">

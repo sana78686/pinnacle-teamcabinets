@@ -5184,3 +5184,96 @@ button.tc-verify-pill {
 .tc-bulletin-form .user-type-wrap[style*="display: none"] {
     display: none !important;
 }
+
+/* Admin nav menu order editor */
+.tc-nav-menu-editor .card-header h5 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.tc-nav-order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 520px;
+}
+
+.tc-nav-order-list__item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: grab;
+    user-select: none;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.tc-nav-order-list__item:active {
+    cursor: grabbing;
+}
+
+.tc-nav-order-list__item--ghost {
+    opacity: 0.45;
+    background: #f1f5f9;
+}
+
+.tc-nav-order-list__item--chosen {
+    border-color: #3949ab;
+    box-shadow: 0 4px 14px rgba(57, 73, 171, 0.15);
+}
+
+.tc-nav-order-list__position {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.tc-nav-order-list__handle {
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+}
+
+.tc-nav-order-list__handle svg {
+    width: 18px;
+    height: 18px;
+}
+
+.tc-nav-order-list__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #f1f5f9;
+    border-radius: 6px;
+    color: #3949ab;
+}
+
+.tc-nav-order-list__icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.tc-nav-order-list__label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #0f172a;
+}
+
+.tc-tenant-nav .tc-nav-customize a {
+    opacity: 0.85;
+    font-size: 0.72rem;
+}
+
+.tc-tenant-nav .tc-nav-customize i,
+.tc-tenant-nav .tc-nav-customize span {
+    font-size: inherit;
+}

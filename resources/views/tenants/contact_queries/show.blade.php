@@ -20,12 +20,20 @@
         <dl class="row mb-0">
             <dt class="col-sm-3">Received</dt>
             <dd class="col-sm-9">{{ $query->created_at?->format('M j, Y g:i A') }}</dd>
-            <dt class="col-sm-3">Name</dt>
-            <dd class="col-sm-9">{{ $query->name ?: '—' }}</dd>
+            <dt class="col-sm-3">First name</dt>
+            <dd class="col-sm-9">{{ $query->first_name ?: '—' }}</dd>
+            <dt class="col-sm-3">Last name</dt>
+            <dd class="col-sm-9">{{ $query->last_name ?: '—' }}</dd>
             <dt class="col-sm-3">Email</dt>
             <dd class="col-sm-9"><a href="mailto:{{ $query->email }}">{{ $query->email }}</a></dd>
-            <dt class="col-sm-3">Subject</dt>
-            <dd class="col-sm-9">{{ $query->subject ?: '—' }}</dd>
+            <dt class="col-sm-3">Phone</dt>
+            <dd class="col-sm-9">{{ $query->phone ?: '—' }}</dd>
+            <dt class="col-sm-3">How they heard about us</dt>
+            <dd class="col-sm-9">{{ $query->hear_about_us ? (config('tenant_storefront.hear_about_options')[$query->hear_about_us] ?? $query->hear_about_us) : '—' }}</dd>
+            <dt class="col-sm-3">Best way to contact</dt>
+            <dd class="col-sm-9">{{ $query->best_contact_method ? (config('tenant_storefront.best_contact_options')[$query->best_contact_method] ?? $query->best_contact_method) : '—' }}</dd>
+            <dt class="col-sm-3">Newsletter</dt>
+            <dd class="col-sm-9">{{ $query->newsletter_subscribe ? 'Yes' : 'No' }}</dd>
             <dt class="col-sm-3">Message</dt>
             <dd class="col-sm-9"><pre class="mb-0" style="white-space:pre-wrap;font-family:inherit;">{{ $query->message }}</pre></dd>
             @if ($query->attachment_path)

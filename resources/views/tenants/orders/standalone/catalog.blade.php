@@ -29,7 +29,7 @@
                 </a>
             @empty
                 <div class="co-empty">
-                    <p>No catalogs available. Run the Team Cabinets seeder or add catalogs in Products.</p>
+                    <p>No product catalogs are assigned to your account. Contact your administrator to enable catalog access before creating an order.</p>
                 </div>
             @endforelse
         </div>

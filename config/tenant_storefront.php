@@ -1,24 +1,22 @@
 <?php
 
 return [
-    'reserved_slugs' => [
-        'about', 'about-us', 'blog', 'contact', 'contact-us',
-        'terms-and-conditions', 'terms', 'shipping-quote-terms', 'privacy-policy',
+    'hear_about_options' => [
+        '' => 'Please select',
+        'search_engine' => 'Search engine (Google, Bing, etc.)',
+        'social_media' => 'Social media',
+        'referral' => 'Friend or colleague referral',
+        'trade_show' => 'Trade show or event',
+        'dealer' => 'Dealer or showroom',
+        'advertisement' => 'Advertisement',
+        'other' => 'Other',
     ],
 
-    /**
-     * Legal pages: CMS page slug wins if published with content; else tax_values HTML.
-     */
-    'legal_pages' => [
-        'terms-and-conditions' => [
-            'title' => 'Terms & Conditions',
-            'menu_label' => 'Terms',
-            'tax_key' => 'terms_and_conditions',
-        ],
-        'shipping-quote-terms' => [
-            'title' => 'Shipping Quote Terms',
-            'menu_label' => 'Shipping terms',
-            'tax_key' => 'ship_quote_terms_and_condition',
-        ],
+    'best_contact_options' => [
+        '' => 'Please select',
+        'email' => 'Email',
+        'phone' => 'Phone',
+        'text' => 'Text message',
+        'either' => 'Email or phone',
     ],
 ];

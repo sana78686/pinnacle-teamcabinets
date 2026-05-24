@@ -336,6 +336,10 @@ class SupportChatApiController extends Controller
             return;
         }
 
+        if ($thread->is_storefront_guest) {
+            abort(403, 'You do not have access to this support thread.');
+        }
+
         if ((int) $thread->user_id !== (int) $user->id) {
             abort(403, 'You do not have access to this support thread.');
         }
@@ -343,6 +347,25 @@ class SupportChatApiController extends Controller
 
     protected function serializeThread(SupportThread $thread, User $viewer): array
     {
+        if ($thread->is_storefront_guest) {
+            $initials = strtoupper(substr((string) $thread->guest_name, 0, 2));
+
+            return [
+                'id' => $thread->id,
+                'title' => $thread->title ?: 'Storefront visitor',
+                'description' => $thread->description,
+                'status' => $thread->status,
+                'user_id' => null,
+                'user_name' => ($thread->guest_name ?: 'Storefront visitor').' (website)',
+                'user_email' => $thread->guest_email,
+                'user_avatar' => ['name' => $thread->guest_name, 'initials' => $initials, 'url' => null],
+                'is_storefront_guest' => true,
+                'unread_count' => (int) ($thread->unread_count ?? $this->chat->unreadCountForThread($thread, $viewer)),
+                'created_at' => $thread->created_at?->format('M j, Y g:i A'),
+                'created_at_iso' => $thread->created_at?->toIso8601String(),
+            ];
+        }
+
         $avatar = tenant_user_chat_avatar($thread->user);
 
         return [
@@ -354,6 +377,7 @@ class SupportChatApiController extends Controller
             'user_name' => $avatar['name'],
             'user_email' => $thread->user?->email,
             'user_avatar' => $avatar,
+            'is_storefront_guest' => false,
             'unread_count' => (int) ($thread->unread_count ?? $this->chat->unreadCountForThread($thread, $viewer)),
             'created_at' => $thread->created_at?->format('M j, Y g:i A'),
             'created_at_iso' => $thread->created_at?->toIso8601String(),
@@ -363,7 +387,17 @@ class SupportChatApiController extends Controller
     protected function serializeMessage(SupportMessage $message, User $viewer): array
     {
         $isMine = (int) $message->user_id === (int) $viewer->id;
-        $avatar = tenant_user_chat_avatar($message->user);
+        $isGuestMessage = $message->user_id === null;
+
+        if ($isGuestMessage) {
+            $avatar = [
+                'name' => $message->guest_name ?: 'Visitor',
+                'initials' => strtoupper(substr((string) ($message->guest_name ?: 'V'), 0, 2)),
+                'url' => null,
+            ];
+        } else {
+            $avatar = tenant_user_chat_avatar($message->user);
+        }
         $attachmentUrl = $message->attachment_path ? tenant_media_url($message->attachment_path) : null;
 
         return [
@@ -378,7 +412,7 @@ class SupportChatApiController extends Controller
             'has_attachment' => (bool) $attachmentUrl,
             'is_read' => (bool) $message->is_read,
             'is_mine' => $isMine,
-            'is_admin' => tenant_user_has_admin_role($message->user),
+            'is_admin' => ! $isGuestMessage && tenant_user_has_admin_role($message->user),
             'created_at' => $message->created_at?->format('M j, Y g:i A'),
             'created_at_iso' => $message->created_at?->toIso8601String(),
         ];

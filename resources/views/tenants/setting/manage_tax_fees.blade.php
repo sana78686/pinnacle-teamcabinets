@@ -33,7 +33,7 @@
         <div class="col-md-4 mb-3">
             <a href="{{ route('tenant_setting_tax_fees_sales_tax') }}" class="tc-wd-card">
                 <span class="tc-wd-card__icon"><i data-feather="map-pin"></i></span>
-                <strong>Sales tax counties</strong>
+                <strong>Sales Tax Management</strong>
                 <span class="tc-wd-card__meta">{{ $countyCount }} Florida {{ $countyCount === 1 ? 'county' : 'counties' }}</span>
                 <span class="tc-wd-card__desc">County tax rates applied at checkout by ship-to county name.</span>
             </a>

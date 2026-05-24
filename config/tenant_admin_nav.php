@@ -1,0 +1,150 @@
+<?php
+
+/**
+ * Admin panel navigation modules (order customizable per user).
+ */
+return [
+    'default_order' => [
+        'dashboard',
+        'users',
+        'roles',
+        'products',
+        'orders',
+        'quotes',
+        'stock_check',
+        'claims',
+        'bulletins',
+        'support_chat',
+        'settings',
+    ],
+
+    'items' => [
+        'dashboard' => [
+            'label' => 'Dashboard',
+            'icon' => 'home',
+            'type' => 'link',
+            'route' => 'tenant_dashboard',
+            'route_patterns' => ['tenant_dashboard'],
+        ],
+        'users' => [
+            'label' => 'Users',
+            'icon' => 'users',
+            'type' => 'dropdown',
+            'nav_module' => 'users',
+            'route_patterns' => ['tenant_user_*'],
+            'children' => [
+                ['label' => 'Create User', 'icon' => 'user-plus', 'route' => 'tenant_user_create', 'permission' => 'user-create'],
+                ['label' => 'Users List', 'icon' => 'list', 'route' => 'tenant_user_index', 'permission' => 'user-list', 'badge_key' => 'users_list'],
+            ],
+        ],
+        'roles' => [
+            'label' => 'Roles',
+            'icon' => 'shield',
+            'type' => 'dropdown',
+            'nav_module' => 'roles',
+            'route_patterns' => ['tenant_role_*', 'tenant_manage_role_*'],
+            'children' => [
+                ['label' => 'Manage User Role', 'icon' => 'sliders', 'route' => 'tenant_manage_role_create', 'permission' => 'manage_role-list'],
+                ['label' => 'Create Role', 'icon' => 'plus-circle', 'route' => 'tenant_role_create', 'permission' => 'role-create'],
+                ['label' => 'Roles List', 'icon' => 'list', 'route' => 'tenant_role_index', 'permission' => 'role-list'],
+            ],
+        ],
+        'products' => [
+            'label' => 'Products',
+            'icon' => 'package',
+            'type' => 'link',
+            'nav_module' => 'products',
+            'route' => 'tenant_products_hub',
+            'route_patterns' => [
+                'tenant_products_hub',
+                'tenant_product_*',
+                'tenant_product_catalog_*',
+                'tenant_product_section_*',
+                'tenant_door_color_*',
+            ],
+        ],
+        'orders' => [
+            'label' => 'Orders',
+            'icon' => 'shopping-cart',
+            'type' => 'dropdown',
+            'nav_module' => 'orders',
+            'route_patterns' => ['tenant_order_*'],
+            'children' => [
+                ['label' => 'Create Order', 'icon' => 'plus-circle', 'route' => 'tenant_order_workspace', 'permission' => 'order-create'],
+                ['label' => 'Orders List', 'icon' => 'list', 'route' => 'tenant_order_list', 'permission' => 'order-list', 'badge_key' => 'orders_list'],
+            ],
+        ],
+        'quotes' => [
+            'label' => 'Quotes',
+            'icon' => 'file-text',
+            'type' => 'dropdown',
+            'nav_module' => 'quotes',
+            'route_patterns' => ['tenant_quotes_*', 'tenant_shipping_quotes_*'],
+            'children' => [
+                ['label' => 'Quotes List', 'icon' => 'list', 'route' => 'tenant_quotes_index', 'permission' => 'quote-list', 'badge_key' => 'quotes_list'],
+                ['label' => 'Shipping Quotes List', 'icon' => 'list', 'route' => 'tenant_shipping_quotes_index', 'permission' => 'shipping_quote-list', 'badge_key' => 'shipping_quotes_list'],
+            ],
+        ],
+        'stock_check' => [
+            'label' => 'Stock Check',
+            'icon' => 'search',
+            'type' => 'dropdown',
+            'nav_module' => 'stock_check',
+            'route_patterns' => ['tenant_stock_check_*'],
+            'children' => [
+                ['label' => 'Stock Check Requests', 'icon' => 'list', 'route' => 'tenant_stock_check_index', 'permission' => 'stock_check-list', 'badge_key' => 'stock_check_list'],
+            ],
+        ],
+        'claims' => [
+            'label' => 'Claims',
+            'icon' => 'alert-circle',
+            'type' => 'dropdown',
+            'nav_module' => 'claims',
+            'route_patterns' => ['tenant_claim_*'],
+            'children' => [
+                ['label' => 'Create Claim', 'icon' => 'plus-circle', 'route' => 'tenant_claim_create', 'permission' => 'claim-create'],
+                ['label' => 'Claims List', 'icon' => 'list', 'route' => 'tenant_claim_index', 'permission' => 'claim-list', 'badge_key' => 'claims_list'],
+            ],
+        ],
+        'bulletins' => [
+            'label' => 'Bulletins',
+            'icon' => 'speaker',
+            'type' => 'dropdown',
+            'nav_module' => 'bulletins',
+            'route_patterns' => ['tenant_bulletin_*'],
+            'children' => [
+                ['label' => 'Create Bulletin', 'icon' => 'plus-circle', 'route' => 'tenant_bulletin_create', 'permission' => ['bulletin-create', 'bulliten-create']],
+                ['label' => 'Bulletins List', 'icon' => 'list', 'route' => 'tenant_bulletin_index', 'permission' => ['bulletin-list', 'bulliten-list']],
+            ],
+        ],
+        'support_chat' => [
+            'label' => 'Support Chat',
+            'icon' => 'message-circle',
+            'type' => 'link',
+            'nav_module' => 'support_chat',
+            'route' => 'tenant_support_chat_index',
+            'route_patterns' => ['tenant_support_chat_*'],
+        ],
+        'settings' => [
+            'label' => 'Settings',
+            'icon' => 'settings',
+            'type' => 'link',
+            'nav_module' => 'settings',
+            'route' => 'tenant_settings_hub',
+            'route_patterns' => [
+                'tenant_settings_hub',
+                'tenant_site_setting',
+                'tenant_website_designing',
+                'tenant_home_setting_*',
+                'tenant_setting_manage_index',
+                'tenant_setting_manage_contact_*',
+                'tenant_storefront_about',
+                'tenant_storefront_blog',
+                'tenant_setting_*',
+                'pages.*',
+                'tenant_frontend_theme*',
+                'tenant_contact_queries_*',
+            ],
+        ],
+    ],
+];

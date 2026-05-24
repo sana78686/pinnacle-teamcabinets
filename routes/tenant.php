@@ -98,6 +98,12 @@ Route::get('/{slug?}', [\App\Http\Controllers\TenantPageController::class, 'show
 
 Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.send');
 
+Route::prefix('storefront-chat')->group(function () {
+    Route::post('start', [\App\Http\Controllers\StorefrontGuestChatController::class, 'start'])->name('storefront_chat.start');
+    Route::get('messages', [\App\Http\Controllers\StorefrontGuestChatController::class, 'messages'])->name('storefront_chat.messages');
+    Route::post('messages', [\App\Http\Controllers\StorefrontGuestChatController::class, 'send'])->name('storefront_chat.send');
+});
+
     Route::middleware(['auth', 'tenant.auth'])->group(function () {
         Route::post('/logout', [TenantAuthController::class, 'logout'])->name('tenant_logout');
         Route::get('/subscription-required', function () {
@@ -408,6 +414,10 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
           Route::get('setting/hub', function () {
               return redirect()->route('tenant_site_setting');
           })->name('tenant_settings_hub');
+
+          Route::get('setting/nav-menu', [\App\Http\Controllers\TenantNavMenuController::class, 'edit'])->name('tenant_nav_menu_edit');
+          Route::post('setting/nav-menu', [\App\Http\Controllers\TenantNavMenuController::class, 'update'])->name('tenant_nav_menu_update');
+          Route::post('setting/nav-menu/reset', [\App\Http\Controllers\TenantNavMenuController::class, 'reset'])->name('tenant_nav_menu_reset');
 
           Route::get('setting/profile', [TenantProfileController::class, 'settingsProfile'])->name('tenant_setting_profile');
           Route::post('setting/profile', [TenantProfileController::class, 'updateSettingsProfile'])->name('tenant_setting_profile_update');

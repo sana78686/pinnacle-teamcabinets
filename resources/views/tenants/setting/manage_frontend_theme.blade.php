@@ -15,7 +15,7 @@
 <div class="mb-3">
     <h4 class="mb-1">Storefront theme</h4>
     <p class="text-muted mb-0 f-14">
-        Choose how your public website looks to dealers and visitors. <strong>Hazel</strong> is the professional B2B layout; <strong>Classic</strong> is your original storefront. Only one theme is active at a time.
+        Choose how your public website looks to dealers and visitors. <strong>Hazel</strong> is the professional B2B layout; <strong>Modern</strong> matches a retail cabinets.com-style experience; <strong>Classic</strong> is your original storefront. Only one theme is active at a time.
         @if (!empty($tcFrontendUrl))
             <a href="{{ $tcFrontendUrl }}" target="_blank" rel="noopener">Preview site ↗</a>
         @endif
@@ -30,7 +30,7 @@
                 $isActive = $activeTheme === $slug;
                 $isDefault = $defaultTheme === $slug;
             @endphp
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 col-lg-4 mb-3">
                 <label class="tc-theme-card {{ $isActive ? 'tc-theme-card--active' : '' }}">
                     <input type="radio" name="frontend_theme" value="{{ $slug }}"
                         class="tc-theme-card__input" {{ $isActive ? 'checked' : '' }}>

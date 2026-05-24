@@ -3,8 +3,7 @@
 
 @section('breadcrumb-items')
     <li class="breadcrumb-item">Settings</li>
-    <li class="breadcrumb-item"><a href="{{ route('tenant_setting_tax_fees') }}">Tax &amp; Fees</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('tenant_setting_tax_fees_sales_tax') }}">Sales tax counties</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('tenant_setting_tax_fees_sales_tax') }}">Sales Tax Management</a></li>
     <li class="breadcrumb-item active">Edit</li>
 @endsection
 

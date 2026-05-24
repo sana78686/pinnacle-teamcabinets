@@ -36,7 +36,57 @@ class SupportChatService
             'title' => $title ?: 'Support request',
             'description' => $description,
             'status' => 1,
+            'is_storefront_guest' => false,
         ]);
+    }
+
+    public function createGuestThread(string $name, string $email, string $token): SupportThread
+    {
+        return SupportThread::query()->create([
+            'user_id' => null,
+            'guest_name' => $name,
+            'guest_email' => $email,
+            'guest_token' => $token,
+            'is_storefront_guest' => true,
+            'title' => 'Storefront visitor',
+            'status' => 1,
+        ]);
+    }
+
+    public function sendGuestMessage(SupportThread $thread, string $guestName, string $message): SupportMessage
+    {
+        $body = trim($message);
+
+        $record = SupportMessage::query()->create([
+            'support_thread_id' => $thread->id,
+            'user_id' => null,
+            'guest_name' => $guestName,
+            'message' => $body,
+            'is_read' => false,
+        ]);
+
+        $this->notifyGuestMessage($thread, $record);
+
+        return $record;
+    }
+
+    protected function notifyGuestMessage(SupportThread $thread, SupportMessage $record): void
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+            return;
+        }
+
+        $preview = \Illuminate\Support\Str::limit((string) $record->message, 120);
+        $name = $thread->guest_name ?: 'Storefront visitor';
+
+        TenantNotificationService::notifyAdminsPanel(
+            'Storefront chat message',
+            sprintf('%s: %s', $name, $preview),
+            route('tenant_support_chat_index', [], false).'?thread='.$thread->id,
+            'info',
+            'support_chat',
+            'support_chat_list',
+        );
     }
 
     public function sendMessage(
@@ -98,7 +148,10 @@ class SupportChatService
 
         if (tenant_user_has_admin_role($user)) {
             return (int) $query
-                ->where('user_id', '!=', $user->id)
+                ->where(function ($q) use ($user) {
+                    $q->where('user_id', '!=', $user->id)
+                        ->orWhereNull('user_id');
+                })
                 ->count();
         }
 

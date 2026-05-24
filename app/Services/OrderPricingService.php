@@ -118,20 +118,57 @@ class OrderPricingService
         ];
     }
 
-    public function userMayAccessCatalog(User $user, int $catalogId): bool
+    /**
+     * Catalog IDs this user may use when creating orders.
+     * null = unrestricted (tenant admin / super user).
+     *
+     * @return array<int, int>|null
+     */
+    public function visibleCatalogIdsFor(User $user): ?array
     {
         if (! empty($user->is_super_user)) {
-            return true;
+            return null;
         }
 
         if (method_exists($user, 'hasRole') && $user->hasRole(['super-admin', 'admin', 'Super Admin', 'Admin'])) {
-            return true;
+            return null;
         }
 
         return UsersCatalogVisibility::query()
             ->where('user_id', $user->id)
-            ->where('catalog_id', $catalogId)
-            ->exists();
+            ->pluck('catalog_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /** Active product catalogs visible to this user for order creation (empty when none assigned). */
+    public function catalogsForOrder(User $user): Collection
+    {
+        $query = ProductCatalog::query()->where('status', 1)->orderBy('name');
+        $ids = $this->visibleCatalogIdsFor($user);
+
+        if ($ids !== null) {
+            if ($ids === []) {
+                return collect();
+            }
+
+            $query->whereIn('id', $ids);
+        }
+
+        return $query->get();
+    }
+
+    public function userMayAccessCatalog(User $user, int $catalogId): bool
+    {
+        $ids = $this->visibleCatalogIdsFor($user);
+
+        if ($ids === null) {
+            return true;
+        }
+
+        return in_array($catalogId, $ids, true);
     }
 
     /**

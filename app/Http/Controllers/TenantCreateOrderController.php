@@ -39,9 +39,10 @@ class TenantCreateOrderController extends Controller
         protected QuoteWorkspaceService $quoteWorkspace,
     ) {}
 
-    public function catalog(): View
+    public function catalog(Request $request): View
     {
-        $catalogs = ProductCatalog::query()->where('status', 1)->orderBy('name')->get();
+        $user = $request->user()->load('roles');
+        $catalogs = $this->pricing->catalogsForOrder($user);
 
         return view('tenants.orders.standalone.catalog', [
             'catalogs' => $catalogs,
@@ -113,9 +114,13 @@ class TenantCreateOrderController extends Controller
 
     public function accordionSearch(Request $request, int $catalogId, int $doorId): View
     {
+        $user = $request->user()->load('roles');
+        if (! $this->pricing->userMayAccessCatalog($user, $catalogId)) {
+            abort(403, 'You do not have access to this catalog.');
+        }
+
         $catalog = ProductCatalog::query()->where('status', 1)->findOrFail($catalogId);
         $door = DoorColors::query()->findOrFail($doorId);
-        $user = $request->user()->load('roles');
         $sections = $this->productSectionsFor($catalog, $door, $user);
 
         if ($request->filled('sku')) {
@@ -140,6 +145,9 @@ class TenantCreateOrderController extends Controller
     public function autoSaveCart(Request $request, int $catalogId): JsonResponse
     {
         $user = $request->user();
+        if (! $this->pricing->userMayAccessCatalog($user, $catalogId)) {
+            return response()->json(['message' => 'You do not have access to this catalog.'], 403);
+        }
         $this->cartPersistence->save($user, $catalogId, [
             'job_name' => $request->input('job_name'),
             'room_data' => $request->input('room_data', []),
@@ -499,6 +507,10 @@ class TenantCreateOrderController extends Controller
 
     public function searchProducts(Request $request, int $catalogId, int $doorId): JsonResponse
     {
+        if (! $this->pricing->userMayAccessCatalog($request->user(), $catalogId)) {
+            return response()->json(['message' => 'You do not have access to this catalog.'], 403);
+        }
+
         $query = Product::query()
             ->with('doorColor')
             ->where('product_catalog_id', $catalogId)

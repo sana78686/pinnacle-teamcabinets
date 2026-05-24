@@ -10,6 +10,7 @@ use App\Models\UsersCatalogDoorPointFactor;
 use App\Models\UsersCatalogVisibility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class UserDoorFactorService
@@ -71,7 +72,7 @@ class UserDoorFactorService
     {
         $catalogIds = $this->selectedCatalogIds($request);
         if ($catalogIds === []) {
-            return ['catalog_visibility' => ['Select at least one product catalog and configure door factors.']];
+            return null;
         }
 
         $errors = [];
@@ -111,14 +112,36 @@ class UserDoorFactorService
     public function persistForUser(User $user, Request $request): void
     {
         DB::transaction(function () use ($user, $request) {
-            UsersCatalogVisibility::query()->where('user_id', $user->id)->forceDelete();
-            UsersCatalogDoorPointFactor::query()->where('user_id', $user->id)->forceDelete();
+            $selectedIds = $this->selectedCatalogIds($request);
 
-            foreach ($this->selectedCatalogIds($request) as $catalogId) {
-                $visibility = UsersCatalogVisibility::query()->create([
+            UsersCatalogDoorPointFactor::withTrashed()
+                ->where('user_id', $user->id)
+                ->when($selectedIds !== [], fn ($q) => $q->whereNotIn('catalog_id', $selectedIds))
+                ->forceDelete();
+
+            UsersCatalogVisibility::withTrashed()
+                ->where('user_id', $user->id)
+                ->when($selectedIds !== [], fn ($q) => $q->whereNotIn('catalog_id', $selectedIds))
+                ->forceDelete();
+
+            foreach ($selectedIds as $catalogId) {
+                $visibility = UsersCatalogVisibility::withTrashed()->firstOrNew([
                     'user_id' => $user->id,
                     'catalog_id' => $catalogId,
                 ]);
+
+                if ($visibility->exists) {
+                    if ($visibility->trashed()) {
+                        $visibility->restore();
+                    }
+                } else {
+                    $visibility->save();
+                }
+
+                UsersCatalogDoorPointFactor::withTrashed()
+                    ->where('user_id', $user->id)
+                    ->where('catalog_id', $catalogId)
+                    ->forceDelete();
 
                 $factors = $request->input("door_factors.{$catalogId}", []);
                 if (! is_array($factors)) {
@@ -164,12 +187,19 @@ class UserDoorFactorService
             ->values()
             ->all();
 
-        $updates = [
-            'door_point_factor' => $tree,
-            'catalog_visibility' => $visibilityNames,
-        ];
+        $updates = [];
 
-        if ($user->point_factor === null || $user->point_factor === '') {
+        if (Schema::hasColumn('users', 'door_point_factor')) {
+            $updates['door_point_factor'] = $tree;
+        }
+        if (Schema::hasColumn('users', 'catalog_visibility')) {
+            $updates['catalog_visibility'] = $visibilityNames;
+        }
+
+        if (
+            Schema::hasColumn('users', 'point_factor')
+            && ($user->point_factor === null || $user->point_factor === '')
+        ) {
             $role = $user->roles()->first()?->name;
             $default = $this->roleDefaultFactor($role);
             if ($default !== null) {
@@ -177,7 +207,9 @@ class UserDoorFactorService
             }
         }
 
-        $user->forceFill($updates)->save();
+        if ($updates !== []) {
+            $user->forceFill($updates)->save();
+        }
     }
 
     /** @return array{catalogs: int, door_styles: int, label: string} */

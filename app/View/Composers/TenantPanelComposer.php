@@ -3,6 +3,7 @@
 namespace App\View\Composers;
 
 use App\Models\SiteSetting;
+use App\Services\TenantAdminNavService;
 use App\Services\TenantNavBadgeService;
 use App\Services\TenantSubscriptionService;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +16,7 @@ class TenantPanelComposer
     public function __construct(
         protected TenantSubscriptionService $subscriptions,
         protected TenantNavBadgeService $navBadges,
+        protected TenantAdminNavService $adminNav,
     ) {}
 
     public function compose(View $view): void
@@ -29,8 +31,13 @@ class TenantPanelComposer
         $settings = self::$cachedSiteSettings ??= SiteSetting::query()->select(['id', 'logo'])->first();
 
         $tcNavBadges = [];
+        $tcAdminNavItems = [];
         if (Auth::check()) {
-            $tcNavBadges = $this->navBadges->countsForUser(Auth::user());
+            $user = Auth::user();
+            $tcNavBadges = $this->navBadges->countsForUser($user);
+            if (tenant_user_is_panel_admin($user)) {
+                $tcAdminNavItems = $this->adminNav->itemsForUser($user);
+            }
         }
 
         $view->with([
@@ -43,6 +50,7 @@ class TenantPanelComposer
             'tcFrontendUrl' => tenant_url($tenant->id),
             'tcLayout' => tenant_layout_flags(),
             'tcNavBadges' => $tcNavBadges,
+            'tcAdminNavItems' => $tcAdminNavItems,
         ]);
     }
 }

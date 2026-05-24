@@ -21,6 +21,14 @@ return [
             'preview_color' => '#7e37d8',
             'accent_color' => '#fe80b2',
         ],
+        'modern' => [
+            'name' => 'Modern',
+            'label' => 'Modern — Retail',
+            'description' => 'Cabinets.com-inspired layout with hero video, door-style & finish showcases, inspiration gallery, and Tailwind styling.',
+            'badge' => 'New',
+            'preview_color' => '#2d3e50',
+            'accent_color' => '#c4a574',
+        ],
     ],
 
 ];

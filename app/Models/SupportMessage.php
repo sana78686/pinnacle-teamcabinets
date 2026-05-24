@@ -10,6 +10,7 @@ class SupportMessage extends Model
     protected $fillable = [
         'support_thread_id',
         'user_id',
+        'guest_name',
         'message',
         'attachment_path',
         'attachment_name',

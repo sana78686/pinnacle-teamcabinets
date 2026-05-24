@@ -59,6 +59,14 @@
                     <span>{{ __('Settings') }}</span>
                 </a>
             </li>
+            @if (tenant_user_is_panel_admin())
+                <li class="tc-header-dropdown__item">
+                    <a href="{{ route('tenant_nav_menu_edit') }}" role="menuitem">
+                        <i data-feather="sliders" aria-hidden="true"></i>
+                        <span>{{ __('Menu layout') }}</span>
+                    </a>
+                </li>
+            @endif
             <li class="tc-header-dropdown__item">
                 <a href="{{ route('tenant_notifications_index') }}" role="menuitem">
                     <i data-feather="bell" aria-hidden="true"></i>

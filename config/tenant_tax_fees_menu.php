@@ -21,7 +21,7 @@ return [
             'active' => ['tenant_setting_tax_fees_shipping', 'tenant_setting_tax_fees_shipping_store'],
         ],
         [
-            'label' => 'Sales tax counties',
+            'label' => 'Sales Tax Management',
             'route' => 'tenant_setting_tax_fees_sales_tax',
             'icon' => 'map-pin',
             'active' => [

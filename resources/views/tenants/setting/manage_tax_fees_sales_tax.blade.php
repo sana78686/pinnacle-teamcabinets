@@ -1,15 +1,15 @@
 @extends('layouts.tenant.settings')
-@section('title', 'Sales Tax Counties')
+@section('title', 'Sales Tax Management')
 
 @section('breadcrumb-items')
     <li class="breadcrumb-item">Settings</li>
-    <li class="breadcrumb-item"><a href="{{ route('tenant_setting_tax_fees') }}">Tax &amp; Fees</a></li>
-    <li class="breadcrumb-item active">Sales tax counties</li>
+    <li class="breadcrumb-item active">Sales Tax Management</li>
 @endsection
 
 @section('setting_content')
 @include('layouts.tenant.partials.tax-fees-nav')
 
+<h3 class="h5 mb-3">Sales Tax Management</h3>
 <p class="text-muted small mb-3">
     Florida county sales tax rates. At checkout, the rate is matched by ship-to county name.
 </p>

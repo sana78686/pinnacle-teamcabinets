@@ -3,6 +3,7 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
+        "build:modern-theme": "tailwindcss -c tailwind.modern.config.js -i ./resources/css/themes/modern-source.css -o ./public/css/themes/modern.css --minify",
         "dev": "vite"
     },
     "devDependencies": {

@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
+@layer components {
+    .md-hero-video {
+        @apply absolute inset-0 h-full w-full object-cover;
+    }
+
+    .md-hero-overlay {
+        @apply absolute inset-0 bg-black/45;
+    }
+
+    .md-btn {
+        @apply inline-flex items-center justify-center rounded-full px-8 py-3 text-sm font-semibold tracking-wide transition;
+    }
+
+    .md-btn--dark {
+        @apply bg-md-ink text-white hover:bg-black;
+    }
+
+    .md-btn--light {
+        @apply border border-white bg-white/10 text-white backdrop-blur-sm hover:bg-white hover:text-md-ink;
+    }
+
+    .md-btn--outline {
+        @apply border border-md-ink bg-white text-md-ink hover:bg-md-cream;
+    }
+
+    .md-showcase-strip {
+        @apply flex gap-3 overflow-x-auto px-6 py-6 md:gap-4 md:px-8;
+        scrollbar-width: thin;
+    }
+
+    .md-showcase-strip img {
+        @apply h-28 w-auto shrink-0 object-contain md:h-36;
+    }
+
+    .md-feature-split {
+        @apply grid border-t border-md-line bg-white md:grid-cols-[1fr_auto_1fr];
+    }
+
+    .md-feature-split__title {
+        @apply border-r border-md-line px-8 py-10 text-3xl font-bold text-md-ink md:px-10;
+    }
+
+    .md-feature-split__body {
+        @apply flex flex-col justify-center gap-4 px-8 py-10 md:px-10;
+    }
+
+    .md-gallery-track {
+        @apply flex gap-4 overflow-x-auto pb-4;
+        scroll-snap-type: x mandatory;
+    }
+
+    .md-gallery-track > a {
+        @apply shrink-0 scroll-ml-4 scroll-mr-4 scroll-snap-start;
+    }
+
+    .md-gallery-track img {
+        @apply h-64 w-[420px] max-w-[85vw] rounded-sm object-cover md:h-80 md:w-[480px];
+    }
+
+    .md-content {
+        @apply text-base leading-relaxed text-gray-700;
+    }
+
+    .md-content h2 {
+        @apply mt-8 text-2xl font-bold text-md-ink;
+    }
+
+    .md-content h3 {
+        @apply mt-6 text-xl font-bold text-md-ink;
+    }
+
+    .md-content p {
+        @apply mt-4;
+    }
+
+    .md-content a {
+        @apply font-medium text-md-gold underline hover:text-md-ink;
+    }
+
+    .md-content ul {
+        @apply mt-4 list-disc space-y-2 pl-6;
+    }
+}

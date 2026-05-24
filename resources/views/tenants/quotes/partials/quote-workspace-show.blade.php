@@ -219,7 +219,7 @@
         </div>
 
         @if (! empty($showAdminForm))
-            <form method="POST" action="{{ $updateRoute }}" id="sq-admin-shipping-form" class="tc-sq-admin__form border rounded p-3 bg-light mt-3">
+            <form method="POST" action="{{ $updateRoute }}" id="sq-admin-shipping-form" class="tc-sq-admin__form tc-stock-check-admin-panel border rounded p-3 mt-3">
                 @csrf
                 @method('PUT')
                 <div class="row g-2 align-items-end">
@@ -252,7 +252,7 @@
                         <button type="submit" class="btn btn-primary btn-sm w-100">Submit</button>
                     </div>
                 </div>
-                <div class="mt-2 text-end fw-semibold">
+                <div class="mt-2 text-end tc-sq-admin__shipping-total">
                     Total Shipping Charges: $<span id="sq-total-shipping-charges">{{ number_format($shipping_cost ?? 0, 2) }}</span>
                 </div>
             </form>

@@ -15,9 +15,11 @@
 
     <div class="card tc-dash-card mb-3">
         <div class="card-header d-flex flex-wrap align-items-center gap-2 py-2">
-            <a href="{{ route('tenant_role_create') }}" class="btn btn-sm tc-pn-btn tc-pn-btn--navy">
-                <i data-feather="plus" class="tc-btn-icon" aria-hidden="true"></i> Create role
-            </a>
+            @if (tenant_can('role-create'))
+                <a href="{{ route('tenant_role_create') }}" class="btn btn-sm tc-pn-btn tc-pn-btn--navy">
+                    <i data-feather="plus" class="tc-btn-icon" aria-hidden="true"></i> Create role
+                </a>
+            @endif
             <a href="{{ route('role.export') }}" class="btn btn-sm btn-light">Export</a>
             <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#importRoleModal">Import</button>
         </div>
@@ -39,6 +41,7 @@
                         <tr>
                             <th style="width:4rem">No</th>
                             <th>Name</th>
+                            <th style="width:7rem">Permissions</th>
                             <th style="width:12rem">Action</th>
                         </tr>
                     </thead>
@@ -53,24 +56,29 @@
                                         <span class="badge bg-secondary ms-1">System</span>
                                     @endif
                                 </td>
+                                <td><span class="badge bg-light text-dark border">{{ $role->permissions_count }}</span></td>
                                 <td class="text-nowrap">
-                                    <a href="{{ route('tenant_role_show', $role->id) }}" class="tc-admin-datatable__edit">View</a>
-                                    <span class="text-muted mx-1">|</span>
-                                    <a href="{{ route('tenant_role_edit', $role->id) }}" class="tc-admin-datatable__edit">Edit</a>
-                                    @unless ($isProtected)
-                                        <span class="text-muted mx-1">|</span>
+                                    @if (tenant_can('role-list'))
+                                        <a href="{{ route('tenant_role_show', $role->id) }}" class="tc-admin-datatable__edit">View</a>
+                                    @endif
+                                    @if (tenant_can('role-edit'))
+                                        @if (tenant_can('role-list'))<span class="text-muted mx-1">|</span>@endif
+                                        <a href="{{ route('tenant_role_edit', $role->id) }}" class="tc-admin-datatable__edit">Edit</a>
+                                    @endif
+                                    @if (tenant_can('role-delete') && ! $isProtected)
+                                        @if (tenant_can('role-list') || tenant_can('role-edit'))<span class="text-muted mx-1">|</span>@endif
                                         <form method="post" action="{{ route('tenant_role_destroy', $role->id) }}" class="d-inline"
                                             onsubmit="return confirm('Delete this role?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-link btn-sm p-0 text-danger align-baseline">Delete</button>
                                         </form>
-                                    @endunless
+                                    @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="text-center text-muted py-4">
+                                <td colspan="4" class="text-center text-muted py-4">
                                     @if ($search !== '')
                                         No roles match your search.
                                     @else

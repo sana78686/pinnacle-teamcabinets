@@ -1,81 +1,57 @@
 @extends('layouts.tenant.master')
-@section('title', 'Bulletins Menu')
-@section('css')
-    <link rel="stylesheet" type="text/css" href="{{ route('/') }}/assets/main/css/datatables.css">
-    <link rel="stylesheet" type="text/css" href="{{ route('/') }}/assets/main/css/datatable-extension.css">
-@endsection
-@section('style')
-@endsection
+@section('title', 'Bulletin Details')
+
 @section('breadcrumb-title')
-    <h2>Bulletins<span>Details </span></h2>
+    <h2>Bulletin <span>Details</span></h2>
 @endsection
+
 @section('breadcrumb-items')
-    <li class="breadcrumb-item">Bulletins</li>
+    <li class="breadcrumb-item"><a href="{{ route('tenant_bulletin_index') }}">Bulletins</a></li>
     <li class="breadcrumb-item active">View</li>
 @endsection
+
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4 ">
-                <table class="table table-bordered ">
-                    <thead class="table-secondary">
-                        <th colspan="2">Bulletin Information</th>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <th>ID</th>
-                            <td>{{ $bulletin->id }}</td>
-                        </tr>
-                        <tr>
-                            <th>User Option</th>
-                            <td>
-                                {{ $bulletin->user_option }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Title</th>
-                            <td>{{ $bulletin->bulletin_title }}</td>
-                        </tr>
-                        <tr>
-                            <th>Description</th>
-                            <td>{{ $bulletin->bulletin_description }}</td>
-                        </tr>
-                        <tr>
-                            <th>Image</th>
-                            <td> {{ $bulletin->image }}</td>
-                        </tr>
-                        <!-- Add other fields as necessary -->
-                    </tbody>
-                </table>
+    <div class="d-flex flex-wrap gap-2 mb-3">
+        <a href="{{ route('tenant_bulletin_edit', $bulletin->id) }}" class="btn btn-primary btn-sm">Edit</a>
+        <a href="{{ route('tenant_bulletin_index') }}" class="btn btn-light btn-sm">Back to list</a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <div class="card tc-bulletin-admin__card p-3">
+                <h3 class="h5 mb-3">{{ $bulletin->bulletin_title }}</h3>
+                <dl class="row mb-0 tc-bulletin-admin__meta">
+                    <dt class="col-sm-4">Audience</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge {{ $bulletin->user_option === 'every_one' ? 'bg-primary' : 'bg-secondary' }}">
+                            {{ \App\Support\BulletinAudience::userOptionLabel($bulletin->user_option) }}
+                        </span>
+                    </dd>
+                    @if ($bulletin->user_option === 'specific_user')
+                        <dt class="col-sm-4">User type</dt>
+                        <dd class="col-sm-8">{{ \App\Support\BulletinAudience::targetRoleLabel($bulletin->target_role) }}</dd>
+                    @endif
+                    <dt class="col-sm-4">Posted</dt>
+                    <dd class="col-sm-8">{{ $bulletin->created_at?->format('F j, Y g:i A') ?? '—' }}</dd>
+                    <dt class="col-sm-4">Description</dt>
+                    <dd class="col-sm-8">{!! nl2br(e($bulletin->bulletin_description)) !!}</dd>
+                </dl>
             </div>
-            <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
-                <table class="table table-bordered ">
-                    <thead class="table-secondary">
-                        <th colspan="2">Product Catalog Information</th>
-                    </thead>
+        </div>
+        <div class="col-lg-5">
+            <div class="card tc-bulletin-admin__card p-3">
+                <h4 class="h6 text-muted mb-3">Attachment</h4>
+                @if ($bulletin->image && $bulletin->isImageAttachment())
+                    <a href="{{ $bulletin->attachmentUrl() }}" target="_blank" rel="noopener">
+                        <img src="{{ $bulletin->attachmentUrl() }}" alt="" class="img-fluid rounded tc-bulletin-admin__preview">
+                    </a>
+                @elseif ($bulletin->image)
+                    <p class="mb-2"><a href="{{ $bulletin->attachmentUrl() }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm">Open {{ strtoupper($bulletin->attachmentExtension()) }} file</a></p>
+                    <p class="small text-muted mb-0">{{ $bulletin->image }}</p>
+                @else
+                    <p class="text-muted mb-0">No file attached.</p>
+                @endif
             </div>
         </div>
     </div>
-@endsection
-@section('script')
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatables/jquery.dataTables.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.buttons.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/jszip.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/buttons.colVis.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/pdfmake.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/vfs_fonts.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.autoFill.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.select.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/buttons.bootstrap4.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/buttons.html5.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/buttons.print.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.bootstrap4.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.responsive.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/responsive.bootstrap4.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.keyTable.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.colReorder.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.fixedHeader.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.rowReorder.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.scroller.min.js"></script>
-    <script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/custom.js"></script>
 @endsection

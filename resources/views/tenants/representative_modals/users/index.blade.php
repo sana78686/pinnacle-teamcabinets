@@ -63,23 +63,11 @@
 @endsection
 
 @section('content')
-<div class="p-2 bg-white">
-
-    <div class="p-2 mt-0 card-header no-border">
+<div class="tc-role-list-page">
+    <div class="p-2 mt-0 card-header no-border d-flex flex-wrap align-items-center gap-2">
 
 
         @include('partial.message')
-
-        <div class="float-center form-group">
-            <div class=" input-group col-4">
-                <input type="text" id="myInput" name="" placeholder="Search Name, Email, Username here ..."
-                    class="form-control" aria-label="Search">
-                <button class="btn btn-primary" type="button">Search</button>
-            </div>
-        </div>
-
-
-
 
         <a href="{{ route('tenant_user_child_create') }}" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
             title="Create a new user in the system">
@@ -160,10 +148,19 @@
     </div>
 
 
-    <div class="table-responsive table-sm">
+    <div class="card tc-dash-card mb-3">
+        <div class="card-body border-bottom py-3">
+            <div class="input-group" style="max-width: 28rem;">
+                <input type="text" id="myInput" name="" placeholder="Search Name, Email, Username here ..."
+                    class="form-control" aria-label="Search">
+                <button class="btn btn-primary" type="button">Search</button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+    <div class="table-responsive table-sm tc-admin-datatable">
 
 
-        <table class="table p-0 m-0 display table-striped table-bordered table-sm" id="userTable">
+        <table class="table table-striped table-bordered table-sm mb-0" id="userTable">
             <thead>
                 <tr>
                     <th scope="col">#</th>
@@ -174,7 +171,7 @@
                     <th scope="col">Status</th>
                     <th scope="col">Actions</th>
                 </tr>
-                <tr>
+                <tr class="tc-admin-datatable__filters">
                     <th scope="col"></th>
                     <th scope="col"></th>
                     <th scope="col">
@@ -267,12 +264,10 @@
                 </tr>
             </tfoot>
         </table>
+        </div>
+        <div class="card-body border-top py-2">
         @include('partials.tenant-pagination', ['paginator' => $users])
-
-
-
-
-
+        </div>
     </div>
 </div>
 

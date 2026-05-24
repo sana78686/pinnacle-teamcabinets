@@ -113,7 +113,7 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
     });
 
          /**** Pinnacle Tenants routes */
-         Route::prefix('tenants')->middleware(['auth', 'tenant.auth', 'tenant.subscribed'])->group(function () {
+         Route::prefix('tenants')->middleware(['auth', 'tenant.auth', 'tenant.subscribed', 'tenant.permission'])->group(function () {
 
 
          Route::get('website-designing/about', [TenantPageController::class, 'editAbout'])->name('tenant_storefront_about');
@@ -138,6 +138,8 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
          Route::get('support-chat', [\App\Http\Controllers\TenantSupportChatController::class, 'index'])->name('tenant_support_chat_index');
          Route::get('support-chat/user', [\App\Http\Controllers\TenantSupportChatController::class, 'userIndex'])->name('tenant_support_chat_user');
          Route::prefix('support-chat/api')->group(function () {
+             Route::get('threads/current', [\App\Http\Controllers\SupportChatApiController::class, 'currentThread'])->name('tenant_support_chat_api_current_thread');
+             Route::get('users', [\App\Http\Controllers\SupportChatApiController::class, 'chatUsers'])->name('tenant_support_chat_api_users');
              Route::get('threads', [\App\Http\Controllers\SupportChatApiController::class, 'threads'])->name('tenant_support_chat_api_threads');
              Route::post('threads', [\App\Http\Controllers\SupportChatApiController::class, 'storeThread'])->name('tenant_support_chat_api_threads_store');
              Route::get('threads/{id}/messages', [\App\Http\Controllers\SupportChatApiController::class, 'messages'])->whereNumber('id')->name('tenant_support_chat_api_messages');

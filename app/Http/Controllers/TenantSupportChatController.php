@@ -37,16 +37,36 @@ class TenantSupportChatController extends Controller
             'initialThreadId' => $initialThread > 0 ? $initialThread : null,
             'pollMs' => (int) config('tenant_panel.support_chat_poll_ms', 4000),
             'currentUserId' => $request->user()->id,
-            'api' => [
-                'threads' => route('tenant_support_chat_api_threads'),
-                'storeThread' => route('tenant_support_chat_api_threads_store'),
-                'messages' => route('tenant_support_chat_api_messages', ['id' => '__ID__']),
-                'sendMessage' => route('tenant_support_chat_api_send', ['id' => '__ID__']),
-                'markRead' => route('tenant_support_chat_api_read', ['id' => '__ID__']),
-                'destroyMessage' => route('tenant_support_chat_api_message_destroy', ['id' => '__ID__']),
-                'destroyThread' => route('tenant_support_chat_api_thread_destroy', ['id' => '__ID__']),
-                'unreadCount' => route('tenant_support_chat_api_unread'),
-            ],
+            'fullPageUrl' => route('tenant_support_chat_user'),
+            'api' => self::apiRoutes(),
+        ];
+    }
+
+    public static function userWidgetConfig(Request $request): array
+    {
+        return [
+            'isAdmin' => false,
+            'csrf' => csrf_token(),
+            'pollMs' => (int) config('tenant_panel.support_chat_poll_ms', 4000),
+            'currentUserId' => $request->user()->id,
+            'fullPageUrl' => route('tenant_support_chat_user'),
+            'api' => self::apiRoutes(),
+        ];
+    }
+
+    protected static function apiRoutes(): array
+    {
+        return [
+            'threads' => route('tenant_support_chat_api_threads'),
+            'currentThread' => route('tenant_support_chat_api_current_thread'),
+            'chatUsers' => route('tenant_support_chat_api_users'),
+            'storeThread' => route('tenant_support_chat_api_threads_store'),
+            'messages' => route('tenant_support_chat_api_messages', ['id' => '__ID__']),
+            'sendMessage' => route('tenant_support_chat_api_send', ['id' => '__ID__']),
+            'markRead' => route('tenant_support_chat_api_read', ['id' => '__ID__']),
+            'destroyMessage' => route('tenant_support_chat_api_message_destroy', ['id' => '__ID__']),
+            'destroyThread' => route('tenant_support_chat_api_thread_destroy', ['id' => '__ID__']),
+            'unreadCount' => route('tenant_support_chat_api_unread'),
         ];
     }
 }

@@ -6,5 +6,5 @@
 @endsection
 
 @section('script')
-    <script src="{{ tenant_static_asset('js/stock-check-admin.js') }}?v=1"></script>
+    <script src="{{ tenant_static_asset('js/stock-check-admin.js') }}?v=3"></script>
 @endsection

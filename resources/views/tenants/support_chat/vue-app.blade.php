@@ -1,32 +1,26 @@
-<div id="support-chat-app" class="tc-support-chat" v-cloak>
-    <div class="row g-3">
-        <div class="col-lg-4">
-            <div class="card tc-support-chat__sidebar h-100">
-                <div class="card-header d-flex align-items-center justify-content-between py-3">
-                    <h5 class="mb-0">@{{ config.isAdmin ? 'Support conversations' : 'My support tickets' }}</h5>
-                    <button v-if="!config.isAdmin" type="button" class="btn btn-info btn-sm" @click="showNewThread = !showNewThread">
-                        <i class="icofont icofont-plus"></i> New
-                    </button>
-                </div>
+<div id="support-chat-app" class="tc-support-chat" :class="config.isAdmin ? 'tc-support-chat--admin' : 'tc-support-chat--user'" v-cloak>
+    <div v-if="flash" class="alert mb-3" :class="flash.ok ? 'alert-success' : 'alert-danger'" role="alert">@{{ flash.text }}</div>
 
-                <div v-if="showNewThread && !config.isAdmin" class="card-body border-bottom py-3">
-                    <label class="form-label mb-1">Subject</label>
-                    <input v-model="newThreadTitle" type="text" class="form-control form-control-sm mb-2" maxlength="255" placeholder="What do you need help with?">
-                    <label class="form-label mb-1">First message (optional)</label>
-                    <textarea v-model="newThreadMessage" class="form-control form-control-sm mb-2" rows="2" maxlength="5000" placeholder="Describe your issue…"></textarea>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-primary btn-sm" :disabled="creatingThread || !newThreadTitle.trim()" @click="createThread">Create ticket</button>
-                        <button type="button" class="btn btn-light btn-sm" @click="showNewThread = false">Cancel</button>
+    <div v-if="config.isAdmin" class="row g-3 tc-support-chat__layout">
+        <div class="col-lg-4">
+            <div class="card tc-dash-card tc-support-chat__sidebar h-100">
+                <div class="card-header py-3">
+                    <h5 class="mb-0">Chat rooms</h5>
+                </div>
+                <div class="card-body border-bottom py-2">
+                    <div class="tc-support-chat__search-row">
+                        <input v-model="threadSearch" type="search" class="form-control form-control-sm" placeholder="Search users…" @keyup.enter="loadThreads(1)">
+                        <button type="button" class="btn btn-info btn-sm tc-support-chat__new-btn" title="Start new chat" @click="openCreateChat">
+                            <i class="icofont icofont-plus"></i>
+                        </button>
                     </div>
                 </div>
-
-                <div class="card-body border-bottom py-2">
-                    <input v-model="threadSearch" type="search" class="form-control form-control-sm" placeholder="Search…" @keyup.enter="loadThreads(1)">
-                </div>
-
-                <div class="tc-support-chat__thread-list">
-                    <div v-if="loadingThreads" class="text-center text-muted py-4">Loading…</div>
-                    <div v-else-if="!threads.length" class="text-center text-muted py-4">No conversations yet.</div>
+                <div ref="threadListWrap" class="tc-support-chat__thread-list">
+                    <div v-if="loadingThreads" class="tc-support-chat__empty"><p class="mb-0">Loading…</p></div>
+                    <div v-else-if="!threads.length" class="tc-support-chat__empty">
+                        <i class="icofont icofont-users" aria-hidden="true"></i>
+                        <p class="mb-0">No conversations yet. Click + to start a chat.</p>
+                    </div>
                     <button
                         v-for="thread in threads"
                         :key="thread.id"
@@ -35,24 +29,25 @@
                         :class="{ 'is-active': selectedThreadId === thread.id, 'has-unread': thread.unread_count > 0 }"
                         @click="selectThread(thread.id)"
                     >
-                        <div class="tc-support-chat__thread-title">
-                            <span>@{{ config.isAdmin ? (thread.user_name || 'User') : (thread.title || 'Support') }}</span>
-                            <span v-if="thread.unread_count > 0" class="badge rounded-pill bg-danger">@{{ thread.unread_count }}</span>
+                        <div class="tc-support-chat__thread-row">
+                            <div class="tc-chat-avatar tc-chat-avatar--sm" :title="thread.user_name">
+                                <img v-if="thread.user_avatar?.url" :src="thread.user_avatar.url" :alt="thread.user_name">
+                                <span v-else class="tc-chat-avatar__initials">@{{ thread.user_avatar?.initials || 'U' }}</span>
+                            </div>
+                            <div class="tc-support-chat__thread-body">
+                                <div class="tc-support-chat__thread-title">
+                                    <span>@{{ thread.user_name || 'User' }}</span>
+                                    <span v-if="thread.unread_count > 0" class="badge rounded-pill bg-danger">@{{ thread.unread_count }}</span>
+                                </div>
+                                <div class="tc-support-chat__thread-sub">@{{ thread.user_email || thread.title }}</div>
+                                <div class="tc-support-chat__thread-meta">@{{ thread.created_at }}</div>
+                            </div>
                         </div>
-                        <div v-if="config.isAdmin" class="tc-support-chat__thread-sub">@{{ thread.title || 'Support request' }}</div>
-                        <div class="tc-support-chat__thread-meta">@{{ thread.created_at }}</div>
-                        <button
-                            v-if="config.isAdmin"
-                            type="button"
-                            class="tc-support-chat__thread-delete btn btn-link btn-sm text-danger p-0"
-                            title="Delete thread"
-                            @click.stop="deleteThread(thread.id)"
-                        >
+                        <button type="button" class="tc-support-chat__thread-delete btn btn-link btn-sm text-danger p-0" title="Delete thread" @click.stop="deleteThread(thread.id)">
                             <i class="icofont icofont-trash"></i>
                         </button>
                     </button>
                 </div>
-
                 <div v-if="threadPagination.last_page > 1" class="card-footer py-2">
                     <div class="d-flex justify-content-between align-items-center">
                         <button type="button" class="btn btn-light btn-sm" :disabled="threadPagination.current_page <= 1" @click="loadThreads(threadPagination.current_page - 1)">Prev</button>
@@ -62,108 +57,73 @@
                 </div>
             </div>
         </div>
-
         <div class="col-lg-8">
-            <div class="card tc-support-chat__panel h-100">
-                <div class="card-header py-3">
-                    <h5 class="mb-0">
-                        <template v-if="selectedThread">
-                            @{{ config.isAdmin ? (selectedThread.user_name || 'User') : (selectedThread.title || 'Support') }}
-                        </template>
-                        <template v-else>Select a conversation</template>
-                    </h5>
-                </div>
-
-                <div v-if="!selectedThreadId" class="card-body d-flex align-items-center justify-content-center text-muted" style="min-height:420px">
-                    Choose a conversation from the list to start chatting.
-                </div>
-
-                <template v-else>
-                    <div ref="messagesWrap" class="tc-support-chat__messages" @scroll="onMessagesScroll">
-                        <div v-if="loadingMessages && !messages.length" class="text-center text-muted py-4">Loading messages…</div>
-                        <div v-for="msg in messages" :key="msg.id" class="tc-support-chat__bubble-row" :class="msg.is_mine ? 'is-mine' : 'is-theirs'">
-                            <div class="tc-support-chat__bubble">
-                                <div class="tc-support-chat__bubble-meta">
-                                    <strong>@{{ msg.user_name }}</strong>
-                                    <span>@{{ msg.created_at }}</span>
-                                </div>
-                                <div class="tc-support-chat__bubble-text">@{{ msg.message }}</div>
-                                <button
-                                    v-if="config.isAdmin || msg.is_mine"
-                                    type="button"
-                                    class="tc-support-chat__bubble-delete btn btn-link btn-sm text-danger p-0"
-                                    title="Delete message"
-                                    @click="deleteMessage(msg.id)"
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
+            <div class="card tc-dash-card tc-support-chat__panel h-100">
+                <div v-if="selectedThread" class="card-header py-3 d-flex align-items-center gap-2">
+                    <div class="tc-chat-avatar tc-chat-avatar--md" :title="selectedThread.user_name">
+                        <img v-if="selectedThread.user_avatar?.url" :src="selectedThread.user_avatar.url" :alt="selectedThread.user_name">
+                        <span v-else class="tc-chat-avatar__initials">@{{ selectedThread.user_avatar?.initials || 'U' }}</span>
                     </div>
-
-                    <div class="card-footer">
-                        <form @submit.prevent="sendMessage" class="d-flex gap-2 align-items-end">
-                            <textarea
-                                v-model="draftMessage"
-                                class="form-control"
-                                rows="2"
-                                maxlength="5000"
-                                placeholder="Type your message…"
-                                :disabled="sending"
-                                @keydown.enter.exact.prevent="sendMessage"
-                            ></textarea>
-                            <button type="submit" class="btn btn-primary" :disabled="sending || !draftMessage.trim()">
-                                Send
-                            </button>
-                        </form>
+                    <div>
+                        <h5 class="mb-0">@{{ selectedThread.user_name || 'User' }}</h5>
+                        <p class="mb-0 small text-muted">@{{ selectedThread.user_email }}</p>
                     </div>
-                </template>
+                </div>
+                <div v-else class="tc-support-chat__placeholder d-flex align-items-center justify-content-center text-muted flex-grow-1">
+                    <div class="text-center">
+                        <i class="icofont icofont-speech-comments" aria-hidden="true"></i>
+                        <p class="mb-0 mt-2">Select a user chat room to start messaging.</p>
+                    </div>
+                </div>
+                @include('tenants.support_chat.partials.chat-panel')
             </div>
         </div>
     </div>
 
-    <div v-if="flash" class="alert mt-3" :class="flash.ok ? 'alert-success' : 'alert-danger'" role="alert">@{{ flash.text }}</div>
-</div>
+    <div v-else class="card tc-dash-card tc-support-chat__panel tc-support-chat__panel--solo">
+        <div class="card-header py-3 d-flex align-items-center gap-2">
+            <div class="tc-chat-avatar tc-chat-avatar--md" title="Admin support">
+                <span class="tc-chat-avatar__initials">AD</span>
+            </div>
+            <div>
+                <h5 class="mb-0">Chat with Admin</h5>
+                <p class="mb-0 small text-muted">Send a message or attach a file — our team will reply here.</p>
+            </div>
+        </div>
+        @include('tenants.support_chat.partials.chat-panel')
+    </div>
 
-<style>
-[v-cloak] { display: none !important; }
-.tc-support-chat__sidebar,
-.tc-support-chat__panel { min-height: 520px; }
-.tc-support-chat__thread-list { max-height: 420px; overflow-y: auto; }
-.tc-support-chat__thread-item {
-    display: block;
-    width: 100%;
-    text-align: left;
-    border: 0;
-    border-bottom: 1px solid rgba(0,0,0,.06);
-    background: #fff;
-    padding: .85rem 1rem;
-    position: relative;
-}
-.tc-support-chat__thread-item:hover { background: #f8f9fa; }
-.tc-support-chat__thread-item.is-active { background: #eef5ff; }
-.tc-support-chat__thread-item.has-unread { border-left: 3px solid #dc3545; }
-.tc-support-chat__thread-title { display: flex; justify-content: space-between; gap: .5rem; font-weight: 600; }
-.tc-support-chat__thread-sub, .tc-support-chat__thread-meta { font-size: .82rem; color: #6c757d; }
-.tc-support-chat__thread-delete { position: absolute; top: .75rem; right: .75rem; }
-.tc-support-chat__messages {
-    height: 420px;
-    overflow-y: auto;
-    padding: 1rem;
-    background: #fbfbfc;
-}
-.tc-support-chat__bubble-row { display: flex; margin-bottom: .75rem; }
-.tc-support-chat__bubble-row.is-mine { justify-content: flex-end; }
-.tc-support-chat__bubble-row.is-theirs { justify-content: flex-start; }
-.tc-support-chat__bubble {
-    max-width: 78%;
-    background: #fff;
-    border: 1px solid rgba(0,0,0,.08);
-    border-radius: .75rem;
-    padding: .65rem .85rem;
-    box-shadow: 0 1px 2px rgba(0,0,0,.04);
-}
-.tc-support-chat__bubble-row.is-mine .tc-support-chat__bubble { background: #e7f1ff; border-color: #cfe2ff; }
-.tc-support-chat__bubble-meta { display: flex; justify-content: space-between; gap: 1rem; font-size: .75rem; color: #6c757d; margin-bottom: .35rem; }
-.tc-support-chat__bubble-text { white-space: pre-wrap; word-break: break-word; }
-</style>
+    <div v-if="config.isAdmin && showCreateChat" class="tc-support-chat__modal-backdrop" @click.self="closeCreateChat">
+        <div class="tc-support-chat__modal card tc-dash-card">
+            <div class="card-header d-flex align-items-center justify-content-between py-3">
+                <h5 class="mb-0">Start new chat</h5>
+                <button type="button" class="btn-close" aria-label="Close" @click="closeCreateChat"></button>
+            </div>
+            <div class="card-body border-bottom py-2">
+                <input v-model="createUserSearch" type="search" class="form-control form-control-sm" placeholder="Search by name or email…" @input="debouncedLoadChatUsers">
+            </div>
+            <div class="tc-support-chat__user-picker">
+                <div v-if="loadingChatUsers" class="tc-support-chat__empty"><p class="mb-0">Loading users…</p></div>
+                <div v-else-if="!chatUsers.length" class="tc-support-chat__empty"><p class="mb-0">No users found.</p></div>
+                <button
+                    v-for="user in chatUsers"
+                    :key="user.id"
+                    type="button"
+                    class="tc-support-chat__user-option"
+                    :disabled="creatingAdminChat"
+                    @click="createAdminChat(user.id)"
+                >
+                    <div class="tc-chat-avatar tc-chat-avatar--sm" :title="user.name">
+                        <img v-if="user.avatar?.url" :src="user.avatar.url" :alt="user.name">
+                        <span v-else class="tc-chat-avatar__initials">@{{ user.avatar?.initials || 'U' }}</span>
+                    </div>
+                    <div class="tc-support-chat__user-option-body">
+                        <strong>@{{ user.name }}</strong>
+                        <span>@{{ user.email }}</span>
+                        <span v-if="user.has_thread" class="badge bg-light text-muted">Existing chat</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

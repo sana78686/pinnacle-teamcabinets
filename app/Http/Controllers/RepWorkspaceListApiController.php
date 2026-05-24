@@ -50,7 +50,7 @@ class RepWorkspaceListApiController extends Controller
       });
     }
 
-    $paginator = $query->paginate(tenant_list_per_page())->withQueryString();
+    $paginator = $query->paginate(TenantListPaginator::perPage($request))->withQueryString();
 
     return response()->json([
       'data' => collect($paginator->items())->map(fn ($row) => $this->serializeWorkspace($row)),
@@ -94,7 +94,7 @@ class RepWorkspaceListApiController extends Controller
       });
     }
 
-    $paginator = $query->paginate(tenant_list_per_page())->withQueryString();
+    $paginator = $query->paginate(TenantListPaginator::perPage($request))->withQueryString();
 
     return response()->json([
       'data' => collect($paginator->items())->map(fn (ClaimsOrder $row) => [

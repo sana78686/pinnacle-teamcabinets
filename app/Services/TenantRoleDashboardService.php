@@ -36,7 +36,9 @@ class TenantRoleDashboardService
         return Bulletin::query()
             ->visibleToUser($user)
             ->latest('id')
-            ->get();
+            ->get()
+            ->filter(fn (Bulletin $bulletin) => $bulletin->isVisibleToUser($user))
+            ->values();
     }
 
     /**

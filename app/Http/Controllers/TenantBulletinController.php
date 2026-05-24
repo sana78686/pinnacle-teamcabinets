@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Exports\BulletinExport;
 use App\Imports\BulletinImport;
 use App\Models\Bulletin;
-use Illuminate\Http\Request;
+use App\Support\BulletinAudience;
 use App\Support\MediaUpload;
 use App\Support\PublicUploadedFile;
+use App\Support\TenantListPaginator;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
 class TenantBulletinController extends Controller
@@ -15,11 +17,47 @@ class TenantBulletinController extends Controller
      /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $bulletin = Bulletin::latest('id')->paginate(tenant_list_per_page())->withQueryString();
+        $perPage = TenantListPaginator::perPage($request);
+        $search = TenantListPaginator::search($request);
+        $sort = (string) $request->input('sort', 'newest');
+        $audience = (string) $request->input('audience', '');
 
-        return view('tenants.bulletins.index', ['bulletin' => $bulletin]);
+        if (! array_key_exists($sort, BulletinAudience::adminSortOptions())) {
+            $sort = 'newest';
+        }
+
+        $query = Bulletin::query();
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('bulletin_title', 'like', '%'.$search.'%')
+                    ->orWhere('bulletin_description', 'like', '%'.$search.'%')
+                    ->orWhere('target_role', 'like', '%'.$search.'%');
+            });
+        }
+
+        if ($audience === 'every_one' || $audience === 'specific_user') {
+            $query->where('user_option', $audience);
+        }
+
+        match ($sort) {
+            'oldest' => $query->oldest('id'),
+            'title_asc' => $query->orderBy('bulletin_title')->orderByDesc('id'),
+            'title_desc' => $query->orderByDesc('bulletin_title')->orderByDesc('id'),
+            default => $query->latest('created_at')->latest('id'),
+        };
+
+        $bulletins = $query->paginate($perPage)->withQueryString();
+
+        return view('tenants.Bulletins.index', [
+            'bulletins' => $bulletins,
+            'perPage' => $perPage,
+            'search' => $search,
+            'sort' => $sort,
+            'audience' => $audience,
+        ]);
     }
 
     /**
@@ -45,7 +83,7 @@ class TenantBulletinController extends Controller
         $bulletin = new Bulletin;
         $bulletin->user_option = $validated['user_option'];
         $bulletin->target_role = $validated['user_option'] === 'specific_user'
-            ? ($validated['target_role'] ?? null)
+            ? BulletinAudience::normalizeTargetRole($validated['target_role'] ?? null)
             : null;
         $bulletin->bulletin_title = $validated['bulletin_title'];
         $bulletin->bulletin_description = $validated['bulletin_description'];
@@ -97,7 +135,7 @@ class TenantBulletinController extends Controller
 
         $bulletin->user_option = $validated['user_option'];
         $bulletin->target_role = $validated['user_option'] === 'specific_user'
-            ? ($validated['target_role'] ?? null)
+            ? BulletinAudience::normalizeTargetRole($validated['target_role'] ?? null)
             : null;
         $bulletin->bulletin_title = $validated['bulletin_title'];
         $bulletin->bulletin_description = $validated['bulletin_description'];

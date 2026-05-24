@@ -373,6 +373,28 @@ if (! function_exists('tenant_user_is_panel_admin')) {
     }
 }
 
+if (! function_exists('tenant_can')) {
+    function tenant_can(string $permission, ?\App\Models\User $user = null): bool
+    {
+        $user ??= auth()->user();
+
+        return $user
+            ? \App\Services\TenantPermissionService::userCan($user, $permission)
+            : false;
+    }
+}
+
+if (! function_exists('tenant_can_nav')) {
+    function tenant_can_nav(string $navKey, ?\App\Models\User $user = null): bool
+    {
+        $user ??= auth()->user();
+
+        return $user
+            ? \App\Services\TenantPermissionService::userCanNav($user, $navKey)
+            : false;
+    }
+}
+
 if (! function_exists('tenant_panel_layout')) {
     /** Blade layout for the authenticated tenant panel (admin vs dealer/rep/etc.). */
     function tenant_panel_layout(): string
@@ -397,6 +419,31 @@ if (! function_exists('tenant_panel_display_name')) {
         }
 
         return trim((string) ($user->username ?? $name ?: 'User'));
+    }
+}
+
+if (! function_exists('tenant_user_chat_avatar')) {
+    /** @return array{url: ?string, initials: string, name: string} */
+    function tenant_user_chat_avatar(?\App\Models\User $user = null): array
+    {
+        if (! $user) {
+            return ['url' => null, 'initials' => '?', 'name' => 'User'];
+        }
+
+        $url = null;
+        $logo = trim((string) ($user->logo ?? ''));
+        if ($logo !== '') {
+            $mediaUrl = tenant_media_url($logo);
+            if ($mediaUrl) {
+                $url = $mediaUrl;
+            }
+        }
+
+        return [
+            'url' => $url,
+            'initials' => (string) ($user->initials ?? 'U'),
+            'name' => tenant_panel_display_name($user),
+        ];
     }
 }
 

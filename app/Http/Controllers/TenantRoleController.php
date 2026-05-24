@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use App\Services\TenantPermissionService;
 use App\Services\TenantRoleService;
 use App\Support\TenantListPaginator;
 use Spatie\Permission\Models\Permission;
@@ -38,7 +39,7 @@ class TenantRoleController extends Controller
     {
         $perPage = TenantListPaginator::perPage($request);
         $search = TenantListPaginator::search($request);
-        $query = Role::query()->orderBy('id', 'DESC');
+        $query = Role::query()->withCount('permissions')->orderBy('id', 'DESC');
 
         if ($search !== '') {
             $query->where('name', 'like', '%'.$search.'%');
@@ -59,19 +60,9 @@ class TenantRoleController extends Controller
      */
     public function create(): View
     {
-        // Get all permissions from the database
-        $permissions = Permission::all();
-
-        // Group permissions by a custom 'module' (or based on naming convention)
-        $groupedPermissions = $permissions->groupBy(function ($permission) {
-            // Assuming that permissions are named in the format "module-action"
-            // e.g., role-list, role-create, user-list, etc.
-            return explode('-', $permission->name)[0]; // This groups by the first part (module)
-        });
-
-        // Pass the grouped permissions to the view
-        return view('tenants.roles.create', ['permissions' => $groupedPermissions]);
-        // return view('tenants.roles.create',compact('permission'));
+        return view('tenants.roles.create', [
+            'permissions' => TenantPermissionService::groupedForUi(),
+        ]);
     }
 
     /**
@@ -121,15 +112,15 @@ class TenantRoleController extends Controller
      */
     public function edit($id): View
     {
-        $role = Role::find($id);
-        $permission = Permission::get();
-        $rolePermissions = DB::table("role_has_permissions")->where("role_has_permissions.role_id",$id)
-            ->pluck('role_has_permissions.permission_id','role_has_permissions.permission_id')
+        $role = Role::findOrFail($id);
+        $rolePermissions = DB::table('role_has_permissions')
+            ->where('role_id', $id)
+            ->pluck('permission_id')
             ->all();
 
         return view('tenants.roles.edit', [
             'role' => $role,
-            'permission' => $permission,
+            'permissions' => TenantPermissionService::groupedForUi(),
             'rolePermissions' => $rolePermissions,
             'isProtected' => TenantRoleService::isProtectedRole($role->name),
         ]);

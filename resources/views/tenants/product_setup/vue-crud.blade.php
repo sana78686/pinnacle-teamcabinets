@@ -1,6 +1,6 @@
-<div id="product-setup-app" class="tc-product-setup-vue" v-cloak>
-    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-        <button type="button" class="btn btn-info btn-sm" @click="openCreate" data-toggle="tooltip" title="Add a new record">
+<div id="product-setup-app" class="tc-role-list-page tc-product-setup-vue" v-cloak>
+    <div class="p-2 mt-0 card-header no-border d-flex flex-wrap align-items-center gap-2">
+        <button type="button" class="text-white btn btn-info btn-sm" @click="openCreate" data-toggle="tooltip" title="Add a new record">
             <i class="icofont icofont-plus"></i> @{{ config.addLabel }}
         </button>
         <button type="button" class="btn btn-light btn-sm" @click="loadRows" :disabled="loading" data-toggle="tooltip" title="Refresh this list">
@@ -8,10 +8,12 @@
         </button>
     </div>
 
-    <div v-if="flash" class="alert" :class="flash.ok ? 'alert-success' : 'alert-danger'" role="alert">@{{ flash.text }}</div>
+    <div v-if="flash" class="alert mx-2" :class="flash.ok ? 'alert-success' : 'alert-danger'" role="alert">@{{ flash.text }}</div>
 
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped table-hover table-sm mb-0">
+    <div class="card tc-dash-card mb-3">
+        <div class="card-body p-0">
+            <div class="table-responsive table-sm tc-admin-datatable">
+                <table class="table table-striped table-bordered table-sm mb-0">
             <thead>
                 <tr>
                     <th v-for="col in config.columns" :key="col.key">@{{ col.label }}</th>
@@ -23,7 +25,12 @@
                     <td :colspan="config.columns.length + 1" class="text-center py-4 text-muted">Loading…</td>
                 </tr>
                 <tr v-else-if="!rows.length">
-                    <td :colspan="config.columns.length + 1" class="text-center py-4 text-muted">No records found.</td>
+                    <td :colspan="config.columns.length + 1" class="p-0 border-0">
+                        <div class="tc-role-list-page__empty">
+                            <i class="icofont icofont-file-document" aria-hidden="true"></i>
+                            <p class="mb-0">No records found.</p>
+                        </div>
+                    </td>
                 </tr>
                 <tr v-for="row in rows" :key="row.id">
                     <td v-for="col in config.columns" :key="col.key">
@@ -40,27 +47,33 @@
                         </template>
                         <span v-else>@{{ row[col.key] ?? '—' }}</span>
                     </td>
-                    <td class="text-nowrap">
-                        <button type="button" class="btn btn-sm btn-light" @click="openShow(row.id)">Show</button>
-                        <button type="button" class="btn btn-sm btn-warning" @click="openEdit(row.id)">Edit</button>
-                        <button type="button" class="btn btn-sm btn-danger" @click="destroyRow(row.id)">Delete</button>
+                    <td class="text-nowrap tc-admin-datatable__actions">
+                        <button type="button" class="btn btn-link btn-sm p-0 align-baseline tc-admin-datatable__edit" @click="openShow(row.id)">Show</button>
+                        <span class="text-muted"> | </span>
+                        <button type="button" class="btn btn-link btn-sm p-0 align-baseline tc-admin-datatable__edit" @click="openEdit(row.id)">Edit</button>
+                        <span class="text-muted"> | </span>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-danger align-baseline" @click="destroyRow(row.id)">Delete</button>
                     </td>
                 </tr>
             </tbody>
         </table>
-    </div>
+            </div>
+        </div>
 
-    <nav v-if="pagination.last_page > 1" class="mt-3">
-        <ul class="pagination pagination-sm mb-0">
-            <li class="page-item" :class="{ disabled: pagination.current_page <= 1 }">
-                <button type="button" class="page-link" @click="goPage(pagination.current_page - 1)">Prev</button>
-            </li>
-            <li class="page-item disabled"><span class="page-link">Page @{{ pagination.current_page }} / @{{ pagination.last_page }}</span></li>
-            <li class="page-item" :class="{ disabled: pagination.current_page >= pagination.last_page }">
-                <button type="button" class="page-link" @click="goPage(pagination.current_page + 1)">Next</button>
-            </li>
-        </ul>
-    </nav>
+        <div v-if="pagination.last_page > 1" class="card-body border-top py-2">
+            <nav class="tc-list-pagination">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" :class="{ disabled: pagination.current_page <= 1 }">
+                        <button type="button" class="page-link" @click="goPage(pagination.current_page - 1)">Prev</button>
+                    </li>
+                    <li class="page-item disabled"><span class="page-link">Page @{{ pagination.current_page }} / @{{ pagination.last_page }}</span></li>
+                    <li class="page-item" :class="{ disabled: pagination.current_page >= pagination.last_page }">
+                        <button type="button" class="page-link" @click="goPage(pagination.current_page + 1)">Next</button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
 
     <div class="modal fade" id="ps-form-modal" tabindex="-1" aria-hidden="true" ref="formModalEl">
         <div class="modal-dialog modal-lg modal-dialog-centered tc-ps-modal-dialog">

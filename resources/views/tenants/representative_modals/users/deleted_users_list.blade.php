@@ -69,9 +69,10 @@
         </div>
     </div>
 
-    <div class="pt-0 card-body">
-        <div class="table-responsive table-sm">
-            <table class="table p-0 m-0 display table-striped table-bordered table-sm" id="">
+    <div class="card tc-dash-card mb-3">
+        <div class="card-body p-0">
+        <div class="table-responsive table-sm tc-admin-datatable">
+            <table class="table table-striped table-bordered table-sm mb-0" id="">
                 <thead>
                     <tr>
                         <th scope="col">#</th>
@@ -162,8 +163,11 @@
                 </tfoot>
             </table>
         </div>
+        <div class="card-body border-top py-2">
         @include('partials.tenant-pagination', ['paginator' => $users])
-    </div>
+        </div>
+        </div>
+        </div>
 
 @endsection
 

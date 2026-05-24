@@ -31,16 +31,41 @@
                     <div class="tc-ci-box__header">
                         <h3 class="tc-ci-box__title mb-0">Account #{{ $account['account_number'] ?? '—' }}</h3>
                     </div>
-                    <div class="tc-ci-box__body tc-role-dashboard__account">
-                        <ul class="list-unstyled mb-0">
-                            <li><strong>User name:</strong> {{ $account['name'] ?? '—' }}</li>
-                            <li><strong>Address:</strong> {{ $account['address'] ?? '—' }}</li>
-                            <li><strong>State:</strong> {{ $account['state'] ?? '—' }}</li>
-                            <li><strong>City:</strong> {{ $account['city'] ?? '—' }}</li>
-                            <li><strong>Zipcode:</strong> {{ $account['zipcode'] ?? '—' }}</li>
-                            <li><strong>Phone number:</strong> {{ $account['phone'] ?? '—' }}</li>
-                            <li><strong>Email:</strong> {{ $account['email'] ?? '—' }}</li>
-                        </ul>
+                    <div class="tc-ci-box__body tc-role-dashboard__account p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped mb-0 tc-role-dashboard__account-table">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">User name</th>
+                                        <td>{{ $account['name'] ?? '—' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Address</th>
+                                        <td>{{ $account['address'] ?? '—' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">State</th>
+                                        <td>{{ $account['state'] ?? '—' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">City</th>
+                                        <td>{{ $account['city'] ?? '—' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Zipcode</th>
+                                        <td>{{ $account['zipcode'] ?? '—' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Phone number</th>
+                                        <td>{{ $account['phone'] ?? '—' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Email</th>
+                                        <td>{{ $account['email'] ?? '—' }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -65,7 +90,10 @@
                                     @endif
                                 </li>
                             @empty
-                                <li class="tc-role-dashboard__list-row text-muted">No users yet.</li>
+                                <li class="tc-role-dashboard__empty">
+                                    <i class="icofont icofont-users" aria-hidden="true"></i>
+                                    <p class="mb-0">No users yet.</p>
+                                </li>
                             @endforelse
                         </ul>
                     </div>
@@ -83,7 +111,10 @@
                                 <span class="text-muted">({{ $bulletin->created_at?->format('m/d/Y') }})</span>
                             </a>
                         @empty
-                            <p class="text-muted mb-0 tc-role-dashboard__list-row">No bulletins posted yet.</p>
+                            <div class="tc-role-dashboard__empty">
+                                <i class="icofont icofont-file-document" aria-hidden="true"></i>
+                                <p class="mb-0">No bulletins posted yet.</p>
+                            </div>
                         @endforelse
                     </div>
                 </div>
@@ -133,7 +164,10 @@
                                 @endforeach
                             </div>
                         @else
-                            <p class="text-muted mb-0 p-2">No bulletin available for your account yet.</p>
+                            <div class="tc-role-dashboard__empty tc-role-dashboard__empty--lg">
+                                <i class="icofont icofont-notification" aria-hidden="true"></i>
+                                <p class="mb-0">No bulletin available for your account yet.</p>
+                            </div>
                         @endif
                     </div>
                 </div>

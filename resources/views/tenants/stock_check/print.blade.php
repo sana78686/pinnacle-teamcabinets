@@ -67,8 +67,8 @@
                     <td>{{ $line['sku'] }}</td>
                     <td>{{ $line['description'] }}</td>
                     <td>{{ $line['quantity'] }}</td>
-                    <td>{{ number_format($line['weight'], 2) }} lbs</td>
-                    <td>{{ number_format($line['total_weight'], 2) }} lbs</td>
+                    <td>{{ number_format((float) ($line['weight'] ?? 0), 2) }} lbs</td>
+                    <td>{{ number_format((float) ($line['total_weight'] ?? (($line['weight'] ?? 0) * ($line['quantity'] ?? 1))), 2) }} lbs</td>
                 </tr>
             @endforeach
         </tbody>

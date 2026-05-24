@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
             'master.user'   => \App\Http\Middleware\MasterUserMiddleware::class,
             'tenant.subscribed' => \App\Http\Middleware\TenantSubscriptionAccessMiddleware::class,
+            'tenant.permission' => \App\Http\Middleware\EnsureTenantPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

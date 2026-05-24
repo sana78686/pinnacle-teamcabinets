@@ -6,6 +6,7 @@ use App\Models\UserUpload;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -15,6 +16,18 @@ class UserUploadApiController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        if (! Schema::hasTable('user_uploads')) {
+            return response()->json([
+                'data' => [],
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => tenant_list_per_page(),
+                    'total' => 0,
+                ],
+            ]);
+        }
+
         $paginator = UserUpload::query()
             ->where('user_id', Auth::id())
             ->latest('id')
@@ -41,6 +54,12 @@ class UserUploadApiController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        if (! Schema::hasTable('user_uploads')) {
+            return response()->json([
+                'message' => 'Uploads are not available yet. Please contact support.',
+            ], 503);
+        }
+
         $validated = $request->validate([
             'description' => 'required|string|max:251',
             'file' => 'required|file|max:20480',
@@ -111,6 +130,8 @@ class UserUploadApiController extends Controller
 
     protected function findOwned(int $id): UserUpload
     {
+        abort_unless(Schema::hasTable('user_uploads'), 503, 'Uploads are not available yet.');
+
         return UserUpload::query()
             ->where('user_id', Auth::id())
             ->findOrFail($id);

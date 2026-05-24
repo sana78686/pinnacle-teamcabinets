@@ -43,6 +43,7 @@
     </div>
 
     @include('partial.message')
+    <div id="sc-status-msg" class="alert py-2 mb-3" style="display:none;" role="status"></div>
 
     <div class="table-responsive mb-3 tc-quote-show__header-wrap">
         <table class="table table-bordered table-sm mb-0">
@@ -227,7 +228,7 @@
             <p class="text-success mb-0">This stock check request has been approved.</p>
         @else
             @if ($isShippingRequired ?? false)
-                <form method="POST" action="{{ $updateRoute }}" id="sc-admin-shipping-form" class="tc-sq-admin__form border rounded p-3 bg-light mb-3">
+                <form method="POST" action="{{ $updateRoute }}" id="sc-admin-shipping-form" class="tc-sq-admin__form tc-stock-check-admin-panel border rounded p-3 mb-3">
                     @csrf
                     @method('PUT')
                     <div class="row g-2 align-items-end">
@@ -260,12 +261,12 @@
                             <button type="submit" class="btn btn-primary btn-sm w-100">Approve Stock Check</button>
                         </div>
                     </div>
-                    <div class="mt-2 text-end fw-semibold">
+                    <div class="mt-2 text-end tc-sc-shipping-total">
                         Total Shipping Charges: $<span id="sc-total-shipping-charges">{{ number_format($shipping_cost ?? 0, 2) }}</span>
                     </div>
                 </form>
             @else
-                <form method="POST" action="{{ $updateRoute }}" id="sc-admin-simple-form" class="border rounded p-3 bg-light mb-3">
+                <form method="POST" action="{{ $updateRoute }}" id="sc-admin-simple-form" class="tc-stock-check-admin-panel border rounded p-3 mb-3">
                     @csrf
                     @method('PUT')
                     <div class="row g-2 align-items-end">
@@ -281,7 +282,7 @@
                 </form>
             @endif
 
-            <form id="sc-warehouse-email-form" class="border rounded p-3 bg-light"
+            <form id="sc-warehouse-email-form" class="tc-stock-check-admin-panel border rounded p-3"
                 data-action="{{ $warehouseEmailRoute ?? route('tenant_stock_check_warehouse_email', $record->id) }}">
                 <div class="row g-2 align-items-end">
                     <div class="col-md-4">
@@ -290,7 +291,7 @@
                         <div id="sc-warehouse-email-msg" class="small mt-1"></div>
                     </div>
                     <div class="col-md-4">
-                        <button type="submit" class="btn btn-primary">Send Email To Warehouse</button>
+                        <button type="submit" class="btn btn-primary sc-warehouse-submit-btn">Send Email To Warehouse</button>
                     </div>
                 </div>
             </form>

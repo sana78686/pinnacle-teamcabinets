@@ -1,6 +1,12 @@
 (function () {
     'use strict';
 
+    function replaceFeatherIcons() {
+        if (window.feather && typeof window.feather.replace === 'function') {
+            window.feather.replace();
+        }
+    }
+
     function startApp() {
         const config = window.REP_WORKSPACE_LIST;
         if (!config || !window.Vue) {
@@ -15,13 +21,38 @@
                     config,
                     rows: [],
                     pagination: { current_page: 1, last_page: 1, per_page: 15, total: 0 },
+                    perPage: 15,
+                    perPageOptions: [10, 15, 25, 50, 100],
                     loading: false,
                     search: '',
                     flash: null,
                 };
             },
+            computed: {
+                emptyMessage() {
+                    return this.config.emptyMessage
+                        || ('No ' + (this.config.rowLabel || 'record') + 's yet.');
+                },
+                paginationFrom() {
+                    if (!this.pagination.total) {
+                        return 0;
+                    }
+
+                    return ((this.pagination.current_page - 1) * this.pagination.per_page) + 1;
+                },
+                paginationTo() {
+                    return Math.min(
+                        this.pagination.current_page * this.pagination.per_page,
+                        this.pagination.total
+                    );
+                },
+            },
             mounted() {
                 this.loadRows();
+                this.$nextTick(replaceFeatherIcons);
+            },
+            updated() {
+                this.$nextTick(replaceFeatherIcons);
             },
             methods: {
                 apiUrl(template, id) {
@@ -40,10 +71,17 @@
                 editUrl(id) {
                     return this.config.editUrl ? this.apiUrl(this.config.editUrl, id) : '#';
                 },
+                clearSearch() {
+                    this.search = '';
+                    this.loadRows(1);
+                },
                 async loadRows(page) {
                     this.loading = true;
                     const p = page || this.pagination.current_page || 1;
-                    const qs = new URLSearchParams({ page: String(p) });
+                    const qs = new URLSearchParams({
+                        page: String(p),
+                        per_page: String(this.perPage),
+                    });
                     if (this.search.trim()) {
                         qs.set('search', this.search.trim());
                     }
@@ -57,6 +95,9 @@
                         }
                         this.rows = json.data || [];
                         this.pagination = Object.assign(this.pagination, json.meta || {});
+                        if (json.meta && json.meta.per_page) {
+                            this.perPage = json.meta.per_page;
+                        }
                     } catch (e) {
                         this.flash = { ok: false, text: e.message || 'Load failed.' };
                     } finally {

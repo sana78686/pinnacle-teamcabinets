@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\BulletinAudience;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,19 +18,35 @@ class Bulletin extends Model
 
     public function scopeVisibleToUser(Builder $query, User $user): Builder
     {
-        $role = $user->getRoleNames()->first();
+        $roleKeys = BulletinAudience::roleKeysForUser($user);
 
-        return $query->where(function (Builder $q) use ($role) {
+        return $query->where(function (Builder $q) use ($roleKeys) {
             $q->where('user_option', 'every_one')
-                ->orWhere(function (Builder $inner) use ($role) {
+                ->orWhere(function (Builder $inner) use ($roleKeys) {
                     $inner->where('user_option', 'specific_user')
-                        ->where(function (Builder $roleQuery) use ($role) {
+                        ->where(function (Builder $roleQuery) use ($roleKeys) {
                             $roleQuery->whereNull('target_role')
-                                ->orWhere('target_role', '')
-                                ->orWhere('target_role', $role);
+                                ->orWhere('target_role', '');
+
+                            if ($roleKeys !== []) {
+                                $roleQuery->orWhereIn('target_role', $roleKeys);
+                            }
                         });
                 });
         });
+    }
+
+    public function isVisibleToUser(User $user): bool
+    {
+        if ($this->user_option === 'every_one') {
+            return true;
+        }
+
+        if ($this->user_option !== 'specific_user') {
+            return false;
+        }
+
+        return BulletinAudience::targetMatchesUser($this->target_role, $user);
     }
 
     public function attachmentUrl(): ?string

@@ -193,6 +193,30 @@ class TenantNotificationService
         );
     }
 
+    public static function stockCheckApprovedForUser(Model $record, User $user, bool $withShipping): void
+    {
+        if (! Schema::hasTable('notifications')) {
+            Log::warning('notifications table missing — stock check approval panel notification skipped');
+
+            return;
+        }
+
+        $label = $record->job_name ?? ('Request #'.$record->id);
+        $total = number_format((float) ($record->grand_total_cost ?? 0), 2);
+        $msg = $withShipping
+            ? sprintf('Your stock check "%s" has been approved with shipping charges. Total: $%s.', $label, $total)
+            : sprintf('Your stock check "%s" has been approved. Total: $%s.', $label, $total);
+
+        self::notifyUserPanel(
+            $user,
+            'Stock check approved',
+            $msg,
+            route('tenant_stock_check_show', $record->id, false),
+            'success',
+            'stock',
+        );
+    }
+
     public static function orderPlacedForUser(Order $order, User $user): void
     {
         $total = number_format((float) ($order->grand_total_cost ?? 0), 2);

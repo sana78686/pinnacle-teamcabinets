@@ -54,21 +54,57 @@
         }
     }
 
-    root.querySelectorAll('.sc-cost-input').forEach(function (input) {
-        input.addEventListener('input', recalc);
-        input.addEventListener('change', recalc);
-    });
+    var shippingForm = document.getElementById('sc-admin-shipping-form');
+    if (shippingForm) {
+        root.querySelectorAll('.sc-cost-input').forEach(function (input) {
+            input.addEventListener('input', recalc);
+            input.addEventListener('change', recalc);
+        });
+        recalc();
+    }
 
-    recalc();
+    function validateEmail(value) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    }
+
+    function showWarehouseMsg(html, isError) {
+        var msg = document.getElementById('sc-warehouse-email-msg');
+        if (msg) {
+            msg.innerHTML = html;
+            msg.className = 'small mt-1' + (isError ? ' text-danger' : ' text-success');
+        }
+        var topMsg = document.getElementById('sc-status-msg');
+        if (topMsg) {
+            topMsg.style.display = 'block';
+            topMsg.innerHTML = html;
+            topMsg.className = 'alert alert-' + (isError ? 'danger' : 'success') + ' py-2 mb-3';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
 
     var warehouseForm = document.getElementById('sc-warehouse-email-form');
     if (warehouseForm) {
+        var submitBtn = warehouseForm.querySelector('button[type="submit"]');
+        var emailInput = document.getElementById('sc_warehouse_email');
+
         warehouseForm.addEventListener('submit', function (event) {
             event.preventDefault();
-            var msg = document.getElementById('sc-warehouse-email-msg');
-            var email = document.getElementById('sc_warehouse_email')?.value || '';
-            if (msg) {
-                msg.innerHTML = '';
+            var email = (emailInput?.value || '').trim();
+
+            if (email === '') {
+                showWarehouseMsg('<span>Please enter Warehouse Email.</span>', true);
+                emailInput?.focus();
+                return;
+            }
+
+            if (!validateEmail(email)) {
+                showWarehouseMsg('<span>Please enter a valid Email.</span>', true);
+                emailInput?.focus();
+                return;
+            }
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
             }
 
             fetch(warehouseForm.getAttribute('data-action'), {
@@ -84,19 +120,32 @@
                     return response.json();
                 })
                 .then(function (data) {
-                    if (!msg) {
-                        return;
-                    }
                     if (data.status) {
-                        msg.innerHTML = '<span class="text-success">Email sent successfully.</span>';
-                        document.getElementById('sc_warehouse_email').value = '';
+                        showWarehouseMsg('<span>Your email is successfully delivered.</span>', false);
+                        if (emailInput) {
+                            emailInput.value = '';
+                        }
+                        setTimeout(function () {
+                            var msg = document.getElementById('sc-warehouse-email-msg');
+                            if (msg) {
+                                msg.innerHTML = '';
+                            }
+                            var topMsg = document.getElementById('sc-status-msg');
+                            if (topMsg) {
+                                topMsg.style.display = 'none';
+                                topMsg.innerHTML = '';
+                            }
+                        }, 5000);
                     } else {
-                        msg.innerHTML = '<span class="text-danger">Could not send email. Please try again.</span>';
+                        showWarehouseMsg('<span>Some problem occurred, please try again.</span>', true);
                     }
                 })
                 .catch(function () {
-                    if (msg) {
-                        msg.innerHTML = '<span class="text-danger">Could not send email. Please try again.</span>';
+                    showWarehouseMsg('<span>Some problem occurred, please try again.</span>', true);
+                })
+                .finally(function () {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
                     }
                 });
         });

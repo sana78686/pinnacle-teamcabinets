@@ -18,14 +18,17 @@
                     selectedThreadId: config.initialThreadId || null,
                     messages: [],
                     draftMessage: '',
+                    pendingFile: null,
                     threadSearch: '',
-                    newThreadTitle: '',
-                    newThreadMessage: '',
-                    showNewThread: false,
+                    showCreateChat: false,
+                    createUserSearch: '',
+                    chatUsers: [],
+                    loadingChatUsers: false,
+                    creatingAdminChat: false,
+                    chatUsersTimer: null,
                     loadingThreads: false,
                     loadingMessages: false,
                     sending: false,
-                    creatingThread: false,
                     flash: null,
                     pollTimer: null,
                     lastMessageAt: null,
@@ -38,13 +41,15 @@
                 },
             },
             mounted() {
-                this.loadThreads().then(() => {
-                    if (this.selectedThreadId) {
-                        this.loadMessages(true);
-                    } else if (this.threads.length === 1) {
-                        this.selectThread(this.threads[0].id);
-                    }
-                });
+                if (this.config.isAdmin) {
+                    this.loadThreads().then(() => {
+                        if (this.selectedThreadId) {
+                            this.loadMessages(true);
+                        }
+                    });
+                } else {
+                    this.ensureUserThread();
+                }
                 this.startPolling();
             },
             beforeUnmount() {
@@ -65,6 +70,25 @@
                     }
                     return h;
                 },
+                attachmentIcon(msg) {
+                    const name = (msg.attachment_name || '').toLowerCase();
+                    if (/\.(jpg|jpeg|png|gif|webp)$/.test(name)) {
+                        return 'icofont-image';
+                    }
+                    if (/\.pdf$/.test(name)) {
+                        return 'icofont-file-pdf';
+                    }
+                    if (/\.(doc|docx)$/.test(name)) {
+                        return 'icofont-file-word';
+                    }
+                    if (/\.(xls|xlsx|csv)$/.test(name)) {
+                        return 'icofont-file-excel';
+                    }
+                    if (/\.zip$/.test(name)) {
+                        return 'icofont-file-zip';
+                    }
+                    return 'icofont-attachment';
+                },
                 startPolling() {
                     this.stopPolling();
                     const ms = this.config.pollMs || 4000;
@@ -79,12 +103,101 @@
                     }
                 },
                 async pollUpdates() {
-                    await this.loadThreads(this.threadPagination.current_page, true);
+                    if (this.config.isAdmin) {
+                        await this.loadThreads(this.threadPagination.current_page, true);
+                    }
                     if (this.selectedThreadId) {
                         await this.loadMessages(false, true);
                     }
                 },
+                openCreateChat() {
+                    this.showCreateChat = true;
+                    this.createUserSearch = '';
+                    this.loadChatUsers();
+                },
+                closeCreateChat() {
+                    this.showCreateChat = false;
+                    this.chatUsers = [];
+                },
+                debouncedLoadChatUsers() {
+                    if (this.chatUsersTimer) {
+                        window.clearTimeout(this.chatUsersTimer);
+                    }
+                    this.chatUsersTimer = window.setTimeout(() => this.loadChatUsers(), 250);
+                },
+                async loadChatUsers() {
+                    if (!this.config.isAdmin || !this.config.api.chatUsers) {
+                        return;
+                    }
+                    this.loadingChatUsers = true;
+                    const qs = new URLSearchParams();
+                    if (this.createUserSearch.trim()) {
+                        qs.set('search', this.createUserSearch.trim());
+                    }
+                    try {
+                        const url = this.config.api.chatUsers + (qs.toString() ? '?' + qs.toString() : '');
+                        const res = await fetch(url, { headers: this.headers() });
+                        const json = await res.json();
+                        if (!res.ok) {
+                            throw new Error(json.message || 'Could not load users.');
+                        }
+                        this.chatUsers = json.data || [];
+                    } catch (e) {
+                        this.flash = { ok: false, text: e.message || 'Could not load users.' };
+                    } finally {
+                        this.loadingChatUsers = false;
+                    }
+                },
+                async createAdminChat(userId) {
+                    if (this.creatingAdminChat) {
+                        return;
+                    }
+                    this.creatingAdminChat = true;
+                    try {
+                        const res = await fetch(this.config.api.storeThread, {
+                            method: 'POST',
+                            headers: this.headers(true),
+                            body: JSON.stringify({ user_id: userId }),
+                        });
+                        const json = await res.json();
+                        if (!res.ok) {
+                            throw new Error(json.message || 'Could not start chat.');
+                        }
+                        this.closeCreateChat();
+                        await this.loadThreads(1);
+                        if (json.data?.id) {
+                            this.selectThread(json.data.id);
+                        }
+                        this.flash = { ok: true, text: json.message || 'Chat ready.' };
+                    } catch (e) {
+                        this.flash = { ok: false, text: e.message || 'Could not start chat.' };
+                    } finally {
+                        this.creatingAdminChat = false;
+                    }
+                },
+                async ensureUserThread() {
+                    this.loadingThreads = true;
+                    try {
+                        const res = await fetch(this.config.api.currentThread, { headers: this.headers() });
+                        const json = await res.json();
+                        if (!res.ok) {
+                            throw new Error(json.message || 'Could not open chat.');
+                        }
+                        if (json.data?.id) {
+                            this.threads = [json.data];
+                            this.selectedThreadId = json.data.id;
+                            await this.loadMessages(true);
+                        }
+                    } catch (e) {
+                        this.flash = { ok: false, text: e.message || 'Load failed.' };
+                    } finally {
+                        this.loadingThreads = false;
+                    }
+                },
                 async loadThreads(page, silent) {
+                    if (!this.config.isAdmin) {
+                        return;
+                    }
                     if (!silent) {
                         this.loadingThreads = true;
                     }
@@ -103,6 +216,7 @@
                         }
                         this.threads = json.data || [];
                         this.threadPagination = Object.assign(this.threadPagination, json.meta || {});
+                        this.resetThreadListScroll(page === 1 || !page);
                         if (this.selectedThreadId && !this.threads.some((t) => t.id === this.selectedThreadId)) {
                             this.selectedThreadId = this.threads[0]?.id || null;
                             this.messages = [];
@@ -116,6 +230,17 @@
                             this.loadingThreads = false;
                         }
                     }
+                },
+                resetThreadListScroll(force) {
+                    if (!force) {
+                        return;
+                    }
+                    this.$nextTick(() => {
+                        const el = this.$refs.threadListWrap;
+                        if (el) {
+                            el.scrollTop = 0;
+                        }
+                    });
                 },
                 selectThread(id) {
                     if (this.selectedThreadId === id) {
@@ -138,11 +263,7 @@
                     if (!initial && this.lastMessageAt) {
                         url.searchParams.set('since', this.lastMessageAt);
                     }
-                    if (initial) {
-                        url.searchParams.set('mark_read', '1');
-                    } else {
-                        url.searchParams.set('mark_read', this.stickToBottom ? '1' : '0');
-                    }
+                    url.searchParams.set('mark_read', initial || this.stickToBottom ? '1' : '0');
                     try {
                         const res = await fetch(url.toString(), { headers: this.headers() });
                         const json = await res.json();
@@ -160,6 +281,9 @@
                                 }
                             });
                         }
+                        if (json.thread && !this.config.isAdmin) {
+                            this.threads = [json.thread];
+                        }
                         if (this.messages.length) {
                             this.lastMessageAt = this.messages[this.messages.length - 1].created_at_iso;
                         }
@@ -176,67 +300,99 @@
                         }
                     }
                 },
+                async createUserThread() {
+                    try {
+                        const res = await fetch(this.config.api.storeThread, {
+                            method: 'POST',
+                            headers: this.headers(true),
+                            body: JSON.stringify({ title: 'Support Chat' }),
+                        });
+                        const json = await res.json();
+                        if (!res.ok) {
+                            throw new Error(json.message || 'Could not start chat.');
+                        }
+                        if (json.data?.id) {
+                            this.threads = [json.data];
+                            this.selectedThreadId = json.data.id;
+                        }
+                    } catch (e) {
+                        this.flash = { ok: false, text: e.message || 'Could not start chat.' };
+                        throw e;
+                    }
+                },
+                onFileSelected(event) {
+                    const file = event.target.files?.[0];
+                    if (!file) {
+                        return;
+                    }
+                    if (file.size > 10 * 1024 * 1024) {
+                        this.flash = { ok: false, text: 'File must be 10 MB or smaller.' };
+                        event.target.value = '';
+                        return;
+                    }
+                    this.pendingFile = file;
+                },
+                clearAttachment() {
+                    this.pendingFile = null;
+                    if (this.$refs.fileInput) {
+                        this.$refs.fileInput.value = '';
+                    }
+                },
                 async sendMessage() {
                     const text = this.draftMessage.trim();
-                    if (!text || !this.selectedThreadId || this.sending) {
+                    if ((!text && !this.pendingFile) || this.sending) {
+                        return;
+                    }
+                    if (!this.selectedThreadId && !this.config.isAdmin) {
+                        await this.createUserThread();
+                    }
+                    if (!this.selectedThreadId) {
                         return;
                     }
                     this.sending = true;
                     try {
-                        const res = await fetch(this.apiUrl(this.config.api.sendMessage, this.selectedThreadId), {
-                            method: 'POST',
-                            headers: this.headers(true),
-                            body: JSON.stringify({ message: text }),
-                        });
+                        let res;
+                        if (this.pendingFile) {
+                            const form = new FormData();
+                            if (text) {
+                                form.append('message', text);
+                            }
+                            form.append('attachment', this.pendingFile);
+                            res = await fetch(this.apiUrl(this.config.api.sendMessage, this.selectedThreadId), {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': this.config.csrf,
+                                    Accept: 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                },
+                                body: form,
+                            });
+                        } else {
+                            res = await fetch(this.apiUrl(this.config.api.sendMessage, this.selectedThreadId), {
+                                method: 'POST',
+                                headers: this.headers(true),
+                                body: JSON.stringify({ message: text }),
+                            });
+                        }
                         const json = await res.json();
                         if (!res.ok) {
-                            throw new Error(json.message || 'Could not send message.');
+                            throw new Error(json.message || (json.errors ? Object.values(json.errors).flat().join(' ') : 'Could not send message.'));
                         }
                         if (json.data) {
                             this.messages.push(json.data);
                             this.lastMessageAt = json.data.created_at_iso || this.lastMessageAt;
                         }
                         this.draftMessage = '';
+                        this.clearAttachment();
                         this.stickToBottom = true;
                         this.$nextTick(() => this.scrollMessagesToBottom());
-                        await this.loadThreads(this.threadPagination.current_page, true);
+                        if (this.config.isAdmin) {
+                            await this.loadThreads(this.threadPagination.current_page, true);
+                        }
                     } catch (e) {
                         this.flash = { ok: false, text: e.message || 'Send failed.' };
                     } finally {
                         this.sending = false;
-                    }
-                },
-                async createThread() {
-                    const title = this.newThreadTitle.trim();
-                    if (!title || this.creatingThread) {
-                        return;
-                    }
-                    this.creatingThread = true;
-                    try {
-                        const res = await fetch(this.config.api.storeThread, {
-                            method: 'POST',
-                            headers: this.headers(true),
-                            body: JSON.stringify({
-                                title,
-                                message: this.newThreadMessage.trim() || null,
-                            }),
-                        });
-                        const json = await res.json();
-                        if (!res.ok) {
-                            throw new Error(json.message || 'Could not create ticket.');
-                        }
-                        this.newThreadTitle = '';
-                        this.newThreadMessage = '';
-                        this.showNewThread = false;
-                        await this.loadThreads(1);
-                        if (json.data?.id) {
-                            this.selectThread(json.data.id);
-                        }
-                        this.flash = { ok: true, text: 'Support ticket created.' };
-                    } catch (e) {
-                        this.flash = { ok: false, text: e.message || 'Create failed.' };
-                    } finally {
-                        this.creatingThread = false;
                     }
                 },
                 async deleteMessage(id) {
@@ -253,12 +409,16 @@
                             throw new Error(json.message || 'Delete failed.');
                         }
                         if (json.thread_deleted) {
-                            this.selectedThreadId = null;
-                            this.messages = [];
+                            if (this.config.isAdmin) {
+                                this.selectedThreadId = null;
+                                this.messages = [];
+                                await this.loadThreads(1);
+                            } else {
+                                await this.ensureUserThread();
+                            }
                         } else {
                             this.messages = this.messages.filter((m) => m.id !== id);
                         }
-                        await this.loadThreads(this.threadPagination.current_page, true);
                     } catch (e) {
                         this.flash = { ok: false, text: e.message || 'Delete failed.' };
                     }

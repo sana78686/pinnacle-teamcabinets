@@ -75,16 +75,18 @@ class StockCheckAdminViewService
         }
 
         $record->loadMissing(['user.country', 'user.state']);
-        $user = $record->user ?? new User(['name' => $record->billToName(), 'email' => $record->user_email]);
-        $emailData = $this->buildWarehouseEmailData($record, $user);
+        $lines = $this->buildLineItems($record->normalizedRooms());
 
         try {
             $this->emails->send(
                 ManageEmailsContent::SLUG_STOCK_WAREHOUSE,
                 $email,
                 ['ID' => (string) $record->id],
-                'stock_check_workspace',
-                ['email_data' => $emailData]
+                'stock_check_warehouse',
+                [
+                    'lines' => $lines,
+                    'sub_total_weight' => $record->sub_total_weight,
+                ]
             );
 
             return true;
@@ -176,6 +178,18 @@ class StockCheckAdminViewService
         }
 
         $user = $record->user;
+        if ($user) {
+            try {
+                TenantNotificationService::stockCheckApprovedForUser(
+                    $record,
+                    $user,
+                    $this->isShippingRequired($record)
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Stock check approval panel notification failed: '.$e->getMessage());
+            }
+        }
+
         if ($user?->email) {
             try {
                 $emailData = $this->buildWarehouseEmailData($record, $user);
@@ -253,14 +267,18 @@ class StockCheckAdminViewService
         $fuelPercent = (float) ($record->fuel_tax ?? $this->taxValues->getFloat('fuel_charges_value', 2));
         $fuelCharges = round(($subTotalPrice * $fuelPercent) / 100, 2);
 
-        $shippingCost = (float) ($record->shipping_cost ?? 0);
-        if ($shippingCost <= 0) {
-            $shippingCost = round($deliveryCost + $liftgateCost + $unloadCost + $palletsCost + $miscCost, 2);
+        $shippingCost = round($deliveryCost + $liftgateCost + $unloadCost + $palletsCost + $miscCost, 2);
+
+        $storedShipping = (float) ($record->shipping_cost ?? 0);
+        if ($storedShipping > $shippingCost) {
+            $shippingCost = $storedShipping;
         }
 
-        $grandTotal = (float) ($record->grand_total_cost ?? 0);
-        if ($grandTotal <= 0) {
-            $grandTotal = round($subTotalPrice + $subTotalAssemble + $fuelCharges + $shippingCost, 2);
+        $grandTotal = round($subTotalPrice + $subTotalAssemble + $fuelCharges + $shippingCost, 2);
+
+        $storedGrand = (float) ($record->grand_total_cost ?? 0);
+        if ($storedGrand > $grandTotal) {
+            $grandTotal = $storedGrand;
         }
 
         return [
@@ -339,6 +357,7 @@ class StockCheckAdminViewService
                     'description' => $description,
                     'quantity' => $qty,
                     'weight' => $unitWeight,
+                    'total_weight' => round($unitWeight * $qty, 2),
                     'unit_price' => $unitCost,
                     'line_total' => $lineTotal,
                     'assemble_cost' => round($assembleUnit * $qty, 2),

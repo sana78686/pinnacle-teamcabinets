@@ -32,6 +32,8 @@ class TenantRoleService
 
     public static function ensureDefaultRoles(): void
     {
+        TenantPermissionService::syncPermissions();
+
         foreach (self::DEFAULT_ROLES as $name) {
             Role::firstOrCreate([
                 'name' => $name,
@@ -40,10 +42,12 @@ class TenantRoleService
         }
 
         $admin = Role::findByName('Admin', 'web');
-        $permissionIds = Permission::query()->pluck('id')->all();
+        $permissionIds = Permission::query()->where('guard_name', 'web')->pluck('id')->all();
 
         if ($permissionIds !== []) {
             $admin->syncPermissions($permissionIds);
         }
+
+        TenantPermissionService::syncDefaultRolePermissions();
     }
 }

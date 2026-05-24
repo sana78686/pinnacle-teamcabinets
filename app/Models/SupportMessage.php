@@ -11,6 +11,8 @@ class SupportMessage extends Model
         'support_thread_id',
         'user_id',
         'message',
+        'attachment_path',
+        'attachment_name',
         'is_read',
     ];
 

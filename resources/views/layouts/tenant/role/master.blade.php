@@ -76,6 +76,11 @@
     </div>
     @include('layouts.tenant.script')
     @include('layouts.tenant.partials.order-help-modal')
+    @auth
+        @if (! tenant_user_has_admin_role(auth()->user()) && ! request()->routeIs('tenant_support_chat_user'))
+            @include('layouts.tenant.partials.support-chat-widget')
+        @endif
+    @endauth
 </body>
 
 </html>

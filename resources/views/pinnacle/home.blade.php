@@ -20,11 +20,7 @@
                 </div>
             </div>
             <div class="pn-hero__visual">
-                @include('pinnacle.partials.visual', [
-                    'variant' => 'hero',
-                    'alt' => 'Modern kitchen with custom cabinets',
-                    'loading' => 'eager',
-                ])
+                @include('pinnacle.partials.hero-rotator')
                 <div class="pn-hero__float">
                     <div class="pn-hero__chip"><strong>Website</strong> Public catalog &amp; quotes</div>
                     <div class="pn-hero__chip"><strong>Panel</strong> Orders &amp; dealers</div>

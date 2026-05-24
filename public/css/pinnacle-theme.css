@@ -189,6 +189,24 @@ a:hover { color: var(--pn-gold); }
     border: 1px solid rgba(255,255,255,0.12);
 }
 .pn-hero__visual .pn-visual { width: 100%; }
+.pn-hero-rotator {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+    min-height: 220px;
+    overflow: hidden;
+    background: var(--pn-visual-bg, linear-gradient(145deg, #0c2340 0%, #2d5a87 100%));
+}
+.pn-hero-rotator__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.9s ease-in-out;
+}
+.pn-hero-rotator__img.is-active { opacity: 1; }
 .pn-hero__float {
     position: absolute; bottom: 1rem; left: 1rem; right: 1rem;
     display: flex; gap: 0.75rem; flex-wrap: wrap;

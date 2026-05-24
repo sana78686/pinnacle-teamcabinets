@@ -176,6 +176,19 @@ return [
         ],
     ],
 
+    /** Home hero — auto-rotating finish swatches (no slider UI). */
+    'hero_slideshow' => [
+        'themes/modern/media/finish-options/haze.png',
+        'themes/modern/media/finish-options/java.png',
+        'themes/modern/media/finish-options/latte.png',
+        'themes/modern/media/finish-options/midnight.png',
+        'themes/modern/media/finish-options/smoky-blue.png',
+        'themes/modern/media/finish-options/thunder-gray.png',
+        'themes/modern/media/finish-options/white.png',
+        'themes/modern/media/finish-options/willow-gray.png',
+    ],
+    'hero_slideshow_interval_ms' => 4000,
+
     'what_we_sell' => [
         [
             'title' => 'Branded dealer website',

@@ -154,9 +154,13 @@ class ProductSetupApiController extends Controller
 
   protected function storeCategory(Request $request): ProductSection
   {
-    $request->validate(['cabinets_name' => 'required|string|max:255']);
+    $request->validate([
+      'cabinets_name' => 'required|string|max:255',
+      'assemble_price' => 'nullable|numeric|min:0',
+    ]);
     $section = new ProductSection;
     $section->cabinets_name = $request->cabinets_name;
+    $section->assemble_price = $request->filled('assemble_price') ? $request->assemble_price : 0;
     $section->save();
 
     return $section;
@@ -164,9 +168,13 @@ class ProductSetupApiController extends Controller
 
   protected function updateCategory(Request $request, int $id): ProductSection
   {
-    $request->validate(['cabinets_name' => 'required|string|max:255']);
+    $request->validate([
+      'cabinets_name' => 'required|string|max:255',
+      'assemble_price' => 'nullable|numeric|min:0',
+    ]);
     $section = ProductSection::query()->findOrFail($id);
     $section->cabinets_name = $request->cabinets_name;
+    $section->assemble_price = $request->filled('assemble_price') ? $request->assemble_price : 0;
     $section->save();
 
     return $section;
@@ -295,6 +303,9 @@ class ProductSetupApiController extends Controller
       'categories' => [
         'id' => $row->id,
         'cabinets_name' => $row->cabinets_name,
+        'assemble_price' => ($row->assemble_price !== null && (string) $row->assemble_price !== '' && (float) $row->assemble_price != 0.0)
+          ? $row->assemble_price
+          : null,
       ],
       'door-styles' => array_merge([
         'id' => $row->id,

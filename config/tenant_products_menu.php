@@ -27,7 +27,7 @@ return [
             ],
         ],
         [
-            'label' => 'Categories',
+            'label' => 'Category / Cabinet Section',
             'route' => 'tenant_product_section_index',
             'icon' => 'folder',
             'step' => 2,
@@ -81,11 +81,11 @@ return [
         ],
         [
             'step' => 2,
-            'label' => 'Category',
+            'label' => 'Category / Cabinet Section',
             'icon' => 'folder',
-            'hint' => 'Group products within a catalog.',
+            'hint' => 'Group products within a catalog. Optional default assemble cost per section.',
             'create_route' => 'tenant_product_section_create',
-            'create_label' => 'Create category',
+            'create_label' => 'Create category / cabinet section',
             'list_route' => 'tenant_product_section_index',
             'active' => [
                 'tenant_product_section_create',

@@ -23,10 +23,32 @@ return new class extends Migration
 
             $indexes = collect(Schema::getIndexes('tenant_smtp_settings'))->pluck('name');
             if ($indexes->contains('tenant_smtp_settings_tenant_id_unique')) {
+                // MySQL: FK on tenant_id uses the unique index — drop FK before dropping unique.
+                $hasTenantFk = collect(Schema::getForeignKeys('tenant_smtp_settings'))
+                    ->contains(fn (array $fk) => in_array('tenant_id', $fk['columns'] ?? [], true));
+
+                if ($hasTenantFk) {
+                    Schema::table('tenant_smtp_settings', function (Blueprint $table) {
+                        $table->dropForeign(['tenant_id']);
+                    });
+                }
+
                 Schema::table('tenant_smtp_settings', function (Blueprint $table) {
                     $table->dropUnique(['tenant_id']);
-                    $table->index('tenant_id');
                 });
+
+                $indexesAfter = collect(Schema::getIndexes('tenant_smtp_settings'))->pluck('name');
+                if (! $indexesAfter->contains('tenant_smtp_settings_tenant_id_index')) {
+                    Schema::table('tenant_smtp_settings', function (Blueprint $table) {
+                        $table->index('tenant_id');
+                    });
+                }
+
+                if ($hasTenantFk && Schema::hasTable('tenants')) {
+                    Schema::table('tenant_smtp_settings', function (Blueprint $table) {
+                        $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
+                    });
+                }
             }
         }
     }
@@ -39,10 +61,40 @@ return new class extends Migration
             });
         }
 
-        if (Schema::hasTable('tenant_smtp_settings') && Schema::hasColumn('tenant_smtp_settings', 'deleted_at')) {
-            Schema::table('tenant_smtp_settings', function (Blueprint $table) {
-                $table->dropSoftDeletes();
-            });
+        if (Schema::hasTable('tenant_smtp_settings')) {
+            if (Schema::hasColumn('tenant_smtp_settings', 'deleted_at')) {
+                Schema::table('tenant_smtp_settings', function (Blueprint $table) {
+                    $table->dropSoftDeletes();
+                });
+            }
+
+            $indexes = collect(Schema::getIndexes('tenant_smtp_settings'))->pluck('name');
+            if (! $indexes->contains('tenant_smtp_settings_tenant_id_unique')) {
+                $hasTenantFk = collect(Schema::getForeignKeys('tenant_smtp_settings'))
+                    ->contains(fn (array $fk) => in_array('tenant_id', $fk['columns'] ?? [], true));
+
+                if ($hasTenantFk) {
+                    Schema::table('tenant_smtp_settings', function (Blueprint $table) {
+                        $table->dropForeign(['tenant_id']);
+                    });
+                }
+
+                if ($indexes->contains('tenant_smtp_settings_tenant_id_index')) {
+                    Schema::table('tenant_smtp_settings', function (Blueprint $table) {
+                        $table->dropIndex(['tenant_id']);
+                    });
+                }
+
+                Schema::table('tenant_smtp_settings', function (Blueprint $table) {
+                    $table->unique('tenant_id');
+                });
+
+                if ($hasTenantFk && Schema::hasTable('tenants')) {
+                    Schema::table('tenant_smtp_settings', function (Blueprint $table) {
+                        $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
+                    });
+                }
+            }
         }
     }
 };

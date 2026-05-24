@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "generate:parity": "node scripts/generate-parity-docs.mjs",
+    "generate:ci-comparison": "node scripts/generate-ci-tenant-comparison-doc.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

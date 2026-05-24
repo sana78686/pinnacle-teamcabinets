@@ -31,6 +31,7 @@
         csrf: pageAttr('csrf'),
         accordionSearchPrefix: pageAttr('accordion-search-prefix'),
         autosaveUrl: pageAttr('autosave-url'),
+        clearCartUrl: pageAttr('clear-cart-url'),
         urls: {
             print: pageAttr('store-print-url'),
             quote: pageAttr('store-quote-url'),
@@ -42,6 +43,7 @@
     let roomCounter = 1;
     let autosaveTimer = null;
     let restoring = false;
+    let clearingCart = false;
 
     function money(n) {
         return '$' + (Number(n) || 0).toFixed(2);
@@ -405,7 +407,7 @@
     }
 
     function scheduleAutosave() {
-        if (restoring || !cfg.autosaveUrl) return;
+        if (restoring || clearingCart || !cfg.autosaveUrl) return;
         clearTimeout(autosaveTimer);
         autosaveTimer = setTimeout(function () {
             $.ajax({
@@ -639,6 +641,19 @@
     }
 
     // --- Events ---
+    $('#ow-clear-cart-link').on('click', function (e) {
+        e.preventDefault();
+        if (!confirm('Are you sure you want to clear all the items in cart?')) {
+            return;
+        }
+        clearingCart = true;
+        clearTimeout(autosaveTimer);
+        const url = cfg.clearCartUrl || $(this).attr('href');
+        if (url) {
+            window.location.href = url;
+        }
+    });
+
     $('#ow-job-name').on('input', function () {
         $('.err-job-name').html('');
         syncJobNameGate();

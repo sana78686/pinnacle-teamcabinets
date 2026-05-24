@@ -155,9 +155,9 @@ class TenantCreateOrderController extends Controller
     public function clearCart(Request $request, int $catalogId): RedirectResponse
     {
         if ($request->user()) {
-            $this->cartPersistence->clear($request->user()->id, $catalogId);
+            $this->cartPersistence->clearAllForUser($request->user()->id);
         }
-        session()->forget(['workspace_checkout', 'job_name', 'rooms', 'cart']);
+        session()->forget(['workspace_checkout', 'job_name', 'rooms', 'cart', 'cart_data']);
 
         return redirect()->route('tenant_order_workspace_build', [
             'catalog' => $catalogId,

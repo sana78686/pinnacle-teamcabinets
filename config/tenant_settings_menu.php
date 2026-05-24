@@ -78,14 +78,16 @@ return [
             'active' => ['tenant_role_*', 'role.export', 'role.import'],
         ],
         [
-            'label' => 'SMTP Settings',
-            'route' => 'tenant_setting_manage_stmp',
-            'active' => ['tenant_setting_manage_stmp', 'tenant_setting_manage_stmp_*'],
-        ],
-        [
-            'label' => 'Email Content',
-            'route' => 'tenant_setting_manage_email_content',
-            'active' => ['tenant_setting_manage_email_content', 'tenant_setting_manage_email_content_*'],
+            'label' => 'Email Settings',
+            'route' => 'tenant_setting_email_settings',
+            'active' => [
+                'tenant_setting_email_settings',
+                'tenant_email_settings_api_*',
+                'tenant_setting_manage_stmp',
+                'tenant_setting_manage_stmp_*',
+                'tenant_setting_manage_email_content',
+                'tenant_setting_manage_email_content_*',
+            ],
         ],
         [
             'label' => 'Success / Error Messages',
@@ -124,6 +126,8 @@ return [
         'tenant_setting_tax_fees_paytrace_store',
         'tenant_setting_tax_fees_store',
         'tenant_setting_commission',
+        'tenant_setting_email_settings',
+        'tenant_email_settings_api_*',
         'tenant_setting_manage_stmp',
         'tenant_setting_manage_stmp_*',
         'tenant_setting_manage_email_content',

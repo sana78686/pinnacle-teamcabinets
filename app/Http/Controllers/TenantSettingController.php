@@ -10,6 +10,7 @@ use App\Models\PointFactorDefault;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
 use App\Models\SiteSetting;
+use App\Services\ManageEmailsContentService;
 use App\Services\ManageOtherPageContentService;
 use Spatie\Permission\Models\Role;
 use App\Models\SalesTaxCounty;
@@ -469,9 +470,19 @@ class TenantSettingController extends Controller
 
     public function manage_stmp()
     {
-        $smtp = \App\Models\TenantSmtpSetting::query()->first();
+        return redirect()->route('tenant_setting_email_settings');
+    }
 
-        return view('tenants.setting.manage_stmp', compact('smtp'));
+    public function email_settings()
+    {
+        app(ManageEmailsContentService::class)->ensureDefaults();
+
+        return view('tenants.setting.email_settings');
+    }
+
+    public function manage_email()
+    {
+        return redirect()->route('tenant_setting_email_settings', ['tab' => 'content']);
     }
 
   public function manage_stmp_store(Request $request)
@@ -584,10 +595,6 @@ class TenantSettingController extends Controller
     }
 
 
-    public function manage_email()
-    {
-        return view('tenants.setting.manage_email_content');
-    }
     public function manage_term_condition()
     {
         return view('tenants.setting.manage_term_condition');

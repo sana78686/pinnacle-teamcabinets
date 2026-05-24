@@ -73,6 +73,14 @@ class OrderCartPersistenceService
             ->delete();
     }
 
+    /** Remove every persisted workspace cart row for this user. */
+    public function clearAllForUser(int $userId): void
+    {
+        CartData::query()
+            ->where('user_id', $userId)
+            ->delete();
+    }
+
     /**
      * @param  array<int, mixed>  $roomData
      * @return array<int, int>

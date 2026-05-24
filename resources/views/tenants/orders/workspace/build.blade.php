@@ -122,8 +122,7 @@
                             <button type="button" class="btn btn-primary btn-sm btn-add-room flex-shrink-0" id="ow-add-room" disabled>+ ADD ROOM</button>
                             <a href="{{ route('tenant_order_workspace_clear_cart', $catalog->id) }}"
                                 class="btn btn-light btn-sm flex-shrink-0"
-                                id="ow-clear-cart-link"
-                                onclick="return confirm('Are you sure you want to clear all the items in cart?');">Clear Cart</a>
+                                id="ow-clear-cart-link">Clear Cart</a>
                         </div>
                         <span class="err-job-name text-danger f-12 d-block"></span>
                     </div>
@@ -223,5 +222,5 @@
 @endsection
 
 @section('script')
-<script src="{{ tenant_static_asset('js/order-page.js') }}?v=20"></script>
+<script src="{{ tenant_static_asset('js/order-page.js') }}?v=21"></script>
 @endsection

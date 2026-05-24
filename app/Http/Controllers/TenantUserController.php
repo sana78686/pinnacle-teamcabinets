@@ -19,6 +19,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use App\Models\ManageCommission;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Routing\Controller;
@@ -247,6 +248,10 @@ class TenantUserController extends Controller
             }
 
             $this->doorFactors->persistForUser($user, $request);
+            ManageCommission::query()->firstOrCreate(
+                ['user_id' => $user->id],
+                ['gross_sales' => 0]
+            );
             $this->sendUserRegisteredByAdminEmail($user, $plainPassword);
 
             $message = 'User created successfully. Login details were emailed to '.$user->email.'.';
@@ -905,6 +910,11 @@ public function updateStatus(Request $request, $id)
             Log::info('User Created');
 
             $user->assignRole($role->name);
+
+            ManageCommission::query()->firstOrCreate(
+                ['user_id' => $user->id],
+                ['gross_sales' => 0]
+            );
 
             Log::info('Role Assigned');
 

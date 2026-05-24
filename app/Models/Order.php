@@ -18,7 +18,17 @@ class Order extends Model
     protected $casts = [
         'rooms' => 'array',
         'admin_viewed_at' => 'datetime',
+        'mfg_comm' => 'decimal:4',
+        'rep_comm' => 'decimal:4',
+        'aff_comm' => 'decimal:4',
+        'sub_aff_commission' => 'decimal:4',
+        'state' => 'integer',
     ];
+
+    public function scopeActiveCommission($query)
+    {
+        return $query->where('state', 1);
+    }
 
     public function user()
     {

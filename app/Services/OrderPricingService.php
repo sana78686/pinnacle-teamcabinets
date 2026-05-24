@@ -137,6 +137,14 @@ class OrderPricingService
     /**
      * @return array{acting: User, parent: ?User, representative: ?User}
      */
+    public function userChain(User $user): array
+    {
+        return $this->resolveUserChain($user);
+    }
+
+    /**
+     * @return array{acting: User, parent: ?User, representative: ?User}
+     */
     protected function resolveUserChain(User $user): array
     {
         $user->loadMissing('roles');
@@ -293,6 +301,11 @@ class OrderPricingService
         }
 
         return $door;
+    }
+
+    public function resolveRepIdForUser(User $user): ?int
+    {
+        return $this->resolveRepIds($user)['cus_rep_id'];
     }
 
     /**

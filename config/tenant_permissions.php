@@ -69,7 +69,7 @@ return [
         'stock_check' => ['label' => 'Stock Check', 'actions' => ['list', 'create', 'edit', 'delete', 'restore']],
         'support_chat' => ['label' => 'Support Chat', 'actions' => ['list', 'create', 'edit', 'delete']],
         'settings' => ['label' => 'Settings', 'actions' => ['list', 'edit']],
-        'commission' => ['label' => 'Commission Report', 'actions' => ['list', 'create', 'edit', 'delete', 'restore']],
+        'commission' => ['label' => 'Commission Report', 'actions' => ['list', 'create', 'edit', 'delete', 'restore', 'export']],
         'download' => ['label' => 'Downloads', 'actions' => ['list']],
         'upload' => ['label' => 'Uploads', 'actions' => ['list', 'create', 'delete']],
         'quickbooks' => ['label' => 'QuickBooks', 'actions' => ['list', 'edit']],
@@ -92,7 +92,7 @@ return [
             'claim-*',
             'download-list',
             'upload-*',
-            'commission-list',
+            'commission-*',
             'support_chat-list',
         ],
         'Distributor' => [
@@ -104,7 +104,7 @@ return [
             'claim-*',
             'download-list',
             'upload-*',
-            'commission-list',
+            'commission-*',
         ],
         'Dealer' => [
             'dashboard-view',

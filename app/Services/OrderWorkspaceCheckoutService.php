@@ -14,6 +14,7 @@ class OrderWorkspaceCheckoutService
 {
     public function __construct(
         protected OrderWorkspaceService $workspace,
+        protected OrderPricingService $pricing,
     ) {}
 
     /**
@@ -28,7 +29,7 @@ class OrderWorkspaceCheckoutService
 
         $addresses = $this->billShipAddresses($user);
         $assembleYes = ($payload['assemble'] ?? 'no') === 'yes';
-        $roomData = $this->buildCiRoomData($payload['rooms'] ?? [], $request);
+        $roomData = $this->buildCiRoomData($payload['rooms'] ?? [], $request, $user);
 
         $totals = $payload['totals'];
         $catalogId = $request->input('catalog_id');
@@ -323,10 +324,13 @@ class OrderWorkspaceCheckoutService
      * @param  array<int, array{room_name: string, products: array}>  $rooms
      * @return array<string, array<string, array<int, mixed>>>
      */
-    public function buildCiRoomData(array $rooms, Request $request): array
+    public function buildCiRoomData(array $rooms, Request $request, ?User $user = null): array
     {
         $doorColor = (string) $request->input('product_img_name', '');
         $catalogName = (string) $request->input('catalogue_name', '');
+        $catalogId = (int) $request->input('catalog_id', 0);
+        $user = $user ?? $request->user();
+        $chain = $user ? $this->pricing->userChain($user) : ['acting' => null, 'parent' => null, 'representative' => null];
 
         $ciRooms = [];
         foreach ($rooms as $room) {
@@ -346,9 +350,15 @@ class OrderWorkspaceCheckoutService
             $assembleCosts = [];
             $cb1 = [];
             $cb2 = [];
+            $parentDoorPrices = [];
+            $parentDoorFactors = [];
+            $repDoorPrices = [];
+            $repDoorFactors = [];
+            $userDoorFactors = [];
+            $catalogNames = [];
 
             foreach ($room['products'] ?? [] as $line) {
-                $product = Product::with('doorColor')->find($line['product_id'] ?? 0);
+                $product = Product::with(['doorColor', 'productSection'])->find($line['product_id'] ?? 0);
                 if (! $product) {
                     continue;
                 }
@@ -364,6 +374,32 @@ class OrderWorkspaceCheckoutService
                 }
                 $color = $product->doorColor?->product_label ?? $doorColor;
                 $desc = trim(($product->sku ?? '').' — '.$color.' — '.($product->label ?? ''));
+                $lineCatalogId = $catalogId > 0 ? $catalogId : (int) ($product->product_catalog_id ?? $product->productSection?->product_catalog_id ?? 0);
+                $doorId = (int) ($product->door_color_id ?? $product->doorColor?->id ?? 0);
+
+                $userFactor = 0.0;
+                $parentFactor = 0.0;
+                $repFactor = 0.0;
+                $parentUnitPrice = 0.0;
+                $repUnitPrice = 0.0;
+                $lineCatalogName = $catalogName;
+
+                if ($user && $lineCatalogId > 0 && $doorId > 0) {
+                    $context = $this->pricing->contextFor($user, $lineCatalogId, $doorId);
+                    $userFactor = (float) ($context['user_door_point'] ?? $context['door_factor'] ?? 0);
+                    $parentFactor = (float) ($context['parent_door_point'] ?? 0);
+                    $repFactor = (float) ($context['representative_door_point'] ?? 0);
+                    $lineCatalogName = (string) ($context['catalog_key'] ?? $catalogName);
+                } elseif ($user) {
+                    $userFactor = (float) ($user->point_factor ?? 0);
+                    $parentFactor = $chain['parent'] ? (float) ($chain['parent']->point_factor ?? 0) : 0.0;
+                    $repFactor = $chain['representative'] ? (float) ($chain['representative']->point_factor ?? 0) : 0.0;
+                }
+
+                if ($rawCost > 0) {
+                    $parentUnitPrice = $parentFactor > 0 ? round($rawCost * $parentFactor, 2) : 0.0;
+                    $repUnitPrice = $repFactor > 0 ? round($rawCost * $repFactor, 2) : 0.0;
+                }
 
                 $skus[] = $product->sku;
                 $weights[] = $unitWeight;
@@ -380,6 +416,12 @@ class OrderWorkspaceCheckoutService
                 $assembleCosts[] = (float) ($line['assemble_cost'] ?? preg_replace('/[^\d.]/', '', (string) $product->assemble_cost));
                 $cb1[] = ! empty($line['checkbox_val1']) ? '1' : '0';
                 $cb2[] = ! empty($line['checkbox_val2']) ? '1' : '0';
+                $parentDoorPrices[] = $parentUnitPrice > 0 ? (string) $parentUnitPrice : '0';
+                $parentDoorFactors[] = $parentFactor > 0 ? (string) $parentFactor : '';
+                $repDoorPrices[] = $repUnitPrice > 0 ? (string) $repUnitPrice : '';
+                $repDoorFactors[] = $repFactor > 0 ? (string) $repFactor : '';
+                $userDoorFactors[] = $userFactor > 0 ? (string) $userFactor : '';
+                $catalogNames[] = $lineCatalogName !== '' ? $lineCatalogName : $catalogName;
             }
 
             if ($skus === []) {
@@ -405,12 +447,12 @@ class OrderWorkspaceCheckoutService
                 'add_pro_ids_room_wise' => $ids,
                 'product_cabinets_description' => $descriptions,
                 'product_assemble_cost' => $assembleCosts,
-                'sel_catalogue_name' => array_fill(0, count($skus), $catalogName),
-                'parent_door_price' => array_fill(0, count($skus), '0'),
-                'parent_door_factor' => array_fill(0, count($skus), ''),
-                'representative_door_price' => array_fill(0, count($skus), ''),
-                'representative_door_factor' => array_fill(0, count($skus), ''),
-                'user_door_factor' => array_fill(0, count($skus), ''),
+                'sel_catalogue_name' => $catalogNames,
+                'parent_door_price' => $parentDoorPrices,
+                'parent_door_factor' => $parentDoorFactors,
+                'representative_door_price' => $repDoorPrices,
+                'representative_door_factor' => $repDoorFactors,
+                'user_door_factor' => $userDoorFactors,
                 'product_note' => array_fill(0, count($skus), ''),
             ];
         }

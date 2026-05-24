@@ -1,189 +1,127 @@
 @extends('layouts.tenant.master')
-@section('title', 'Commission Report Menu')
-@section('css')
-    {{-- <link rel="stylesheet" type="text/css" href="{{ route('/') }}/assets/main/css/datatable-extension.css"> --}}
-@endsection
-@section('style')
-@endsection
+@section('title', 'Commission Report')
 @section('breadcrumb-title')
-    <h2>Commission Report <span>List </span></h2>
+    <h2>Commission Report <span>List</span></h2>
 @endsection
 @section('breadcrumb-items')
     <li class="breadcrumb-item">Commission Report</li>
     <li class="breadcrumb-item active">List</li>
 @endsection
 @section('content')
-    <div class="p-2 mt-0 card-header no-border">
-        {{-- <h5>Best Selling Product</h5> --}}
-        <a href="{{ route('tenant_commission_report_create') }}" class="text-white btn btn-info btn-sm" data-toggle="tooltip"
-            title="Create a new Commission Report in the system">
-            <i class="icofont icofont-plus"></i> Create Commission Report
-        </a>
-        <a href="{{ route('tenant_deleted_commission_report_list') }}" class="btn btn-success btn-sm" data-toggle="tooltip" title="Restore a previously deleted Commission Report">
-            <i class="icofont icofont-spinner-alt-3"></i> Restore Commission Report
-        </a>
-        <a href="{{ url()->current() }}" class="btn btn-light btn-sm" data-toggle="tooltip" title="Refresh this Page.">
-            <i class="icofont icofont-refresh fa fa-spin"></i>&nbsp; Refresh
-        </a>
-        <div class=" pull-right">
-            <!-- Import & Export Buttons -->
-            <button class="btn btn-primary btn-sm" data-toggle="tooltip" title="Export Commission Report data to a file">
-                <i class="text-white icofont icofont-upload-alt"></i> Export
+    <div id="commission-report-app" class="tc-role-list-page" v-cloak>
+        <div class="p-2 mt-0 card-header no-border d-flex flex-wrap align-items-center gap-2">
+            @if (tenant_can('commission-list'))
+                <a href="{{ route('tenant_commission_report_user_types') }}" class="btn btn-info btn-sm text-white">
+                    <i class="icofont icofont-users"></i> User Type Commissions
+                </a>
+            @endif
+            <a href="{{ route('tenant_deleted_commission_report_list') }}" class="btn btn-success btn-sm">
+                <i class="icofont icofont-spinner-alt-3"></i> Restore Report
+            </a>
+            <button type="button" class="btn btn-light btn-sm" @click="fetchData" :disabled="loading">
+                <i class="icofont icofont-refresh"></i> Refresh
             </button>
-
-            <button class="btn btn-dark btn-sm" data-toggle="tooltip" title="Import Commission Report data from a file">
-                <i class="text-white icofont icofont-download-alt"></i> Import
+            <button type="button" class="btn btn-primary btn-sm text-white ms-auto" @click="exportCsv">
+                <i class="icofont icofont-upload-alt"></i> Export CSV
             </button>
         </div>
-    </div>
-    <div class="pt-0 card-body">
-        <div class="table-responsive table-sm">
-            <table class="table display table-striped table-bordered table-sm " id="catalogTable">
-                <thead>
-                    <tr>
-                        <th>Order By</th>
-                        <th>Customer Name</th>
-                        <th>Invoice Number</th>
-                        <th>Job Name</th>
-                        <th>Invoice Date</th>
-                        <th>Door Style</th>
-                        <th>List Price (Multiplied with qty)</th>
-                        <th>Customer's Point Factor</th>
-                        <th>Customer's Cost</th>
-                        <th>Affiliation</th>
-                        <th>Affiliation Point Factor</th>
-                        <th>Affiliation Cost</th>
-                        <th>Affiliation Commission</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <td>157</td>
-                    <td>Admin</td>
-                    <td>1518</td>
-                    <td>this is for testing.</td>
-                    <td>testuser-representative</td>
-                    <td>157</td>
-                    <td>Admin</td>
-                    <td>1518</td>
-                    <td>this is for testing.</td>
-                    <td>testuser-representative</td>
-                    <td>157</td>
-                    <td>Admin</td>
-                    <td>1518</td>
-                    <td>
-                        <a class="" href="{{ route('tenant_commission_report_show',1) }}" data-toggle="tooltip" title="View details of this user">
-                            Show |
-                        </a>
-                        <a class="" href="{{ route('tenant_commission_report_edit',1) }}" data-toggle="tooltip" title="Edit this user's information">
-                            Edit |
-                        </a>
-                        <a type="button" class="" data-toggle="tooltip" title="Delete this user">
-                            {{-- <i class="icofont icofont-ui-delete"></i> --}}
-                            Delete
-                        </a>
-                    </td>
-                    </td>
-                </tbody>
-            </table>
+
+        
+        <div v-if="flash" class="alert mx-2" :class="flash.ok ? 'alert-success' : 'alert-danger'">@{{ flash.text }}</div>
+
+        <div class="card tc-dash-card mb-3">
+            <div class="card-body border-bottom py-3">
+                <form @submit.prevent="fetchData" class="row g-2 align-items-end">
+                    <div v-if="config.showRepFilter" class="col-md-4">
+                        <label class="form-label small mb-1">Representative</label>
+                        <select v-model="filters.rep_id" class="form-select form-select-sm">
+                            <option value="">All Representatives</option>
+                            <option v-for="rep in representatives" :key="rep.id" :value="rep.id">@{{ rep.name }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">From</label>
+                        <input type="date" v-model="filters.from" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">To</label>
+                        <input type="date" v-model="filters.to" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm" :disabled="loading">Search</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" @click="resetFilters">Reset</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive table-sm">
+                    <table class="table table-striped table-bordered table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Order By</th>
+                                <th>Customer Name</th>
+                                <th>Invoice #</th>
+                                <th>Job Name</th>
+                                <th>Invoice Date</th>
+                                <th>Door Style</th>
+                                <th>List Price</th>
+                                <th>Customer PF</th>
+                                <th>Customer Cost</th>
+                                <th>Aff PF</th>
+                                <th>Aff Cost</th>
+                                <th>Aff Commission</th>
+                                <th>Rep PF</th>
+                                <th>Rep Cost</th>
+                                <th>Rep Commission</th>
+                                <th style="width:140px">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-if="loading">
+                                <td colspan="16" class="text-center py-4 text-muted">Loading…</td>
+                            </tr>
+                            <template v-else v-for="order in rows" :key="order.order_id">
+                                <tr v-for="(line, i) in order.door_lines" :key="order.order_id + '-' + i">
+                                    <td>@{{ i === 0 ? order.order_id : '' }}</td>
+                                    <td>@{{ i === 0 ? (order.customer_name || '—') : '' }}</td>
+                                    <td>@{{ i === 0 ? order.invoice_number : '' }}</td>
+                                    <td>@{{ i === 0 ? order.job_name : '' }}</td>
+                                    <td>@{{ i === 0 ? order.invoice_date : '' }}</td>
+                                    <td>@{{ line.door_style }}</td>
+                                    <td>@{{ fmt(line.list_price) }}</td>
+                                    <td>@{{ show(line.user_door_factor) }}</td>
+                                    <td>@{{ fmt(line.user_door_price) }}</td>
+                                    <td>@{{ show(line.parent_door_factor) }}</td>
+                                    <td>@{{ line.parent_door_price ? fmt(line.parent_door_price) : 'N/A' }}</td>
+                                    <td>@{{ line.aff_commission ? fmt(line.aff_commission) : 'N/A' }}</td>
+                                    <td>@{{ show(line.rep_door_factor) }}</td>
+                                    <td>@{{ line.rep_door_price ? fmt(line.rep_door_price) : 'N/A' }}</td>
+                                    <td>@{{ line.rep_commission ? fmt(line.rep_commission) : 'N/A' }}</td>
+                                    <td v-if="i === 0" class="text-nowrap">
+                                        <a :href="orderUrl(order.order_id)" class="tc-admin-datatable__edit">View</a>
+                                        <template v-if="!config.deleted">
+                                            <span class="text-muted"> | </span>
+                                            <button type="button" class="btn btn-link btn-sm p-0 text-danger" @click="deleteOrder(order.order_id)">Delete</button>
+                                        </template>
+                                    </td>
+                                    <td v-else></td>
+                                </tr>
+                            </template>
+                            <tr v-if="!loading && !rows.length">
+                                <td colspan="16" class="text-center py-4 text-muted">No records found.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
 @section('script')
-    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-    {{-- <script src="{{ route('/') }}/assets/main/js/datatable/datatables/jquery.dataTables.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/dataTables.buttons.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/jszip.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/buttons.colVis.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/pdfmake.min.js"></script>
-<script src="{{ route('/') }}/assets/main/js/datatable/datatable-extension/vfs_fonts.js"></script> --}}
     <script>
-        $(document).ready(function() {
-            // Load Data
-            function loadCatalogs() {
-                $.ajax({
-                    url: "{{ route('product_catalogs.index') }}",
-                    method: "GET",
-                    success: function(data) {
-                        let rows = '';
-                        data.product_catalogs.forEach((catalog, index) => {
-                            rows += `
-                            <tr>
-                                <td>${index + 1}</td>
-                                <td>${catalog.name}</td>
-                                <td>${catalog.image ?? 'N/A'}</td>
-                                <td>${catalog.pdf ?? 'N/A'}</td>
-                                <td>
-                                    <select class="form-select status-dropdown" data-id="${catalog.id}">
-                                        <option value="1" ${catalog.status == 1 ? 'selected' : ''}>Visible</option>
-                                        <option value="0" ${catalog.status == 0 ? 'selected' : ''}>Not-Visible</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-warning editCatalog" data-id="${catalog.id}">Edit</button>
-                                    <button class="btn btn-sm btn-danger deleteCatalog" data-id="${catalog.id}">Delete</button>
-                                </td>
-                            </tr>
-                        `;
-                        });
-                        $('#catalogTable tbody').html(rows);
-                    }
-                });
-            }
-            loadCatalogs();
-            // Handle Create/Edit
-            $('#createCatalog').click(function() {
-                $('#catalogModalLabel').text('Create Catalog');
-                $('#catalogForm')[0].reset();
-                $('#catalogId').val('');
-                $('#catalogModal').modal('show');
-            });
-            $('#catalogForm').submit(function(e) {
-                e.preventDefault();
-                let formData = new FormData(this);
-                let id = $('#catalogId').val();
-                let url = id ? `/product_catalogs/${id}` : "{{ route('product_catalogs.store') }}";
-                let method = id ? 'PUT' : 'POST';
-                $.ajax({
-                    url: url,
-                    method: method,
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(response) {
-                        $('#catalogModal').modal('hide');
-                        loadCatalogs();
-                    }
-                });
-            });
-            // Handle Delete
-            $(document).on('click', '.deleteCatalog', function() {
-                let id = $(this).data('id');
-                if (confirm('Are you sure?')) {
-                    $.ajax({
-                        url: `/product_catalogs/${id}`,
-                        method: 'DELETE',
-                        success: function() {
-                            loadCatalogs();
-                        }
-                    });
-                }
-            });
-            // Handle Status Change
-            $(document).on('change', '.status-dropdown', function() {
-                let id = $(this).data('id');
-                let status = $(this).val();
-                $.ajax({
-                    url: `/product_catalogs/${id}`,
-                    method: 'PUT',
-                    data: {
-                        status
-                    },
-                    success: function() {
-                        loadCatalogs();
-                    }
-                });
-            });
-        });
+        window.COMMISSION_REPORT_LIST = @json($vueConfig ?? []);
     </script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="{{ tenant_static_asset('js/commission-report-vue.js') }}?v=1"></script>
 @endsection

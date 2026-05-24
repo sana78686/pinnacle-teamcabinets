@@ -60,6 +60,35 @@
                 ])
             </li>
             @endif
+            @if (tenant_can_nav('quotes'))
+            <li class="tc-nav-has-children {{ request()->routeIs(['tenant_quotes_*', 'tenant_shipping_quotes_*']) ? 'tc-nav-active' : '' }}" data-nav-module="quotes">
+                <a href="#">
+                    <i data-feather="file-text"></i><span>Quotes</span>
+                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['quotes'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="quotes" {{ (int) ($tcNavBadges['quotes'] ?? 0) <= 0 ? 'hidden' : '' }} aria-hidden="true"></span>
+                </a>
+                @include('layouts.tenant.partials.nav-dropdown', [
+                    'title' => 'Quotes',
+                    'items' => array_filter([
+                        tenant_can('quote-list') ? ['url' => route('tenant_quotes_index'), 'icon' => 'list', 'label' => 'Quotes List', 'badge_key' => 'quotes_list'] : null,
+                        tenant_can('shipping_quote-list') ? ['url' => route('tenant_shipping_quotes_index'), 'icon' => 'list', 'label' => 'Shipping Quotes List', 'badge_key' => 'shipping_quotes_list'] : null,
+                    ]),
+                ])
+            </li>
+            @endif
+            @if (tenant_can_nav('stock_check'))
+            <li class="tc-nav-has-children {{ request()->routeIs('tenant_stock_check_*') ? 'tc-nav-active' : '' }}" data-nav-module="stock_check">
+                <a href="#">
+                    <i data-feather="search"></i><span>Stock Check</span>
+                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['stock_check'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="stock_check" {{ (int) ($tcNavBadges['stock_check'] ?? 0) <= 0 ? 'hidden' : '' }} aria-hidden="true"></span>
+                </a>
+                @include('layouts.tenant.partials.nav-dropdown', [
+                    'title' => 'Stock Check',
+                    'items' => array_filter([
+                        tenant_can('stock_check-list') ? ['url' => route('tenant_stock_check_index'), 'icon' => 'list', 'label' => 'Stock Check Requests', 'badge_key' => 'stock_check_list'] : null,
+                    ]),
+                ])
+            </li>
+            @endif
             @if (tenant_can_nav('claims'))
             <li class="tc-nav-has-children {{ request()->routeIs('tenant_claim_*') ? 'tc-nav-active' : '' }}" data-nav-module="claims">
                 <a href="#">
@@ -100,35 +129,6 @@
                 <a href="{{ route('tenant_settings_hub') }}">
                     <i data-feather="settings"></i><span>Settings</span>
                 </a>
-            </li>
-            @endif
-            @if (tenant_can_nav('quotes'))
-            <li class="tc-nav-has-children {{ request()->routeIs(['tenant_quotes_*', 'tenant_shipping_quotes_*']) ? 'tc-nav-active' : '' }}" data-nav-module="quotes">
-                <a href="#">
-                    <i data-feather="file-text"></i><span>Quotes</span>
-                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['quotes'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="quotes" {{ (int) ($tcNavBadges['quotes'] ?? 0) <= 0 ? 'hidden' : '' }} aria-hidden="true"></span>
-                </a>
-                @include('layouts.tenant.partials.nav-dropdown', [
-                    'title' => 'Quotes',
-                    'items' => array_filter([
-                        tenant_can('quote-list') ? ['url' => route('tenant_quotes_index'), 'icon' => 'list', 'label' => 'Quotes List', 'badge_key' => 'quotes_list'] : null,
-                        tenant_can('shipping_quote-list') ? ['url' => route('tenant_shipping_quotes_index'), 'icon' => 'list', 'label' => 'Shipping Quotes List', 'badge_key' => 'shipping_quotes_list'] : null,
-                    ]),
-                ])
-            </li>
-            @endif
-            @if (tenant_can_nav('stock_check'))
-            <li class="tc-nav-has-children {{ request()->routeIs('tenant_stock_check_*') ? 'tc-nav-active' : '' }}" data-nav-module="stock_check">
-                <a href="#">
-                    <i data-feather="search"></i><span>Stock Check</span>
-                    <span class="tc-nav-module-dot{{ (int) ($tcNavBadges['stock_check'] ?? 0) > 0 ? ' is-visible' : '' }}" data-nav-badge="stock_check" {{ (int) ($tcNavBadges['stock_check'] ?? 0) <= 0 ? 'hidden' : '' }} aria-hidden="true"></span>
-                </a>
-                @include('layouts.tenant.partials.nav-dropdown', [
-                    'title' => 'Stock Check',
-                    'items' => array_filter([
-                        tenant_can('stock_check-list') ? ['url' => route('tenant_stock_check_index'), 'icon' => 'list', 'label' => 'Stock Check Requests', 'badge_key' => 'stock_check_list'] : null,
-                    ]),
-                ])
             </li>
             @endif
         </ul>

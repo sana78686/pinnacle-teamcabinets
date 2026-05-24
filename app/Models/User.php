@@ -151,6 +151,11 @@ class User extends Authenticatable
             ->with('success', 'User ' . $user->name . ' restored successfully and status set to un-approval.');
     }
 
+    public function manageCommission()
+    {
+        return $this->hasOne(ManageCommission::class);
+    }
+
     public function country()
     {
         return $this->belongsTo(Country::class, 'country_id');

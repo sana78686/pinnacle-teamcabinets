@@ -573,14 +573,12 @@ Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.
         /*** Commission report page Routes */
 
         Route::get('commission_report/index', [TenantCommissionReportController::class, 'index'])->name('tenant_commission_report_index');
-        Route::get('commission_report/create', [TenantCommissionReportController::class, 'create'])->name('tenant_commission_report_create');
-        Route::post('commission_report', [TenantCommissionReportController::class, 'store'])->name('tenant_commission_report_store');
-        Route::get('commission_report/{id}/edit', [TenantCommissionReportController::class, 'edit'])->name('tenant_commission_report_edit');
-        Route::get('commission_report/{id}/show', [TenantCommissionReportController::class, 'show'])->name('tenant_commission_report_show');
-        Route::put('commission_report/{id}', [TenantCommissionReportController::class, 'update'])->name('tenant_commission_report_update');
-        Route::delete('commission_report/{id}', [TenantCommissionReportController::class, 'destroy'])->name('tenant_commission_report_destroy');
+        Route::get('commission_report/my-report', [TenantCommissionReportController::class, 'myReport'])->name('tenant_commission_report_my');
+        Route::get('commission_report/export', [TenantCommissionReportController::class, 'export'])->name('tenant_commission_report_export');
+        Route::get('commission_report/user-types', [TenantCommissionReportController::class, 'userTypeList'])->name('tenant_commission_report_user_types');
         Route::get('commission_report/deleted/list', [TenantCommissionReportController::class, 'deleted_commission_report_list'])->name('tenant_deleted_commission_report_list');
-        Route::get('commission_report/{id}/restore', [TenantCommissionReportController::class, 'restore_deleted_commission_report_list'])->name('tenant_commission_report_restore');
+        Route::delete('commission_report/{id}', [TenantCommissionReportController::class, 'destroy'])->name('tenant_commission_report_destroy');
+        Route::post('commission_report/{id}/restore', [TenantCommissionReportController::class, 'restore'])->name('tenant_commission_report_restore');
 
 
     });

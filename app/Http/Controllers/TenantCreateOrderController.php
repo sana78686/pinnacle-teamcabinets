@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\DoorColors;
+use App\Models\ManageCommission;
 use App\Models\Order;
+use App\Services\CommissionCalculationService;
 use App\Models\Product;
 use App\Models\ProductCatalog;
 use App\Models\ProductSection;
@@ -310,6 +312,8 @@ class TenantCreateOrderController extends Controller
         $transactionId = null;
         $orderStatus = 'PENDING';
         $paytraceResponse = '';
+        $cartTotal = $subTotal + $assembleTotal;
+        $ciRooms = $this->checkout->buildCiRoomData($payload['rooms'] ?? [], $request, $user);
 
         if ($paymentType === 'by_credit_card') {
             $result = $this->paytrace->charge('credit_card', $grandTotal, [
@@ -374,7 +378,7 @@ class TenantCreateOrderController extends Controller
 
         $order = Order::create([
             'job_name' => $payload['job_name'],
-            'rooms' => $payload['rooms'],
+            'rooms' => $ciRooms,
             'assemble_cabinets_check' => $payload['assemble'] ?? 'no',
             'shipping_status' => 'pending',
             'comment' => $payload['comment'] ?? '',
@@ -399,7 +403,25 @@ class TenantCreateOrderController extends Controller
             'paytrace_response' => $paytraceResponse,
             'credit_card_charges' => $checkoutTotals['credit_card_charges'] + $checkoutTotals['debit_card_charges'],
             'ach_charges' => $checkoutTotals['ach_charges'],
+            'state' => 1,
         ]);
+
+        $commService = app(CommissionCalculationService::class);
+        $comm = $commService->calculate($cartTotal, $user);
+        $order->update([
+            'mfg_comm' => $comm['mfgComm'],
+            'rep_comm' => $comm['repComm'],
+            'aff_comm' => $comm['affComm'],
+            'sub_aff_commission' => $comm['subAffComm'],
+            'rep_id' => $comm['repId'],
+            'parent_id' => $comm['parentId'],
+        ]);
+
+        ManageCommission::query()->updateOrCreate(
+            ['user_id' => $user->id],
+            ['gross_sales' => 0]
+        );
+        ManageCommission::query()->where('user_id', $user->id)->increment('gross_sales', $cartTotal);
 
         $cartData = array_merge($cartData, [
             'bill_to_name' => $request->input('bill_to_name'),

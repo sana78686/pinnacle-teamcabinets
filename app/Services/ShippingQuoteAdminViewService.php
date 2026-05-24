@@ -110,7 +110,7 @@ class ShippingQuoteAdminViewService
             'order_comment' => $record->comment ?? '',
             'is_assemble' => $assembleYes ? 1 : 2,
             'assemble_cabinets_check' => $assembleYes ? 'yes' : 'no',
-            'room_data' => json_encode($this->checkout->buildCiRoomData($record->rooms ?? [], $roomRequest)),
+            'room_data' => json_encode($this->checkout->buildCiRoomData($record->rooms ?? [], $roomRequest, $user)),
             'cart_product_weight' => number_format($weight, 2).' lbs',
             'all_cart_total' => number_format($subTotal, 2, '.', ''),
             'catalogue' => $record->product_catalog_id,

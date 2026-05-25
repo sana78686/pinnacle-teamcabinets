@@ -1,5 +1,14 @@
-@extends($isAdminView ?? false ? 'layouts.tenant.master' : 'layouts.tenant.role.master')
+@extends('layouts.tenant.master')
 @section('title', 'Stock Check Request')
+
+@section('breadcrumb-title')
+    <h2>Stock Check<span> Request</span></h2>
+@endsection
+
+@section('breadcrumb-items')
+    <li class="breadcrumb-item"><a href="{{ route('tenant_stock_check_index') }}">Stock Check</a></li>
+    <li class="breadcrumb-item active">View</li>
+@endsection
 
 @section('content')
     @include('tenants.stock_check.partials.admin-show')

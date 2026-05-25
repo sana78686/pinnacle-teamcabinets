@@ -40,7 +40,7 @@ class TenantShippingQuoteController extends Controller
 
         $records = $query->paginate($perPage)->withQueryString();
 
-        $view = Auth::user()->hasRole('Admin')
+        $view = Auth::user()->isAdmin()
             ? 'tenants.quotes.shipping_quotes_list'
             : 'tenants.representative_modals.quotes.shipping_quotes_list';
 
@@ -57,7 +57,7 @@ class TenantShippingQuoteController extends Controller
 
         $adminView->markViewed($record, Auth::user());
 
-        if (Auth::user()->hasRole('Admin')) {
+        if (Auth::user()->isAdmin()) {
             return view('tenants.quotes.show_shipping_quotes', [
                 'adminView' => $this->shippingAdminView->viewData($record),
             ]);
@@ -103,7 +103,7 @@ class TenantShippingQuoteController extends Controller
 
     public function updateShippingCosts(Request $request, string $id): RedirectResponse
     {
-        if (! Auth::user()->hasRole('Admin')) {
+        if (! Auth::user()->isAdmin()) {
             abort(403);
         }
 

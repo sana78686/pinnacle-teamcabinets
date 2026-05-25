@@ -304,12 +304,12 @@ class TenantCommissionReportController extends Controller
       return false;
     }
 
-    return $user->isAdmin() || $user->hasRole(['Admin', 'Super Admin', 'super-admin']);
+    return $user->isAdmin() || $user->hasRole('super-admin');
   }
 
   protected function isRepresentative(User $user): bool
   {
-    return $user->isRepresentative() || $user->hasRole(['Representative', 'Rep', 'representative', 'rep']);
+    return $user->isRepresentative() || $user->hasRole('representatives');
   }
 
   /**
@@ -320,7 +320,7 @@ class TenantCommissionReportController extends Controller
     return User::query()
       ->where(function ($q) {
         $q->where('user_type', 'representatives')
-          ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['representatives', 'Representative', 'Rep', 'representative', 'rep']));
+          ->orWhereHas('roles', fn ($r) => $r->where('name', 'representatives'));
       })
       ->orderBy('name')
       ->get(['id', 'name'])

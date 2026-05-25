@@ -19,7 +19,7 @@ class QuoteWorkspaceService
 
     public function userMayAccess(Model $record, User $user): bool
     {
-        return $user->hasRole('Admin') || (int) $record->user_id === (int) $user->id;
+        return $user->isAdmin() || (int) $record->user_id === (int) $user->id;
     }
 
     /**

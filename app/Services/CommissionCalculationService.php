@@ -49,7 +49,7 @@ class CommissionCalculationService
         $admin = User::query()
             ->where(function ($q) {
                 $q->where('user_type', 'admin')
-                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['admin', 'Admin']));
+                    ->orWhereHas('roles', fn ($r) => $r->where('name', 'admin'));
             })
             ->first();
         $adminPointFactor = $admin ? (float) $admin->point_factor : 0.0;

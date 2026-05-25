@@ -126,7 +126,7 @@ class TenantPermissionService
         try {
             $adminRole = config('tenant_permissions.admin_role', 'admin');
 
-            return $user->hasRole([$adminRole, 'Admin', 'admin']);
+            return $user->hasRole($adminRole);
         } catch (\Throwable) {
             return false;
         }

@@ -39,7 +39,7 @@ class TenantQuotesController extends Controller
 
         $records = $query->paginate($perPage)->withQueryString();
 
-        $view = Auth::user()->hasRole('Admin')
+        $view = Auth::user()->isAdmin()
             ? 'tenants.quotes.index'
             : 'tenants.representative_modals.quotes.index';
 
@@ -69,7 +69,7 @@ class TenantQuotesController extends Controller
 
         $adminView->markViewed($quote, Auth::user());
 
-        $view = Auth::user()->hasRole('Admin')
+        $view = Auth::user()->isAdmin()
             ? 'tenants.quotes.show'
             : 'tenants.representative_modals.quotes.show';
 

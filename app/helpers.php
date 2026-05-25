@@ -345,7 +345,7 @@ if (! function_exists('tenant_user_has_admin_role')) {
         }
 
         try {
-            return $user->hasRole(['admin', 'Admin']);
+            return $user->hasRole('admin');
         } catch (\Throwable) {
             return false;
         }

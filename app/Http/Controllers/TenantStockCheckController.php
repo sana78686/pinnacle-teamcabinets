@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\StockCheckRequest;
 use App\Services\AdminRecordViewService;
+use App\Services\OrderWorkspaceNotificationService;
 use App\Services\OrderWorkspaceService;
 use App\Services\QuoteWorkspaceService;
 use App\Services\StockCheckAdminViewService;
@@ -32,7 +33,7 @@ class TenantStockCheckController extends Controller
             ->with(['user:id,name,email,company_name'])
             ->orderByDesc('id');
 
-        if (! Auth::user()->hasRole('Admin')) {
+        if (! Auth::user()->isAdmin()) {
             $query->where('user_id', Auth::id());
         }
 
@@ -54,7 +55,7 @@ class TenantStockCheckController extends Controller
             'search' => $search,
         ];
 
-        if (Auth::user()->hasRole('Admin')) {
+        if (Auth::user()->isAdmin()) {
             return view('tenants.stock_check.index', $data);
         }
 
@@ -74,7 +75,7 @@ class TenantStockCheckController extends Controller
             ? $stockCheck->normalizedOriginalRooms()
             : $stockCheck->normalizedRooms();
 
-        if (Auth::user()->hasRole('Admin')) {
+        if (Auth::user()->isAdmin()) {
             $adminView->markViewed($stockCheck, Auth::user());
 
             return view('tenants.stock_check.show', $this->stockAdminView->viewData($stockCheck, $rooms, $viewingOrgData));
@@ -101,7 +102,7 @@ class TenantStockCheckController extends Controller
 
     public function update(Request $request, string $id): JsonResponse|RedirectResponse
     {
-        if (! Auth::user()->hasRole('Admin')) {
+        if (! Auth::user()->isAdmin()) {
             abort(403);
         }
 
@@ -127,6 +128,11 @@ class TenantStockCheckController extends Controller
 
         app(AdminRecordViewService::class)->markViewed($stockCheck, Auth::user());
 
+        app(OrderWorkspaceNotificationService::class)->sendStockCheckUpdatedAdminEmail(
+            $stockCheck->fresh(),
+            Auth::user()
+        );
+
         if ($request->expectsJson()) {
             return response()->json(['status' => true]);
         }
@@ -138,7 +144,7 @@ class TenantStockCheckController extends Controller
 
     public function print(string $id): View
     {
-        if (! Auth::user()->hasRole('Admin')) {
+        if (! Auth::user()->isAdmin()) {
             abort(403);
         }
 
@@ -154,7 +160,7 @@ class TenantStockCheckController extends Controller
 
     public function sendWarehouseEmail(Request $request, string $id): JsonResponse
     {
-        if (! Auth::user()->hasRole('Admin')) {
+        if (! Auth::user()->isAdmin()) {
             abort(403);
         }
 

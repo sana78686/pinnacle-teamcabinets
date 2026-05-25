@@ -160,6 +160,6 @@ class TenantProfileController extends Controller
 
     protected function profileRouteName(): string
     {
-        return Auth::user()->hasRole('Admin') ? 'tenant_setting_profile' : 'tenant_profile';
+        return Auth::user()->isAdmin() ? 'tenant_setting_profile' : 'tenant_profile';
     }
 }

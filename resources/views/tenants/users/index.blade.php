@@ -194,7 +194,7 @@
             Swal.fire({
                 icon: 'success',
                 title: 'Success!',
-                text: '{{ session('success') }}',
+                text: @json(session('success')),
                 confirmButtonText: 'OK'
             });
         </script>
@@ -203,12 +203,18 @@
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
-                text: '{{ session('error') }}',
+                text: @json(session('error')),
                 confirmButtonText: 'OK'
             });
         </script>
     @endif
     {{-- sweet alert  end --}}
+    @php
+        $tcUsersStatusUrl = route('tenant_users_update_status', ['id' => '__ID__']);
+        $tcUsersVerifyUrl = route('tenant_users_update_verification', ['id' => '__ID__']);
+        $tcApprovalFormUrl = str_replace('999999', '__ID__', route('tenant_user_approval_setup_form', 999999));
+        $tcApprovalSaveUrl = str_replace('999999', '__ID__', route('tenant_user_approval_setup_store', 999999));
+    @endphp
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const deleteButtons = document.querySelectorAll('.delete-button');
@@ -287,7 +293,7 @@ window.bindUserListRowActions = function (root) {
                 }
 
                 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                const updateStatusUrl = '{{ route('tenant_users_update_status', ':id') }}'.replace(':id', userId);
+                const updateStatusUrl = @json($tcUsersStatusUrl).replace('__ID__', userId);
 
                 fetch(updateStatusUrl, {
                     method: 'POST',
@@ -351,7 +357,7 @@ window.bindUserListRowActions = function (root) {
             }).then((result) => {
                 if (result.isConfirmed) {
                     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                    const updateUrl = '{{ route('tenant_users_update_verification', ':id') }}'.replace(':id', userId);
+                    const updateUrl = @json($tcUsersVerifyUrl).replace('__ID__', userId);
 
                     fetch(updateUrl, {
                         method: 'POST',
@@ -433,8 +439,8 @@ document.addEventListener('DOMContentLoaded', function () {
     @include('layouts.tenant.partials.panel-asset-fn')
     <script>
         window.TC_USER_APPROVAL_SETUP = {
-            formUrl: @json(str_replace('999999', '__ID__', route('tenant_user_approval_setup_form', ['id' => 999999]))),
-            saveUrl: @json(str_replace('999999', '__ID__', route('tenant_user_approval_setup_store', ['id' => 999999]))),
+            formUrl: @json($tcApprovalFormUrl),
+            saveUrl: @json($tcApprovalSaveUrl),
             csrf: @json(csrf_token()),
             pointFactorDefaults: @json($point_factor_defaults ?? []),
             roleDefaultUrl: @json(route('tenant_user_role_default')),

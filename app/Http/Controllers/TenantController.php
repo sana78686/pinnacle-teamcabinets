@@ -372,7 +372,7 @@ while (
     }
     public function tenant_dashboard(TenantDashboardService $dashboard)
     {
-        if (Auth::user()->hasRole('Admin')) {
+        if (Auth::user()->isAdmin()) {
             $onboarding = app(\App\Services\TenantOnboardingService::class);
             $tracker = app(\App\Services\TenantOrderTrackerService::class);
             $perPage = max(5, min(50, (int) request('tracker_per_page', 10)));

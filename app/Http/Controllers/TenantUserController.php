@@ -11,6 +11,7 @@ use App\Models\State;
 use App\Mail\UserAccountVerificationMail;
 use App\Mail\UserAccountActivationMail;
 use App\Mail\UserAccountDeactivationMail;
+use App\Mail\AffiliateRegisteredMail;
 use App\Mail\UserRegisteredByAdminMail;
 use Illuminate\Support\Facades\Mail;
 
@@ -664,15 +665,25 @@ public function updateStatus(Request $request, $id)
     {
         $userId = $user->id;
         $email = $user->email;
+        $parentId = $user->parent_id;
 
-        dispatch(function () use ($userId, $email, $plainPassword) {
+        dispatch(function () use ($userId, $email, $plainPassword, $parentId) {
             $recipient = User::query()->find($userId);
             if (! $recipient) {
                 return;
             }
 
             try {
-                Mail::to($email)->send(new UserRegisteredByAdminMail($recipient, $plainPassword));
+                if ($parentId) {
+                    $parent = User::query()->find($parentId);
+                    if ($parent) {
+                        Mail::to($email)->send(new AffiliateRegisteredMail($recipient, $parent, $plainPassword));
+                    } else {
+                        Mail::to($email)->send(new UserRegisteredByAdminMail($recipient, $plainPassword));
+                    }
+                } else {
+                    Mail::to($email)->send(new UserRegisteredByAdminMail($recipient, $plainPassword));
+                }
                 TenantNotificationService::accountCreatedByAdmin($recipient);
             } catch (\Throwable $e) {
                 Log::warning('Failed to send admin-created user welcome email', [
@@ -960,7 +971,7 @@ public function updateStatus(Request $request, $id)
         if (Auth::user()->isRepresentative()) {
         $query = $request->get('q', '');
             $data = Role::select('id', 'name')
-                ->whereNotIn('name', ['admin', 'Admin', 'representatives', 'Representative'])
+                ->whereNotIn('name', ['admin', 'representatives'])
                 ->where('name', 'LIKE', '%' . $query . '%')
                 ->limit(10)
                 ->get();
@@ -1057,6 +1068,15 @@ public function updateStatus(Request $request, $id)
             );
 
             Log::info('Role Assigned');
+
+            $plainPassword = (string) $request->input('password', '');
+            if ($user->email && $plainPassword !== '') {
+                try {
+                    Mail::to($user->email)->send(new AffiliateRegisteredMail($user, $auth, $plainPassword));
+                } catch (\Throwable $e) {
+                    Log::warning('Affiliate welcome email failed: '.$e->getMessage(), ['user_id' => $user->id]);
+                }
+            }
 
             return redirect()->route('tenant_user_child_index')
             ->with('success', 'User created successfully');

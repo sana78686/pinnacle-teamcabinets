@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Order;
+use App\Observers\OrderObserver;
 use App\Services\StorefrontBrandCssService;
 use App\Services\TenantFrontendThemeService;
 use App\View\Composers\StorefrontComposer;
@@ -51,6 +53,8 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrapFive();
 
         Schema::defaultStringLength(191);
+
+        Order::observe(OrderObserver::class);
 
         Gate::before(function ($user, $ability) {
             return $user->is_super_user ? true : null;

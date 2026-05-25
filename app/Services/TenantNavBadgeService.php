@@ -115,7 +115,7 @@ class TenantNavBadgeService
                 ->where('is_super_user', 0)
                 ->where(function ($query) {
                     try {
-                        $query->whereDoesntHave('roles', fn ($role) => $role->where('name', 'Admin'));
+                        $query->whereDoesntHave('roles', fn ($role) => $role->where('name', 'admin'));
                     } catch (\Throwable) {
                         // roles may be unavailable during setup
                     }
@@ -166,7 +166,7 @@ class TenantNavBadgeService
         }
 
         try {
-            return $user->hasRole('Admin');
+            return $user->isAdmin();
         } catch (\Throwable) {
             return false;
         }

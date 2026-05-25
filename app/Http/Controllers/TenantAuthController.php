@@ -181,7 +181,7 @@ public function postLogin(Request $request)
 
         $adminEmail = SiteSetting::first()?->newuser_email;
         if (! $adminEmail) {
-            $adminEmail = User::role(['admin', 'Admin'])->value('email');
+            $adminEmail = User::role('admin')->value('email');
         }
         if ($adminEmail) {
             try {

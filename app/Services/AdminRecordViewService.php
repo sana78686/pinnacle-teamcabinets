@@ -18,7 +18,7 @@ class AdminRecordViewService
         }
 
         try {
-            return $user->hasRole('Admin');
+            return $user->isAdmin();
         } catch (\Throwable) {
             return false;
         }

@@ -35,7 +35,7 @@ class TenantClaimController extends Controller
             });
         }
 
-        $view = Auth::user()->hasRole('Admin')
+        $view = Auth::user()->isAdmin()
             ? 'tenants.claims.index'
             : 'tenants.claims.rep_index';
 
@@ -43,7 +43,7 @@ class TenantClaimController extends Controller
             'claims' => $query->paginate($perPage)->withQueryString(),
             'perPage' => $perPage,
             'search' => $search,
-            'isAdmin' => Auth::user()->hasRole('Admin'),
+            'isAdmin' => Auth::user()->isAdmin(),
         ]);
     }
 
@@ -56,7 +56,7 @@ class TenantClaimController extends Controller
         }
 
         $orders = Order::query()
-            ->when(! Auth::user()->hasRole('Admin'), fn ($q) => $q->where('user_id', Auth::id()))
+            ->when(! Auth::user()->isAdmin(), fn ($q) => $q->where('user_id', Auth::id()))
             ->orderByDesc('id')
             ->limit(50)
             ->get()
@@ -134,13 +134,13 @@ class TenantClaimController extends Controller
             'claim' => $claim,
             'order' => $claim->order,
             'repName' => $this->claims->representativeNameFor($claim),
-            'isAdmin' => Auth::user()->hasRole('Admin'),
+            'isAdmin' => Auth::user()->isAdmin(),
         ]);
     }
 
     public function destroy(string $id): RedirectResponse
     {
-        if (! Auth::user()->hasRole('Admin')) {
+        if (! Auth::user()->isAdmin()) {
             abort(403);
         }
 
@@ -154,7 +154,7 @@ class TenantClaimController extends Controller
 
     public function deletedclaimList(): View
     {
-        if (! Auth::user()->hasRole('Admin')) {
+        if (! Auth::user()->isAdmin()) {
             abort(403);
         }
 
@@ -168,7 +168,7 @@ class TenantClaimController extends Controller
 
     public function restoreDeletedclaim(string $id): RedirectResponse
     {
-        if (! Auth::user()->hasRole('Admin')) {
+        if (! Auth::user()->isAdmin()) {
             abort(403);
         }
 

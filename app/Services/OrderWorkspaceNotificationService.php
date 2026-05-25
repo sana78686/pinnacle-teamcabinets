@@ -168,6 +168,57 @@ class OrderWorkspaceNotificationService
         TenantNotificationService::stockCheckSubmittedForUser($record, $user, $withShipping);
     }
 
+    public function sendStockCheckUpdatedAdminEmail(StockCheckRequest $record, User $actor): void
+    {
+        try {
+            $emailData = $this->buildQuoteEmailData($record, $record->user ?? $actor, [], $record->id);
+            $emailData['is_updated'] = 1;
+
+            $this->emails->sendToAdmin(
+                ManageEmailsContent::SLUG_STOCK_UPDATE_ADMIN,
+                [
+                    'USERNAME' => $actor->name ?? $emailData['ship_to_name'] ?? 'User',
+                    'STOCK_CHECK_ID' => (string) $record->id,
+                ],
+                'stock_check_workspace',
+                ['email_data' => $emailData]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Stock check update email failed: '.$e->getMessage());
+        }
+    }
+
+    public function sendOrderStatusChangedEmail(Order $order, ?string $previousStatus = null): void
+    {
+        $user = $order->user;
+        if (! $user?->email) {
+            return;
+        }
+
+        $newStatus = (string) ($order->status ?? 'pending');
+        if ($previousStatus !== null && strcasecmp($previousStatus, $newStatus) === 0) {
+            return;
+        }
+
+        if (! ManageEmailsContent::findBySlug(ManageEmailsContent::SLUG_ORDER_STATUS)) {
+            return;
+        }
+
+        try {
+            $this->emails->send(
+                ManageEmailsContent::SLUG_ORDER_STATUS,
+                $user->email,
+                [
+                    'USERNAME' => $user->name ?? $user->username ?? 'Customer',
+                    'STATUS' => strtoupper($newStatus),
+                    'INVOICE' => (string) $order->id,
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Order status email failed: '.$e->getMessage());
+        }
+    }
+
     protected function notifyAdminsShippingQuote(ShippingQuote $record, User $user): void
     {
         try {

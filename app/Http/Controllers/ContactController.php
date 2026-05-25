@@ -3,15 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContactQuery;
+use App\Models\ManageEmailsContent;
 use App\Models\SiteSetting;
-use App\Models\SupportMessage;
-use App\Models\SupportThread;
 use App\Services\CloudflareTurnstileService;
-use App\Services\SupportChatService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class ContactController extends Controller
@@ -72,18 +68,19 @@ class ContactController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        $data = [
-            'from' => $validated['from'],
-            'bodyMessage' => $storedMessage,
-            'subject' => $subject,
-            'name' => $fullName,
-        ];
+        try {
+            tenant_email()->sendToAdmin(ManageEmailsContent::SLUG_CONTACT_US, [
+                'USERNAME' => $fullName,
+                'EMAIL' => $validated['from'],
+                'QUERY' => $storedMessage,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Contact form email failed: '.$e->getMessage(), [
+                'tenant_id' => tenant('id'),
+            ]);
 
-        Mail::send('emails.contact', $data, function ($message) use ($data, $contactmail) {
-            $message->to($contactmail)
-                ->replyTo($data['from'])
-                ->subject($data['subject']);
-        });
+            return redirect()->back()->withErrors(['email' => 'Unable to send your message right now. Please try again later.']);
+        }
 
         return redirect()->back()->with('success', 'Thank you! Your message has been sent. We will get back to you soon.');
     }

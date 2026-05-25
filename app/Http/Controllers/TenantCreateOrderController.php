@@ -668,7 +668,7 @@ class TenantCreateOrderController extends Controller
 
         if ($modelClass === Quote::class && $quoteId > 0) {
             $quote = Quote::query()->findOrFail($quoteId);
-            if ((int) $quote->user_id !== (int) $request->user()->id && ! $request->user()->hasRole('Admin')) {
+            if ((int) $quote->user_id !== (int) $request->user()->id && ! $request->user()->isAdmin()) {
                 abort(403);
             }
 
@@ -677,7 +677,7 @@ class TenantCreateOrderController extends Controller
 
         if ($modelClass === ShippingQuote::class && $shippingQuoteId > 0) {
             $shippingQuote = ShippingQuote::query()->findOrFail($shippingQuoteId);
-            if ((int) $shippingQuote->user_id !== (int) $request->user()->id && ! $request->user()->hasRole('Admin')) {
+            if ((int) $shippingQuote->user_id !== (int) $request->user()->id && ! $request->user()->isAdmin()) {
                 abort(403);
             }
 
@@ -686,7 +686,7 @@ class TenantCreateOrderController extends Controller
 
         if ($modelClass === StockCheckRequest::class && $stockCheckId > 0) {
             $stockCheck = StockCheckRequest::query()->findOrFail($stockCheckId);
-            if ((int) $stockCheck->user_id !== (int) $request->user()->id && ! $request->user()->hasRole('Admin')) {
+            if ((int) $stockCheck->user_id !== (int) $request->user()->id && ! $request->user()->isAdmin()) {
                 abort(403);
             }
 

@@ -365,7 +365,7 @@ class TenantNotificationService
         }
 
         try {
-            return $user->hasRole('Admin');
+            return $user->isAdmin();
         } catch (\Throwable) {
             return false;
         }
@@ -411,7 +411,7 @@ class TenantNotificationService
     protected static function adminRecipients(): Collection
     {
         try {
-            $admins = User::role('Admin')->get();
+            $admins = User::role('admin')->get();
             if ($admins->isNotEmpty()) {
                 return $admins;
             }

@@ -317,7 +317,7 @@ class OrderWorkspaceService
             ->with(['user:id,name,email'])
             ->latest('id');
 
-        if (! $user->hasRole('Admin')) {
+        if (! $user->isAdmin()) {
             $query->where('user_id', $user->id);
         }
 

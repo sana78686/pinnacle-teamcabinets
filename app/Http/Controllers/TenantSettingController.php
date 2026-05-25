@@ -403,7 +403,7 @@ class TenantSettingController extends Controller
         }
 
         $roles = Role::query()
-            ->whereNotIn('name', ['admin', 'customers', 'Admin', 'Customer'])
+            ->whereNotIn('name', ['admin', 'customers'])
             ->orderBy('name')
             ->get();
 

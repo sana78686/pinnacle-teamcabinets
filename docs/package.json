@@ -6,6 +6,9 @@
   "scripts": {
     "generate:parity": "node scripts/generate-parity-docs.mjs",
     "generate:ci-gap": "node scripts/generate-ci-gap-doc.mjs",
+    "generate:tenant-comparison": "node scripts/generate-tenant-comparison-doc.mjs",
+    "generate:email-comparison": "node scripts/generate-email-comparison-doc.mjs",
+    "generate:comparison-docs": "npm run generate:tenant-comparison && npm run generate:email-comparison",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

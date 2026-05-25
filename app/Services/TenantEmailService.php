@@ -18,14 +18,18 @@ class TenantEmailService
     {
         $settings = tenant() ? SiteSetting::query()->first() : null;
         $tenantId = tenant('id');
-        $tenantName = tenant('company_name') ?? tenant('name');
+        $business = $this->tenantBusinessName();
+        $pinnacleName = (string) config('pinnacle.name', 'Pinnacle');
 
         $hasTenantLogo = filled($settings?->logo);
         $logoPath = $hasTenantLogo
             ? $settings->logo
             : (string) config('pinnacle.email.logo', 'assets/logo/pinnacle-tenant.png');
 
-        $brandName = $tenantName ?: (string) config('pinnacle.name', 'Pinnacle');
+        $usesPinnacleLogo = ! $hasTenantLogo;
+        $brandName = $usesPinnacleLogo ? $pinnacleName : $business;
+        $websiteUrl = $tenantId ? tenant_url($tenantId) : central_url();
+        $websiteHost = parse_url($websiteUrl, PHP_URL_HOST) ?: $websiteUrl;
 
         $replyEmail = $settings?->email
             ?? $settings?->contactus_email
@@ -33,13 +37,32 @@ class TenantEmailService
 
         return [
             'brand_name' => $brandName,
-            'tenant_business_name' => $this->tenantBusinessName(),
+            'tenant_business_name' => $business,
+            'tagline' => $usesPinnacleLogo
+                ? 'Your cabinets website — '.$business
+                : $business,
             'address_line' => $settings?->address,
             'phone' => $settings?->phone,
             'email' => $replyEmail,
-            'website' => $tenantId ? tenant_url($tenantId) : central_url(),
+            'website' => $websiteUrl,
+            'website_label' => $websiteHost,
             'logo' => $logoPath,
-            'uses_pinnacle_logo' => ! $hasTenantLogo,
+            'logo_url' => $this->logoUrl($logoPath),
+            'uses_pinnacle_logo' => $usesPinnacleLogo,
+        ];
+    }
+
+    /** @return array<string, string> */
+    public function defaultMacros(?array $branding = null): array
+    {
+        $branding ??= $this->branding();
+
+        return [
+            'TENANT_NAME' => $branding['tenant_business_name'] ?? '',
+            'COMPANY_NAME' => $branding['tenant_business_name'] ?? '',
+            'BRAND_TAGLINE' => $branding['tagline'] ?? '',
+            'WEBSITE' => $branding['website_label'] ?? '',
+            'WEBSITE_URL' => $branding['website'] ?? '',
         ];
     }
 
@@ -51,6 +74,9 @@ class TenantEmailService
             throw new \InvalidArgumentException("Email template not found: {$slug}");
         }
 
+        $branding = $this->branding();
+        $macros = array_merge($this->defaultMacros($branding), $macros);
+
         $contentHtml = $this->replaceMacros($template->email_content, $macros);
 
         if ($partial) {
@@ -60,7 +86,6 @@ class TenantEmailService
         }
 
         $subject = $this->replaceMacros($template->email_subject, $macros);
-        $branding = $this->branding();
 
         $html = View::make('emails.tenant.ci.layout', [
             'bodyHtml' => $contentHtml,
@@ -166,6 +191,10 @@ class TenantEmailService
     /** Absolute URL so email clients load the logo (required for deliverability). */
     public function logoUrl(?string $logoPath = null): string
     {
+        if ($logoPath === null && tenant() && function_exists('tenant_brand_logo_url')) {
+            return tenant_brand_logo_url();
+        }
+
         $path = $logoPath ?? $this->branding()['logo'];
 
         if (str_starts_with((string) $path, 'http://') || str_starts_with((string) $path, 'https://')) {

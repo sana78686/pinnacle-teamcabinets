@@ -55,7 +55,7 @@ class TenantOrderController extends Controller
             'exportCsvUrl' => route('tenant_order_export_csv', $request->only(['search', 'status', 'from', 'to'])),
         ];
 
-        if (Auth::user()->hasRole('Admin')) {
+        if (Auth::user()->isAdmin()) {
             return view('tenants.orders.index', $data);
         }
 
@@ -71,7 +71,7 @@ class TenantOrderController extends Controller
         $data['product_catalogs'] = ProductCatalog::where('status', 1)->get();
         $data['product_sections'] = ProductSection::with('products')->get();
         $data['door_colors'] = DoorColors::with('productCatalog')->get();
-        if(Auth::user()->hasRole('Admin'))
+        if(Auth::user()->isAdmin())
         {
             return view('tenants.orders.step_1', $data);
 
@@ -88,7 +88,7 @@ class TenantOrderController extends Controller
         $data['product_catalogs'] = ProductCatalog::where('status', 1)->get();
         $data['product_sections'] = ProductSection::with('products')->get();
         $data['door_colors'] = DoorColors::with('productCatalog')->get();
-        if(Auth::user()->hasRole('Admin'))
+        if(Auth::user()->isAdmin())
         {
             return view('tenants.orders.step_1', $data);
 
@@ -109,7 +109,7 @@ class TenantOrderController extends Controller
         $data['door_colors'] = DoorColors::where('product_catalog_id', $id)->get();
 
         // dd($data['door_colors']);
-        if(Auth::user()->hasRole('Admin'))
+        if(Auth::user()->isAdmin())
         {
             return view('tenants.orders.step_2', $data);
 
@@ -145,7 +145,7 @@ $data['catalog_id'] = $catalog_id;
 $data['door_id'] = $door_id;
 
         // dd($data['products']);
-        if(Auth::user()->hasRole('Admin'))
+        if(Auth::user()->isAdmin())
         {
             return view('tenants.orders.step_3', $data);
         }
@@ -171,7 +171,7 @@ $data['door_id'] = $door_id;
         $data['product_sections'] = ProductSection::with('products')->get();
         // dd($data['product_sections']);
         $data['products'] = Product::get();
-        if(Auth::user()->hasRole('Admin'))
+        if(Auth::user()->isAdmin())
         {
             return view('tenants.profile.step_2', $data);
         }
@@ -296,7 +296,7 @@ $data['door_id'] = $door_id;
             'claimLines' => $canClaim ? $claims->buildClaimLineOptions($order) : [],
         ];
 
-        $view = Auth::user()->hasRole('Admin')
+        $view = Auth::user()->isAdmin()
             ? 'tenants.orders.show'
             : 'tenants.representative_modals.orders.show';
 

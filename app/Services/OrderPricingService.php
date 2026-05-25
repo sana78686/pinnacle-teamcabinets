@@ -130,7 +130,7 @@ class OrderPricingService
             return null;
         }
 
-        if (method_exists($user, 'hasRole') && $user->hasRole(['super-admin', 'admin', 'Super Admin', 'Admin'])) {
+        if ((method_exists($user, 'isAdmin') && $user->isAdmin()) || (method_exists($user, 'hasRole') && $user->hasRole(['super-admin', 'admin']))) {
             return null;
         }
 

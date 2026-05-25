@@ -30,7 +30,7 @@ class ClaimWorkspaceService
 
     public function userMayAccess(ClaimsOrder $claim, User $user): bool
     {
-        if ($user->hasRole('Admin')) {
+        if ($user->isAdmin()) {
             return true;
         }
 
@@ -43,7 +43,7 @@ class ClaimWorkspaceService
             ->with(['order', 'claimant'])
             ->orderByDesc('id');
 
-        if ($user->hasRole('Admin')) {
+        if ($user->isAdmin()) {
             return $query;
         }
 

@@ -4,7 +4,7 @@
         $isVerified = (bool) $user->is_verified_by_admin;
         $isAdminUser = tenant_user_has_admin_role($user);
     @endphp
-    <tr>
+    <tr data-tc-user-row-id="{{ $user->id }}">
         <td>
             @if (!empty($user->getRoleNames()))
                 @forelse ($user->getRoleNames() as $v)
@@ -64,7 +64,7 @@
                 </button>
             @endif
         </td>
-        <td>
+        <td data-tc-user-door-summary>
             @php
                 $catalogs = (int) ($user->catalogs_configured ?? 0);
                 $doors = (int) ($user->door_styles_configured ?? 0);
@@ -76,6 +76,12 @@
             @else
                 <span class="text-muted small">Not configured</span>
             @endif
+            @unless ($isAdminUser)
+                <button type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline"
+                    data-tc-user-catalog-setup data-user-id="{{ $user->id }}">
+                    Set catalogs
+                </button>
+            @endunless
         </td>
         <td>{{ $user->created_at->format('d-m-Y') ?? 'N/A' }}</td>
         <td class="tc-admin-datatable__actions">

@@ -33,9 +33,22 @@
                     <li><a href="{{ route('cms.page') }}#hz-faq">FAQs</a></li>
                 </ul>
             </div>
+            @if (($sfLegalNav ?? collect())->isNotEmpty())
+                <div class="hz-footer__col">
+                    <h3 class="hz-footer__heading">Legal</h3>
+                    <ul class="hz-footer__links">
+                        @foreach ($sfLegalNav as $item)
+                            <li><a href="{{ $item['url'] }}">{{ $item['label'] }}</a></li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <div class="hz-footer__col">
                 <h3 class="hz-footer__heading">Get in touch</h3>
                 <ul class="hz-footer__links hz-footer__links--contact">
+                    @if ($sfShowContact)
+                        <li><a href="{{ $sf->contactPageUrl() }}"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Contact us</a></li>
+                    @endif
                     @if ($phone)
                         <li><a href="tel:{{ preg_replace('/\D+/', '', $phone) }}"><i class="fa-solid fa-phone" aria-hidden="true"></i> {{ $phone }}</a></li>
                     @endif

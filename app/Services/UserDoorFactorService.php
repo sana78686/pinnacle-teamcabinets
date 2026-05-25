@@ -15,9 +15,26 @@ use Illuminate\Support\Str;
 
 class UserDoorFactorService
 {
+    /** @var array<string, bool>|null */
+    private static ?array $userJsonColumns = null;
+
     public function __construct(
         protected OrderPricingService $pricing
     ) {}
+
+    /** @return array{door_point_factor: bool, catalog_visibility: bool, point_factor: bool} */
+    protected function userJsonColumnFlags(): array
+    {
+        if (self::$userJsonColumns === null) {
+            self::$userJsonColumns = [
+                'door_point_factor' => Schema::hasColumn('users', 'door_point_factor'),
+                'catalog_visibility' => Schema::hasColumn('users', 'catalog_visibility'),
+                'point_factor' => Schema::hasColumn('users', 'point_factor'),
+            ];
+        }
+
+        return self::$userJsonColumns;
+    }
 
     public function roleDefaultFactor(?string $roleName): ?float
     {
@@ -75,11 +92,19 @@ class UserDoorFactorService
             return null;
         }
 
+        $catalogNames = ProductCatalog::query()
+            ->whereIn('id', $catalogIds)
+            ->pluck('name', 'id');
+
+        $doorsByCatalog = DoorColors::query()
+            ->whereIn('product_catalog_id', $catalogIds)
+            ->get()
+            ->groupBy('product_catalog_id');
+
         $errors = [];
         foreach ($catalogIds as $catalogId) {
-            $catalog = ProductCatalog::query()->find($catalogId);
-            $catalogLabel = $catalog?->name ?? "Catalog #{$catalogId}";
-            $doors = DoorColors::query()->where('product_catalog_id', $catalogId)->get();
+            $catalogLabel = $catalogNames[$catalogId] ?? "Catalog #{$catalogId}";
+            $doors = $doorsByCatalog->get($catalogId, collect());
 
             if ($doors->isEmpty()) {
                 $errors["catalog_visibility.{$catalogId}"] = ["{$catalogLabel} has no door styles configured."];
@@ -132,6 +157,20 @@ class UserDoorFactorService
                 ->when($selectedIds !== [], fn ($q) => $q->whereNotIn('catalog_id', $selectedIds))
                 ->forceDelete();
 
+            if ($selectedIds === []) {
+                $this->syncCiJsonColumns($user);
+
+                return;
+            }
+
+            UsersCatalogDoorPointFactor::withTrashed()
+                ->where('user_id', $user->id)
+                ->whereIn('catalog_id', $selectedIds)
+                ->forceDelete();
+
+            $factorRows = [];
+            $now = now();
+
             foreach ($selectedIds as $catalogId) {
                 $visibility = UsersCatalogVisibility::withTrashed()->firstOrNew([
                     'user_id' => $user->id,
@@ -144,11 +183,6 @@ class UserDoorFactorService
                     $visibility->save();
                 }
 
-                UsersCatalogDoorPointFactor::withTrashed()
-                    ->where('user_id', $user->id)
-                    ->where('catalog_id', $catalogId)
-                    ->forceDelete();
-
                 $factors = $request->input("door_factors.{$catalogId}", []);
                 if (! is_array($factors)) {
                     continue;
@@ -160,14 +194,20 @@ class UserDoorFactorService
                         continue;
                     }
 
-                    UsersCatalogDoorPointFactor::query()->create([
+                    $factorRows[] = [
                         'user_catalog_visibility_id' => $visibility->id,
                         'user_id' => $user->id,
                         'catalog_id' => $catalogId,
                         'door_style' => $doorColorId,
                         'factor' => $factor,
-                    ]);
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
                 }
+            }
+
+            foreach (array_chunk($factorRows, 250) as $chunk) {
+                UsersCatalogDoorPointFactor::query()->insert($chunk);
             }
 
             $this->syncCiJsonColumns($user);
@@ -176,13 +216,11 @@ class UserDoorFactorService
 
     public function syncCiJsonColumns(User $user): void
     {
-        $user->refresh();
-
-        $tree = $this->pricing->doorFactorTree($user);
+        $columns = $this->userJsonColumnFlags();
 
         $visibilityNames = UsersCatalogVisibility::query()
             ->where('user_id', $user->id)
-            ->with('productCatalog')
+            ->with('productCatalog:id,name')
             ->get()
             ->map(function (UsersCatalogVisibility $row) {
                 $name = trim((string) ($row->productCatalog?->name ?? ''));
@@ -195,15 +233,15 @@ class UserDoorFactorService
 
         $updates = [];
 
-        if (Schema::hasColumn('users', 'door_point_factor')) {
-            $updates['door_point_factor'] = $tree;
+        if ($columns['door_point_factor']) {
+            $updates['door_point_factor'] = $this->pricing->doorFactorTree($user);
         }
-        if (Schema::hasColumn('users', 'catalog_visibility')) {
+        if ($columns['catalog_visibility']) {
             $updates['catalog_visibility'] = $visibilityNames;
         }
 
         if (
-            Schema::hasColumn('users', 'point_factor')
+            $columns['point_factor']
             && ($user->point_factor === null || $user->point_factor === '')
         ) {
             $role = $user->roles()->first()?->name;

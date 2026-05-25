@@ -31,6 +31,9 @@
                 <a href="{{ $navItem['url'] }}">{{ $navItem['label'] }}</a>
             @endforeach
             <a href="{{ route('cms.page') }}#hz-faq">FAQs</a>
+            @foreach ($sfHeaderLegalNav ?? [] as $legalItem)
+                <a href="{{ $legalItem['url'] }}">{{ $legalItem['label'] }}</a>
+            @endforeach
             @if ($sfShowContact)
                 <a href="{{ $contactUrl }}">Contact</a>
             @endif
@@ -66,6 +69,9 @@
             <a href="{{ $navItem['url'] }}">{{ $navItem['label'] }}</a>
         @endforeach
         <a href="{{ route('cms.page') }}#hz-faq">FAQs</a>
+        @foreach ($sfHeaderLegalNav ?? [] as $legalItem)
+            <a href="{{ $legalItem['url'] }}">{{ $legalItem['label'] }}</a>
+        @endforeach
         @if ($sfShowContact)
             <a href="{{ $contactUrl }}">Contact</a>
         @endif

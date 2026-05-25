@@ -5,6 +5,25 @@
  * Media paths are relative to public/themes/modern/media/.
  */
 return [
+    /** Fallback copy when Home & FAQ fields are empty (Modern theme). */
+    'content_defaults' => [
+        'style_intro_title' => 'Cabinets for every style and budget',
+        'style_intro_body' => '{company} makes kitchen design easy with multiple door styles, finishes, and construction options — tailored for your trade customers.',
+        'door_title' => 'Door Styles',
+        'door_body' => '21 door styles in Framed, Frameless, and European Frameless cabinets',
+        'finish_title' => 'Finish Options',
+        'finish_body' => 'More than 80 unique colors including stains, paints, and enhancements',
+        'factory_title' => 'From our hands, to your home',
+        'factory_body' => 'Technology meets craftsmanship at our facility, where we transform raw wood into kitchen cabinets for {company} partners.',
+        'gallery_title' => 'Design inspiration',
+        'cta_one_title' => 'Create-A-Kitchen Tool',
+        'cta_one_body' => 'Our user-friendly virtual kitchen planner for approved dealers.',
+        'cta_one_label' => 'Get access →',
+        'cta_two_title' => 'Trade Pro Program',
+        'cta_two_body' => 'For businesses directly involved with cabinet installation and distribution.',
+        'cta_two_label' => 'Apply today →',
+    ],
+
     'hero_video' => 'video/hero.mp4',
     'hero_poster' => 'video/hero-poster.jpg',
     'factory_video' => 'video/factory.mp4',

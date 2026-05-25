@@ -13,7 +13,7 @@
       @include('layouts.mega.css')
       @yield('style')
    </head>
-   <body>
+   <body class="pn-admin-panel">
       <!-- Loader starts-->
       <div class="loader-wrapper">
          <div class="typewriter">
@@ -40,7 +40,8 @@
                      <div class="row g-2">
                         <div class="col-12 col-lg-6 main-header">
                           @yield('breadcrumb-title')
-                          <h6 class="mb-0">admin panel</h6>
+                          <h6 class="mb-0 text-uppercase">Admin panel</h6>
+                          <p class="d-lg-none mb-0 mt-1 small text-muted pn-admin-nav-hint">Tap <strong>Menu</strong> in the header to open General, Users, Tenants, and Roles.</p>
                         </div>
                         <div class="col-12 col-lg-6 breadcrumb-right">
                            <ol class="breadcrumb justify-content-lg-end justify-content-start mb-0">

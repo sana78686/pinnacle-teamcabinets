@@ -124,6 +124,97 @@ class StorefrontPresenterService
         return $this->hasMeaningfulHtml($page->content);
     }
 
+    protected function normalizedPlainText(?string $html): string
+    {
+        if ($html === null) {
+            return '';
+        }
+
+        $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return trim(preg_replace('/\s+/u', ' ', $text) ?? '');
+    }
+
+    /**
+     * Stock text seeded for admin editing — must not count as live storefront content.
+     */
+    public function isPlaceholderContent(?string $html, ?string $slug = null): bool
+    {
+        $text = $this->normalizedPlainText($html);
+        if ($text === '') {
+            return true;
+        }
+
+        $placeholders = [
+            'Add your policy content here.',
+            'Tell your story here. Edit this page from Website Designing → About Us.',
+            'News and updates from our team. Add posts below from Website Designing → Blog.',
+            'Reach our team for dealer applications, orders, and project support. Phone, email, and address are configured under Site Settings.',
+            'Questions about dealer applications, orders, or project support? Use the form below or contact us directly.',
+        ];
+
+        if ($slug !== null && $slug !== '') {
+            $legalDefault = config("tenant_storefront.legal_pages.{$slug}.default_content");
+            if (is_string($legalDefault) && $legalDefault !== '') {
+                $placeholders[] = $this->normalizedPlainText($legalDefault);
+            }
+        }
+
+        foreach (config('tenant_storefront_pages', []) as $pageDefaults) {
+            if (! empty($pageDefaults['content']) && is_string($pageDefaults['content'])) {
+                $placeholders[] = $this->normalizedPlainText($pageDefaults['content']);
+            }
+        }
+
+        foreach ($placeholders as $placeholder) {
+            if ($placeholder !== '' && $text === $placeholder) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** Published page with real (non-placeholder) body content. */
+    public function publishedPageShowsOnStorefront(?Page $page, ?string $slug = null): bool
+    {
+        if (! $page || $page->status !== 'published') {
+            return false;
+        }
+
+        $resolvedSlug = $slug ?? $page->slug;
+
+        if ($this->isPlaceholderContent($page->content, $resolvedSlug)) {
+            return false;
+        }
+
+        return $this->hasMeaningfulHtml($page->content);
+    }
+
+    public function hasSiteContactDetails(): bool
+    {
+        $site = $this->site();
+
+        return filled($site?->contactus_email)
+            || filled($site?->email)
+            || filled($site?->contactus_phone)
+            || filled($site?->phone)
+            || filled($site?->address)
+            || filled($site?->map_embed_url);
+    }
+
+    public function homeAboutSectionVisible(): bool
+    {
+        $home = $this->homeSettings();
+        if (! $home) {
+            return false;
+        }
+
+        return $this->hasMeaningfulHtml(
+            ($home->aboutus_title ?? '').' '.($home->aboutus_description ?? '')
+        );
+    }
+
     /** @return Collection<int, array{label: string, url: string}> */
     public function menuPages(): Collection
     {
@@ -155,7 +246,7 @@ class StorefrontPresenterService
                 ->where('status', 'published')
                 ->first();
 
-            if ($this->pageIsVisible($page)) {
+            if ($this->publishedPageShowsOnStorefront($page, $slug)) {
                 $items->push([
                     'slug' => $slug,
                     'label' => $meta['menu_label'] ?? $meta['title'],
@@ -165,31 +256,57 @@ class StorefrontPresenterService
                 continue;
             }
 
-            $html = tax_value($meta['tax_key'] ?? '', '');
-            if ($this->hasMeaningfulHtml($html)) {
-                $items->push([
-                    'slug' => $slug,
-                    'label' => $meta['menu_label'] ?? $meta['title'],
-                    'url' => route('cms.page', $slug),
-                ]);
+            $taxKey = $meta['tax_key'] ?? '';
+            if ($taxKey !== '') {
+                $html = tax_value($taxKey, '');
+                if ($this->hasMeaningfulHtml($html)) {
+                    $items->push([
+                        'slug' => $slug,
+                        'label' => $meta['menu_label'] ?? $meta['title'],
+                        'url' => route('cms.page', $slug),
+                    ]);
+                }
             }
         }
 
         return $items;
     }
 
+    /** @return Collection<int, array{label: string, url: string, slug: string}> */
+    public function headerLegalNavItems(): Collection
+    {
+        return $this->legalNavItems()->filter(function (array $item) {
+            $slug = $item['slug'] ?? '';
+
+            return (bool) config("tenant_storefront.legal_pages.{$slug}.in_header", false);
+        })->values();
+    }
+
     public function contactPage(): ?Page
     {
         $page = Page::findContactPage();
 
-        return $this->pageIsVisible($page) ? $page : null;
+        return ($page && $page->status === 'published') ? $page : null;
+    }
+
+    public function contactPageUrl(): string
+    {
+        $page = $this->contactPage();
+
+        return $page ? route('cms.page', $page->slug) : route('cms.page', 'contact');
+    }
+
+    /** Whether CMS intro HTML should render above the contact form. */
+    public function contactShowsIntro(?Page $page): bool
+    {
+        return $page !== null && $this->publishedPageShowsOnStorefront($page, 'contact');
     }
 
     public function aboutPage(): ?Page
     {
         $page = Page::findAboutPage();
 
-        return $this->pageIsVisible($page) ? $page : null;
+        return $this->publishedPageShowsOnStorefront($page, Page::SLUG_ABOUT) ? $page : null;
     }
 
     public function blogPage(): ?Page
@@ -206,14 +323,12 @@ class StorefrontPresenterService
 
     public function showContactNav(): bool
     {
-        return $this->contactPage() !== null
-            || filled($this->site()?->contactus_email)
-            || filled($this->site()?->email);
+        return $this->contactPage() !== null || $this->hasSiteContactDetails();
     }
 
     public function showAboutNav(): bool
     {
-        return $this->aboutPage() !== null || $this->homeSettings() !== null;
+        return $this->aboutPage() !== null || $this->homeAboutSectionVisible();
     }
 
     public function showBlogNav(): bool
@@ -234,7 +349,7 @@ class StorefrontPresenterService
         }
 
         $page = Page::query()->where('slug', $slug)->where('status', 'published')->first();
-        if ($this->pageIsVisible($page)) {
+        if ($this->publishedPageShowsOnStorefront($page, $slug)) {
             return [
                 'title' => $page->title,
                 'html' => (string) $page->content,
@@ -243,17 +358,20 @@ class StorefrontPresenterService
             ];
         }
 
-        $html = tax_value($config['tax_key'] ?? '', '');
-        if (! $this->hasMeaningfulHtml($html)) {
-            return null;
+        $taxKey = $config['tax_key'] ?? '';
+        if ($taxKey !== '') {
+            $html = tax_value($taxKey, '');
+            if ($this->hasMeaningfulHtml($html)) {
+                return [
+                    'title' => $config['title'],
+                    'html' => $html,
+                    'source' => 'tax',
+                    'page' => null,
+                ];
+            }
         }
 
-        return [
-            'title' => $config['title'],
-            'html' => $html,
-            'source' => 'tax',
-            'page' => null,
-        ];
+        return null;
     }
 
     public function isLegalSlug(string $slug): bool
@@ -304,10 +422,9 @@ class StorefrontPresenterService
         }
 
         if ($this->showContactNav()) {
-            $contact = $this->contactPage();
             $links[] = [
-                'label' => 'Contact',
-                'url' => $contact ? route('cms.page', $contact->slug) : route('cms.page', 'contact'),
+                'label' => 'Contact us',
+                'url' => $this->contactPageUrl(),
             ];
         }
 

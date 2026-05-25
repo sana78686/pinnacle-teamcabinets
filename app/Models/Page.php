@@ -156,6 +156,10 @@ class Page extends Model
             return route('pages.edit', $this->id);
         }
 
+        if (array_key_exists($this->slug, config('tenant_storefront.legal_pages', []))) {
+            return route('tenant_legal_pages_edit', $this->slug);
+        }
+
         return match ($this->slug) {
             self::SLUG_ABOUT, 'about-us' => route('tenant_storefront_about'),
             self::SLUG_BLOG => route('tenant_storefront_blog'),

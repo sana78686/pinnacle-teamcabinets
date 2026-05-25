@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "generate:parity": "node scripts/generate-parity-docs.mjs",
+    "generate:ci-gap": "node scripts/generate-ci-gap-doc.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

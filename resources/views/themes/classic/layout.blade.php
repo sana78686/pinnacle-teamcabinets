@@ -12,22 +12,18 @@
     @endif
     <link rel="stylesheet" href="{{ tenant_static_asset('css/tenant-responsive.css') }}?v=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
-    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-chrome.css') }}?v=3">
+    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-chrome.css') }}?v=7">
+    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-responsive.css') }}?v=2">
     @stack('head')
 </head>
-<body class="cl-body hz-body">
+<body class="cl-body hz-body sf-storefront">
     @include('themes.classic.partials.header')
     <main class="cl-main hz-main">@yield('content')</main>
-    @include('partials.storefront.pre-footer-cta')
     @include('themes.classic.partials.footer')
     @include('partials.storefront.chrome')
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="{{ tenant_static_asset('js/storefront-nav.js') }}?v=1"></script>
     <script>
-        document.getElementById('cl-menu-btn')?.addEventListener('click', function () {
-            var nav = document.getElementById('cl-mobile-nav');
-            var open = nav.classList.toggle('is-open');
-            this.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
         (function () {
             var btn = document.getElementById('hz-account-btn');
             var menu = document.getElementById('hz-account-menu');

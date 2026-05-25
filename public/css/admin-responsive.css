@@ -2,8 +2,115 @@
  * Pinnacle super-admin (mega layout) — mobile / tablet
  */
 
+/* ─── Admin header (all widths) ─── */
+.pn-admin-header .main-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.pn-admin-header .logo-wrapper {
+    text-align: left;
+}
+
+.pn-admin-logo {
+    max-height: 44px;
+    width: auto;
+    height: auto;
+    padding: 0.25rem 0 !important;
+}
+
+.pn-admin-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 44px;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #c5a028;
+    border-radius: 8px;
+    background: #0c2340;
+    color: #fff;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pn-admin-menu-btn:hover {
+    background: #1a3a5c;
+}
+
+.pn-admin-menu-btn svg {
+    width: 1.15rem;
+    height: 1.15rem;
+}
+
+.pn-admin-menu-btn__label {
+    line-height: 1;
+}
+
+.pn-admin-user-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    border: 1px solid #b8daff;
+    border-radius: 10px;
+    background: #d6eaff;
+    color: #004085;
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+}
+
+.pn-admin-user-btn__initials {
+    font-style: normal;
+}
+
+.pn-admin-logout-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    color: #0c2340;
+    text-decoration: none;
+    cursor: pointer;
+    padding: 0.35rem;
+}
+
+.pn-admin-logout-btn:hover {
+    background: #f8fafc;
+    color: #0c2340;
+}
+
+.pn-admin-header .nav-menus > li {
+    margin: 0;
+}
+
+.pn-admin-nav-hint {
+    font-size: 0.8125rem;
+}
+
+/* Hide legacy mega-menu chrome if any fragment remains */
+.pn-admin-panel .vertical-mobile-sidebar,
+.pn-admin-panel .mega-menu-header .vertical-menu-main,
+.pn-admin-panel .page-main-header .search-form,
+.pn-admin-panel .page-main-header .mobile-toggle {
+    display: none !important;
+}
+
 /* ─── Layout & sidebar ─── */
 @media (max-width: 991.98px) {
+    .pn-admin-panel .right-sidebar {
+        display: none !important;
+    }
+
     .page-wrapper {
         overflow-x: hidden;
     }
@@ -27,41 +134,49 @@
         z-index: 1040;
     }
 
-    .page-wrapper .page-main-header .main-header-right {
-        flex-wrap: wrap;
+    .page-wrapper .page-main-header .main-header-right,
+    .pn-admin-panel .page-main-header .main-header-right {
+        flex-wrap: nowrap;
         padding: 0.5rem 0.75rem;
+        gap: 0.5rem;
     }
 
-    .page-wrapper .page-main-header .main-header-left {
+    .page-wrapper .page-main-header .main-header-left,
+    .pn-admin-panel .page-main-header .main-header-left {
         flex: 1 1 auto;
+        min-width: 0;
         text-align: left !important;
     }
 
-    .page-wrapper .mobile-sidebar {
+    .page-wrapper .mobile-sidebar,
+    .pn-admin-panel .mobile-sidebar {
         display: flex !important;
         align-items: center;
-        margin-right: 0.5rem;
+        order: -1;
     }
 
-    .page-wrapper .mobile-sidebar .switch {
-        margin: 0 !important;
+    .page-wrapper .page-main-header .nav-right,
+    .pn-admin-panel .page-main-header .nav-right {
+        width: auto;
+        padding: 0;
     }
 
-    .page-wrapper .page-main-header .vertical-menu-main,
-    .page-wrapper .page-main-header .mega-menu-header .vertical-menu-main {
-        display: none !important;
+    .page-wrapper .page-main-header .nav-menus,
+    .pn-admin-panel .page-main-header .nav-menus {
+        flex-wrap: nowrap;
+        gap: 0.35rem;
     }
 
-    .page-wrapper .page-main-header .nav-right .search-form {
-        display: none;
+    .pn-admin-logo {
+        max-height: 38px !important;
     }
 
-    .page-wrapper .page-main-header .nav-menus {
-        flex-wrap: wrap;
-        gap: 0.25rem;
+    .pn-admin-menu-btn__label {
+        display: inline;
     }
 
-    .page-wrapper .iconsidebar-menu {
+    .page-wrapper .iconsidebar-menu,
+    .pn-admin-panel .iconsidebar-menu {
         position: fixed;
         left: 0;
         top: 0;
@@ -71,14 +186,26 @@
         transition: transform 0.25s ease;
     }
 
-    .page-wrapper .iconsidebar-menu.iconbar-second-close {
+    .page-wrapper .iconsidebar-menu.iconbar-second-close,
+    .pn-admin-panel .iconsidebar-menu.iconbar-second-close {
         transform: translateX(-100%);
         pointer-events: none;
     }
 
-    .page-wrapper .iconsidebar-menu.iconbar-mainmenu-close {
+    .page-wrapper .iconsidebar-menu.iconbar-mainmenu-close,
+    .pn-admin-panel .iconsidebar-menu.iconbar-mainmenu-close {
         transform: translateX(0);
         pointer-events: auto;
+    }
+
+    .pn-admin-panel .iconsidebar-menu .iconMenu-bar {
+        padding-top: 0.5rem;
+    }
+
+    .pn-admin-panel .iconsidebar-menu .iconbar-mainmenu {
+        max-height: 100vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     body.pn-admin-sidebar-open::before {

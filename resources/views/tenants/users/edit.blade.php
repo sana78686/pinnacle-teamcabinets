@@ -537,7 +537,7 @@
             });
         });
     </script>
-    <script src="{{ tenant_panel_asset('js/tenant-user-door-factors.js') }}?v=2"></script>
+    <script src="{{ tenant_panel_asset('js/tenant-user-door-factors.js') }}?v=3"></script>
     @push('after_sweetalert')
         <script src="{{ tenant_panel_asset('js/tenant-user-form.js') }}?v=2"></script>
     @endpush

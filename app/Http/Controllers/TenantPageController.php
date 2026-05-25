@@ -217,7 +217,8 @@ class TenantPageController extends Controller
             }
 
             $page = Page::with('parent')->where('slug', $slug)->where('status', 'published')->first()
-                ?? $this->storefront->contactPage();
+                ?? $this->storefront->contactPage()
+                ?? Page::findContactPage();
 
             return view($this->themes->view('contact'), [
                 'page' => $page,
@@ -235,8 +236,11 @@ class TenantPageController extends Controller
                 throw new NotFoundHttpException;
             }
 
-            $page = Page::with('parent')->where('slug', $slug)->where('status', 'published')->first()
-                ?? $this->storefront->aboutPage();
+            $page = Page::with('parent')->where('slug', $slug)->where('status', 'published')->first();
+            if ($page && ! $this->storefront->publishedPageShowsOnStorefront($page, $page->slug)) {
+                $page = null;
+            }
+            $page = $page ?? $this->storefront->aboutPage();
 
             return view($this->themes->view('about'), array_merge($this->homePayload(), [
                 'page' => $page,
@@ -290,6 +294,69 @@ class TenantPageController extends Controller
         $posts = Page::blogPosts()->orderByDesc('created_at')->get();
 
         return view('frontend.blog_manage', compact('blogPage', 'posts'));
+    }
+
+    public function legalPagesIndex(): View
+    {
+        $this->storefrontPages->ensureLegalPages();
+
+        $pages = collect(config('tenant_storefront.legal_pages', []))
+            ->map(function (array $meta, string $slug) {
+                $page = Page::query()->where('slug', $slug)->first();
+
+                return [
+                    'slug' => $slug,
+                    'title' => $meta['title'] ?? $slug,
+                    'menu_label' => $meta['menu_label'] ?? $meta['title'],
+                    'in_header' => (bool) ($meta['in_header'] ?? false),
+                    'page' => $page,
+                    'published' => $page?->status === 'published',
+                    'has_content' => $page && $this->storefront->publishedPageShowsOnStorefront($page, $slug),
+                    'storefront_url' => route('cms.page', $slug),
+                ];
+            })
+            ->values();
+
+        return view('frontend.legal_pages_index', compact('pages'));
+    }
+
+    public function legalPageEdit(string $slug): View
+    {
+        $meta = config("tenant_storefront.legal_pages.{$slug}");
+        if (! $meta) {
+            throw new NotFoundHttpException;
+        }
+
+        $this->storefrontPages->ensureLegalPages();
+        $page = Page::query()->where('slug', $slug)->firstOrFail();
+
+        return view('frontend.legal_page_edit', [
+            'page' => $page,
+            'legalSlug' => $slug,
+            'legalMeta' => $meta,
+        ]);
+    }
+
+    public function legalPageUpdate(Request $request, string $slug): RedirectResponse
+    {
+        $meta = config("tenant_storefront.legal_pages.{$slug}");
+        if (! $meta) {
+            throw new NotFoundHttpException;
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'nullable|string',
+            'status' => 'required|in:draft,published',
+        ]);
+
+        $page = Page::query()->where('slug', $slug)->firstOrFail();
+        $page->fill($request->only(['title', 'content', 'status']));
+        $page->save();
+
+        return redirect()
+            ->route('tenant_legal_pages')
+            ->with('success', ($meta['title'] ?? 'Legal page').' saved. It will appear on your storefront when published with content.');
     }
 
     protected function isReservedTopLevelSlug(string $slug): bool

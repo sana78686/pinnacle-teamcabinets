@@ -33,6 +33,9 @@
             @foreach ($sfMenuPages as $navItem)
                 <a href="{{ $navItem['url'] }}" class="hover:text-md-gold">{{ $navItem['label'] }}</a>
             @endforeach
+            @foreach ($sfHeaderLegalNav ?? [] as $legalItem)
+                <a href="{{ $legalItem['url'] }}" class="hover:text-md-gold">{{ $legalItem['label'] }}</a>
+            @endforeach
             @if ($sfShowContact)
                 <a href="{{ $contactUrl }}" class="hover:text-md-gold">Contact</a>
             @endif
@@ -46,8 +49,8 @@
             @auth
                 @include('themes.modern.partials.header-account', ['variant' => 'desktop'])
             @else
-                <a href="{{ route('tenant_login') }}" class="hidden rounded-full border border-md-ink px-4 py-2 text-sm font-semibold text-md-ink hover:bg-md-cream sm:inline-flex">Sign in</a>
-                <a href="{{ route('tenant_register') }}" class="md-btn md-btn--dark !px-5 !py-2 text-xs">Get started</a>
+                <a href="{{ route('tenant_login') }}" class="sf-header-auth-desktop hidden rounded-full border border-md-ink px-4 py-2 text-sm font-semibold text-md-ink hover:bg-md-cream lg:inline-flex">Sign in</a>
+                <a href="{{ route('tenant_register') }}" class="sf-header-auth-desktop md-btn md-btn--dark !px-5 !py-2 text-xs hidden lg:inline-flex">Get started</a>
             @endauth
             <button type="button" id="md-menu-btn" class="inline-flex h-10 w-10 items-center justify-center rounded border border-md-line lg:hidden" aria-label="Open menu" aria-expanded="false" aria-controls="md-mobile-nav">
                 <i class="fa-solid fa-bars" aria-hidden="true"></i>
@@ -62,6 +65,7 @@
             <a href="{{ route('cms.page') }}#md-gallery">Gallery</a>
             @if ($blogUrl)<a href="{{ $blogUrl }}">Articles</a>@endif
             @foreach ($sfMenuPages as $navItem)<a href="{{ $navItem['url'] }}">{{ $navItem['label'] }}</a>@endforeach
+            @foreach ($sfHeaderLegalNav ?? [] as $legalItem)<a href="{{ $legalItem['url'] }}">{{ $legalItem['label'] }}</a>@endforeach
             @if ($sfShowContact)<a href="{{ $contactUrl }}">Contact</a>@endif
             @auth
                 @include('themes.modern.partials.header-account', ['variant' => 'mobile'])

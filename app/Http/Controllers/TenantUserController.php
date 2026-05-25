@@ -95,7 +95,33 @@ class TenantUserController extends Controller
             ]);
         }
 
-        return view('tenants.users.index', $data);
+        return view('tenants.users.index', array_merge($data, $this->doorFactorBootstrapData()));
+    }
+
+    /** @return array<string, mixed> */
+    protected function doorFactorBootstrapData(): array
+    {
+        $product_catalogs = ProductCatalog::query()->where('status', 1)->get();
+        $door_colors = DoorColors::with('productCatalog')->get();
+        $point_factor_defaults = PointFactorDefault::query()
+            ->pluck('point_factor_percentage', 'user_type')
+            ->map(fn ($v) => (string) $v)
+            ->all();
+        $has_point_factor_defaults = count($point_factor_defaults) > 0;
+        $has_product_catalogs = $product_catalogs->isNotEmpty();
+        $has_door_styles = $door_colors->isNotEmpty();
+
+        return [
+            'product_catalogs' => $product_catalogs,
+            'door_colors' => $door_colors,
+            'point_factor_defaults' => $point_factor_defaults,
+            'has_point_factor_defaults' => $has_point_factor_defaults,
+            'has_product_catalogs' => $has_product_catalogs,
+            'has_door_styles' => $has_door_styles,
+            'door_factor_setup_incomplete' => ! $has_point_factor_defaults
+                || ! $has_product_catalogs
+                || ! $has_door_styles,
+        ];
     }
 
     public function autocomplete(Request $request): JsonResponse
@@ -234,18 +260,13 @@ class TenantUserController extends Controller
                 'admin_viewed_at' => now(),
             ]);
 
-            if ($request->is_taxable_user || $request->is_taxable_user === 'on') {
-                $user->update(['is_taxable_user' => 1]);
-            }
+            $user->forceFill([
+                'is_taxable_user' => ($request->is_taxable_user || $request->is_taxable_user === 'on') ? 1 : 0,
+                'is_verified_by_admin' => $request->status === 'approved',
+                'is_verified' => $request->status === 'approved',
+            ])->save();
 
-            $user->assignRole($role->name);
-
-            if ($request->status === 'approved') {
-                $user->update([
-                    'is_verified_by_admin' => true,
-                    'is_verified' => true,
-                ]);
-            }
+            $user->syncRoles([$role->name]);
 
             $this->doorFactors->persistForUser($user, $request);
             ManageCommission::query()->firstOrCreate(
@@ -254,7 +275,7 @@ class TenantUserController extends Controller
             );
             $this->sendUserRegisteredByAdminEmail($user, $plainPassword);
 
-            $message = 'User created successfully. Login details were emailed to '.$user->email.'.';
+            $message = 'User created successfully. Welcome email will be sent to '.$user->email.'.';
 
             return $this->userFormSuccessResponse($request, $message);
         } catch (\Exception $e) {
@@ -380,32 +401,31 @@ class TenantUserController extends Controller
             return $this->userFormErrorResponse($request, 'Selected role does not exist.');
         }
 
-        $user->username = $request->username;
-        $user->name = $request->name;
-        $user->phone = $request->phone;
-        $user->email = $request->email;
-        $user->country_id = $request->country_id;
-        $user->state_id = $request->state_id;
-        $user->city_name = $request->city_name;
-        $user->county_name = $request->county_name;
-        $user->zip_code = $request->zip_code;
-        $user->address = $request->address;
-        $user->note = $request->note;
-        $user->company_name = $request->business_name;
-        $user->gross_sale = $request->gross_sale;
-        $user->status = $request->status;
-        $user->save();
-
-        $user->update([
+        $user->fill([
+            'username' => $request->username,
+            'name' => $request->name,
+            'phone' => $request->phone,
+            'email' => $request->email,
+            'country_id' => $request->country_id,
+            'state_id' => $request->state_id,
+            'city_name' => $request->city_name,
+            'county_name' => $request->county_name,
+            'zip_code' => $request->zip_code,
+            'address' => $request->address,
+            'note' => $request->note,
+            'company_name' => $request->business_name,
+            'gross_sale' => $request->gross_sale,
+            'status' => $request->status,
             'is_taxable_user' => ($request->is_taxable_user || $request->is_taxable_user === 'on') ? 1 : 0,
         ]);
 
         if ($request->password) {
-            $user->update(['password' => Hash::make($request->password)]);
+            $user->password = Hash::make($request->password);
         }
 
-        DB::table('model_has_roles')->where('model_id', $id)->delete();
-        $user->assignRole($role->name);
+        $user->save();
+
+        $user->syncRoles([$role->name]);
 
         try {
             $this->doorFactors->persistForUser($user, $request);
@@ -482,9 +502,106 @@ public function updateVerification(Request $request, $id)
 
     TenantNotificationService::accountApproved($user);
 
-    return response()->json(['success' => true, 'message' => 'User verified successfully.']);
+    return response()->json([
+        'success' => true,
+        'message' => 'User verified successfully.',
+        'show_approval_setup' => true,
+        'user_id' => $user->id,
+    ]);
 }
 
+public function approvalSetupForm(int $id): JsonResponse
+{
+    $user = User::findOrFail($id);
+
+    if (tenant_user_has_admin_role($user)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Admin users do not use catalog visibility setup.',
+        ], 403);
+    }
+
+    $selected_catalogs = UsersCatalogVisibility::query()
+        ->where('user_id', $user->id)
+        ->pluck('catalog_id')
+        ->map(fn ($id) => (int) $id)
+        ->all();
+
+    $existing = UsersCatalogDoorPointFactor::query()
+        ->where('user_id', $user->id)
+        ->get()
+        ->groupBy('catalog_id');
+
+    $doorFactorValue = function ($catalogId, $doorColorId) use ($existing) {
+        $row = $existing->get($catalogId)?->firstWhere('door_style', $doorColorId);
+
+        return $row ? (string) $row->factor : '';
+    };
+
+    $roleName = $user->roles()->pluck('name')->first();
+
+    return response()->json([
+        'success' => true,
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'username' => $user->username,
+            'role' => $roleName,
+        ],
+        'html' => view('tenants.users.partials.approval-setup-modal-body', array_merge(
+            $this->doorFactorBootstrapData(),
+            [
+                'selected_catalogs' => $selected_catalogs,
+                'doorFactorValue' => $doorFactorValue,
+            ]
+        ))->render(),
+    ]);
+}
+
+public function saveApprovalSetup(Request $request, int $id): JsonResponse
+{
+    $user = User::findOrFail($id);
+
+    if (tenant_user_has_admin_role($user)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Admin users do not use catalog visibility setup.',
+        ], 403);
+    }
+
+    $errors = $this->doorFactors->doorFactorValidationErrors($request);
+    if ($errors !== null) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Please fix the door factor values below.',
+            'errors' => $errors,
+        ], 422);
+    }
+
+    try {
+        $this->doorFactors->persistForUser($user, $request);
+    } catch (\Throwable $e) {
+        Log::error('Approval catalog setup failed', [
+            'user_id' => $user->id,
+            'message' => $e->getMessage(),
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Could not save catalog settings. Please try again.',
+        ], 500);
+    }
+
+    $summary = $this->doorFactors->factorSummary($user);
+
+    return response()->json([
+        'success' => true,
+        'message' => $summary['catalogs'] > 0
+            ? 'Catalog access saved for '.$user->name.'.'
+            : 'Saved. No catalogs selected — you can configure them later from Edit user.',
+        'summary' => $summary,
+    ]);
+}
 
 public function updateStatus(Request $request, $id)
 {
@@ -517,9 +634,17 @@ public function updateStatus(Request $request, $id)
         TenantNotificationService::accountDeactivated($user);
     }
 
+    $becameApproved = $newStatus === 'approved' && $previousStatus !== 'approved';
+
+    if ($becameApproved) {
+        TenantNotificationService::accountApproved($user);
+    }
+
     return response()->json([
         'success' => true,
-        'message' => 'User status updated successfully.'
+        'message' => 'User status updated successfully.',
+        'show_approval_setup' => $becameApproved,
+        'user_id' => $user->id,
     ]);
 }
 
@@ -536,21 +661,26 @@ public function updateStatus(Request $request, $id)
 
     protected function sendUserRegisteredByAdminEmail(User $user, string $plainPassword): void
     {
-        try {
-            Mail::to($user->email)->send(new UserRegisteredByAdminMail($user, $plainPassword));
+        $userId = $user->id;
+        $email = $user->email;
 
-            TenantNotificationService::accountCreatedByAdmin($user);
-        } catch (\Throwable $e) {
-            Log::warning('Failed to send admin-created user welcome email', [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'message' => $e->getMessage(),
-            ]);
-            session()->flash(
-                'error',
-                'User was created but the welcome email could not be sent. Share login details manually. ('.$e->getMessage().')'
-            );
-        }
+        dispatch(function () use ($userId, $email, $plainPassword) {
+            $recipient = User::query()->find($userId);
+            if (! $recipient) {
+                return;
+            }
+
+            try {
+                Mail::to($email)->send(new UserRegisteredByAdminMail($recipient, $plainPassword));
+                TenantNotificationService::accountCreatedByAdmin($recipient);
+            } catch (\Throwable $e) {
+                Log::warning('Failed to send admin-created user welcome email', [
+                    'user_id' => $userId,
+                    'email' => $email,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        })->afterResponse();
     }
 
     public function roleAutoComplete(Request $request)

@@ -124,6 +124,9 @@ Route::prefix('storefront-chat')->group(function () {
 
          Route::get('website-designing/about', [TenantPageController::class, 'editAbout'])->name('tenant_storefront_about');
          Route::get('website-designing/blog', [TenantPageController::class, 'blogManage'])->name('tenant_storefront_blog');
+         Route::get('website-designing/legal-pages', [TenantPageController::class, 'legalPagesIndex'])->name('tenant_legal_pages');
+         Route::get('website-designing/legal-pages/{slug}/edit', [TenantPageController::class, 'legalPageEdit'])->name('tenant_legal_pages_edit');
+         Route::put('website-designing/legal-pages/{slug}', [TenantPageController::class, 'legalPageUpdate'])->name('tenant_legal_pages_update');
          Route::resource('pages', TenantPageController::class);
 
 
@@ -214,6 +217,8 @@ Route::prefix('storefront-chat')->group(function () {
          Route::put('users/{id}', [TenantUserController::class, 'update'])->name('tenant_user_update');
          Route::delete('users/{id}', [TenantUserController::class, 'destroy'])->name('tenant_user_destroy');
          Route::post('/users/{id}/status', [TenantUserController::class, 'updateStatus'])->name('tenant_users_update_status');
+         Route::get('users/{id}/approval-setup', [TenantUserController::class, 'approvalSetupForm'])->name('tenant_user_approval_setup_form');
+         Route::post('users/{id}/approval-setup', [TenantUserController::class, 'saveApprovalSetup'])->name('tenant_user_approval_setup_store');
          Route::get('users/deleted/list', [TenantUserController::class, 'deletedUsersList'])->name('tenant_deleted_users_list');
          Route::get('users/child/deleted/list', [TenantUserController::class, 'deletedChildUsersList'])->name('tenant_deleted_users_child_list');
          Route::get('users/{id}/restore', [TenantUserController::class, 'restoreDeletedUser'])->name('tenant_user_restore');

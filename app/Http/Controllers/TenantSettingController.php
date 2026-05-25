@@ -21,6 +21,7 @@ use App\Services\PointFactorDefaultsService;
 use App\Services\SalesTaxCountiesService;
 use App\Services\TaxValuesService;
 use App\Services\StorefrontBrandCssService;
+use App\Services\StorefrontPageService;
 use App\Services\TenantFrontendThemeService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -36,24 +37,33 @@ class TenantSettingController extends Controller
         return redirect()->route('tenant_contact_page_settings');
     }
 
-    public function contactPageSettings()
+    public function contactPageSettings(StorefrontPageService $storefrontPages)
     {
         $settings = SiteSetting::forCurrentTenant();
+        $contactPage = $storefrontPages->ensureContactPage();
 
-        return view('tenants.setting.manage_contact_us', compact('settings'));
+        return view('tenants.setting.manage_contact_us', compact('settings', 'contactPage'));
     }
 
-    public function storeContactPageSettings(Request $request)
+    public function storeContactPageSettings(Request $request, StorefrontPageService $storefrontPages)
     {
         $request->validate([
             'contact_sidebar_title' => 'nullable|string|max:255',
             'map_embed_url' => 'nullable|string|max:5000',
+            'contact_intro' => 'nullable|string',
         ]);
 
         $settings = SiteSetting::forCurrentTenant();
         $settings->contact_sidebar_title = $request->contact_sidebar_title;
         $settings->map_embed_url = $request->map_embed_url;
         $settings->save();
+
+        $page = $storefrontPages->ensureContactPage();
+        $page->status = 'published';
+        if ($request->has('contact_intro')) {
+            $page->content = $request->input('contact_intro');
+        }
+        $page->save();
 
         return redirect()->back()->with('success', 'Contact page settings saved.');
     }

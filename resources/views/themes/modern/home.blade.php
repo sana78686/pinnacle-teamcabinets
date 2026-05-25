@@ -6,6 +6,7 @@
 
     $company = tenant('company_name') ?? tenant('name') ?? 'Your business';
     $md = app(ModernHomeMediaService::class)->resolve($homesettings ?? null);
+    $copy = $md['content'];
     $mdMedia = fn (string $path) => tenant_static_asset('themes/modern/media/'.$path);
     $heroTitle = $homesettings?->benner_title ?? 'Built-to-Order Cabinets, Delivered Fully Assembled.';
     $heroLead = $homesettings?->benner_description ?? 'From fan-favorite Shaker to sleek modern slab — over 600 style &amp; finish combinations for dealers, showrooms, and contractors.';
@@ -16,9 +17,11 @@
     $slideshowMs = (int) ($md['slideshow_interval_ms'] ?? 2000);
     $contactUrl = $sfContactPage ? route('cms.page', $sfContactPage->slug) : ($sfShowContact ? route('cms.page', 'contact') : '#md-contact');
     $catalogRows = isset($catalogs) ? $catalogs->filter(fn ($c) => $c->doorColors && $c->doorColors->count() > 0) : collect();
+    $homeFaqs = $homesettings?->resolvedFaqs() ?? ($faqs ?? []);
+    $doorTitleLines = preg_split('/\s+/', trim($copy['door_title']), 2);
+    $finishTitleLines = preg_split('/\s+/', trim($copy['finish_title']), 2);
 @endphp
 
-{{-- Hero with background video (Cabinets.com customer-closeups) --}}
 <section class="relative flex min-h-[88vh] items-center justify-center overflow-hidden bg-md-ink">
     <video class="md-hero-video" autoplay muted loop playsinline poster="{{ $heroPoster }}">
         <source src="{{ $heroVideo }}" type="video/mp4">
@@ -38,13 +41,10 @@
     </div>
 </section>
 
-{{-- Style & budget intro + door / finish panels --}}
 <section id="md-door-styles" class="bg-md-cream py-14 md:py-20">
     <div class="mx-auto max-w-md-page px-4 lg:px-6">
-        <h2 class="text-center text-3xl font-bold text-md-ink md:text-4xl">Cabinets for every style and budget</h2>
-        <p class="mx-auto mt-4 max-w-3xl text-center text-base text-gray-600">
-            {{ $company }} makes kitchen design easy with multiple door styles, finishes, and construction options — tailored for your trade customers.
-        </p>
+        <h2 class="text-center text-3xl font-bold text-md-ink md:text-4xl">{{ $copy['style_intro_title'] }}</h2>
+        <div class="mx-auto mt-4 max-w-3xl text-center text-base text-gray-600">{!! $copy['style_intro_body'] !!}</div>
     </div>
 
     <div class="mx-auto mt-12 max-w-md-page overflow-hidden rounded-sm border border-md-line bg-white shadow-sm">
@@ -54,9 +54,11 @@
             @endforeach
         </div>
         <div class="md-feature-split">
-            <h3 class="md-feature-split__title">Door<br>Styles</h3>
+            <h3 class="md-feature-split__title">
+                {{ $doorTitleLines[0] ?? 'Door' }}@if (!empty($doorTitleLines[1]))<br>{{ $doorTitleLines[1] }}@endif
+            </h3>
             <div class="md-feature-split__body">
-                <p class="text-lg text-gray-700">21 door styles in Framed, Frameless, and European Frameless cabinets</p>
+                <div class="text-lg text-gray-700">{!! $copy['door_body'] !!}</div>
                 @auth
                     <a href="{{ route('tenant_order_workspace') }}" class="md-btn md-btn--outline w-fit">Shop cabinets</a>
                 @else
@@ -73,16 +75,17 @@
             @endforeach
         </div>
         <div class="md-feature-split">
-            <h3 class="md-feature-split__title">Finish<br>Options</h3>
+            <h3 class="md-feature-split__title">
+                {{ $finishTitleLines[0] ?? 'Finish' }}@if (!empty($finishTitleLines[1]))<br>{{ $finishTitleLines[1] }}@endif
+            </h3>
             <div class="md-feature-split__body">
-                <p class="text-lg text-gray-700">More than 80 unique colors including stains, paints, and enhancements</p>
+                <div class="text-lg text-gray-700">{!! $copy['finish_body'] !!}</div>
                 <a href="{{ route('cms.page') }}#md-gallery" class="md-btn md-btn--outline w-fit">View gallery</a>
             </div>
         </div>
     </div>
 </section>
 
-{{-- Factory video section --}}
 <section class="relative overflow-hidden bg-md-ink py-0">
     <div class="relative mx-auto max-w-md-page">
         <div class="relative aspect-[21/9] min-h-[320px] w-full md:min-h-[420px]">
@@ -91,10 +94,8 @@
             </video>
             <div class="absolute inset-0 bg-black/50"></div>
             <div class="absolute inset-0 flex flex-col items-center justify-center px-6 text-center text-white">
-                <h2 class="text-3xl font-bold md:text-4xl">From our hands, to your home</h2>
-                <p class="mt-4 max-w-2xl text-lg text-white/90">
-                    Technology meets craftsmanship at our facility, where we transform raw wood into kitchen cabinets for {{ $company }} partners.
-                </p>
+                <h2 class="text-3xl font-bold md:text-4xl">{{ $copy['factory_title'] }}</h2>
+                <div class="mt-4 max-w-2xl text-lg text-white/90">{!! $copy['factory_body'] !!}</div>
                 @if ($sfShowAbout)
                     <a href="{{ $sfAboutPage ? route('cms.page', $sfAboutPage->slug) : route('cms.page', 'about') }}" class="mt-8 md-btn border border-white bg-transparent text-white hover:bg-white hover:text-md-ink">Learn more</a>
                 @endif
@@ -103,27 +104,25 @@
     </div>
 </section>
 
-{{-- Dealer CTA cards --}}
 <section class="bg-white py-16">
     <div class="mx-auto grid max-w-md-page gap-6 px-4 md:grid-cols-2 lg:px-6">
         <article class="rounded-lg border border-md-line bg-md-cream p-8">
-            <h3 class="text-2xl font-bold">Create-A-Kitchen Tool</h3>
-            <p class="mt-3 text-gray-600">Our user-friendly virtual kitchen planner for approved dealers.</p>
-            <a href="{{ route('tenant_register') }}" class="mt-6 inline-block font-semibold text-md-gold hover:underline">Get access →</a>
+            <h3 class="text-2xl font-bold">{{ $copy['cta_one_title'] }}</h3>
+            <div class="mt-3 text-gray-600">{!! $copy['cta_one_body'] !!}</div>
+            <a href="{{ route('tenant_register') }}" class="mt-6 inline-block font-semibold text-md-gold hover:underline">{{ $copy['cta_one_label'] }}</a>
         </article>
         <article class="rounded-lg border border-md-line bg-md-cream p-8">
-            <h3 class="text-2xl font-bold">Trade Pro Program</h3>
-            <p class="mt-3 text-gray-600">For businesses directly involved with cabinet installation and distribution.</p>
-            <a href="{{ route('tenant_register') }}" class="mt-6 inline-block font-semibold text-md-gold hover:underline">Apply today →</a>
+            <h3 class="text-2xl font-bold">{{ $copy['cta_two_title'] }}</h3>
+            <div class="mt-3 text-gray-600">{!! $copy['cta_two_body'] !!}</div>
+            <a href="{{ route('tenant_register') }}" class="mt-6 inline-block font-semibold text-md-gold hover:underline">{{ $copy['cta_two_label'] }}</a>
         </article>
     </div>
 </section>
 
-{{-- Inspiration gallery carousel --}}
 <section id="md-gallery" class="bg-md-cream py-16 md:py-20">
     <div class="mx-auto max-w-md-page px-4 lg:px-6">
         <div class="mb-8 flex items-end justify-between gap-4">
-            <h2 class="text-3xl font-bold text-md-ink">Design inspiration</h2>
+            <h2 class="text-3xl font-bold text-md-ink">{{ $copy['gallery_title'] }}</h2>
             <div class="flex gap-2">
                 <button type="button" data-md-gallery-prev class="flex h-10 w-10 items-center justify-center rounded-full border border-md-line bg-white hover:bg-white/80" aria-label="Previous">
                     <i class="fa-solid fa-chevron-left"></i>
@@ -166,16 +165,25 @@
 </section>
 @endif
 
-<section class="bg-md-ink py-16 text-center text-white">
-    <div class="mx-auto max-w-2xl px-6">
-        <h2 class="text-3xl font-bold">Ready to partner with {{ $company }}?</h2>
-        <p class="mt-4 text-white/85">Register for trade pricing, catalog access, and online ordering.</p>
-        <div class="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
-            <a href="{{ route('tenant_register') }}" class="md-btn bg-md-gold text-md-ink hover:bg-white">Create your account</a>
-            <a href="{{ $contactUrl }}" class="md-btn md-btn--light">Contact us</a>
+@if (count($homeFaqs) > 0)
+<section id="md-faq" class="border-t border-md-line bg-white py-16 md:py-20">
+    <div class="mx-auto max-w-3xl px-4 lg:px-6">
+        <h2 class="text-center text-3xl font-bold text-md-ink">Frequently asked questions</h2>
+        <div class="mt-10 space-y-3">
+            @foreach ($homeFaqs as $index => $faq)
+                <details class="group rounded-lg border border-md-line bg-md-cream px-5 py-4" @if ($index === 0) open @endif>
+                    <summary class="cursor-pointer list-none font-semibold text-md-ink marker:content-none [&::-webkit-details-marker]:hidden">
+                        {{ $faq['q'] }}
+                        <i class="fa-solid fa-chevron-down float-right mt-1 text-sm text-gray-500 transition group-open:rotate-180" aria-hidden="true"></i>
+                    </summary>
+                    <div class="mt-3 text-gray-600 leading-relaxed">{!! nl2br(e($faq['a'])) !!}</div>
+                </details>
+            @endforeach
         </div>
     </div>
 </section>
+@endif
+
 @endsection
 
 @push('scripts')

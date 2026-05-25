@@ -26,6 +26,40 @@ class StorefrontPageService
         );
     }
 
+    public function ensureContactPage(): Page
+    {
+        $defaultContent = (string) config('tenant_storefront_pages.contact.content', '<p>Questions about dealer applications, orders, or project support? Use the form below or contact us directly.</p>');
+
+        $page = $this->ensurePage(
+            'contact',
+            'Contact Us',
+            $defaultContent,
+            ['show_in_menu' => false, 'order_no' => 3, 'status' => 'published']
+        );
+
+        $presenter = app(StorefrontPresenterService::class);
+        if ($presenter->isPlaceholderContent($page->content, 'contact')) {
+            $page->update([
+                'content' => $defaultContent,
+                'status' => 'published',
+            ]);
+        }
+
+        return $page->fresh();
+    }
+
+    public function ensureLegalPages(): void
+    {
+        foreach (config('tenant_storefront.legal_pages', []) as $slug => $meta) {
+            $this->ensurePage(
+                $slug,
+                $meta['title'] ?? ucfirst(str_replace('-', ' ', $slug)),
+                '',
+                ['show_in_menu' => false, 'order_no' => 50, 'status' => 'draft']
+            );
+        }
+    }
+
     public function ensureDefaults(): void
     {
         if (! tenant('id')) {
@@ -34,6 +68,8 @@ class StorefrontPageService
 
         $this->ensureAboutPage();
         $this->ensureBlogPage();
+        $this->ensureContactPage();
+        $this->ensureLegalPages();
     }
 
     /**

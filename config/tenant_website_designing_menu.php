@@ -45,6 +45,12 @@ return [
             'active' => ['tenant_contact_page_settings', 'tenant_contact_page_settings_store'],
         ],
         [
+            'label' => 'Legal pages',
+            'route' => 'tenant_legal_pages',
+            'icon' => 'shield',
+            'active' => ['tenant_legal_pages', 'tenant_legal_pages_edit', 'tenant_legal_pages_update'],
+        ],
+        [
             'label' => 'Contact inquiries',
             'route' => 'tenant_contact_queries_index',
             'icon' => 'mail',

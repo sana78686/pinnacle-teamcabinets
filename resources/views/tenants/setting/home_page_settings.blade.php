@@ -149,7 +149,9 @@
     <section class="tc-settings-section">
         <h3 class="tc-settings-section__title">Modern theme — homepage videos</h3>
         <p class="text-muted small mb-3">
-            Used when the <strong>Modern</strong> storefront theme is active. Upload your own hero and factory videos; images are resized automatically and videos are compressed when ffmpeg is installed on the server.
+            Used when the <strong>Modern</strong> theme is active. <strong>Main Banner</strong> title, description, and banner file (image or MP4) drive the hero.
+            <strong>About Us</strong> fills the factory video section. <strong>Card Three</strong> = style intro; <strong>Card One</strong> = door block; <strong>Card Two</strong> = finish block.
+            Optional videos below override defaults when the banner is not a video.
         </p>
         <div class="row g-3">
             <div class="col-md-6">
@@ -197,7 +199,7 @@
 
     <section class="tc-settings-section">
         <h3 class="tc-settings-section__title">Homepage FAQ</h3>
-        <p class="tc-field-hint mb-3">These questions appear in the FAQ section on your public storefront (Hazel theme). Leave empty rows out before saving.</p>
+        <p class="tc-field-hint mb-3">Shown on the public storefront home page (Hazel &amp; Modern themes). Leave empty rows out before saving.</p>
         <div id="tc-faq-list" class="tc-faq-list">
             @foreach ($faqs as $index => $faq)
                 <div class="tc-faq-row card mb-2">

@@ -140,13 +140,42 @@
             });
         }
 
+        function closeDoorFactorModal() {
+            const el = document.getElementById('importModal');
+            if (!el) {
+                return;
+            }
+            if (window.bootstrap && bootstrap.Modal) {
+                const instance = bootstrap.Modal.getInstance(el) || bootstrap.Modal.getOrCreateInstance(el);
+                instance.hide();
+                return;
+            }
+            if (window.jQuery) {
+                jQuery(el).modal('hide');
+            }
+        }
+
+        function bindModalSave() {
+            document.querySelectorAll('[data-door-factor-save]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    updateDoorFactorStatus();
+                    closeDoorFactorModal();
+                });
+            });
+        }
+
         function bindModalOpen() {
             document.querySelectorAll('.btn-import').forEach(function (btn) {
                 btn.addEventListener('click', function (e) {
+                    const importModal = document.getElementById('importModal');
+                    if (!importModal || !importModal.querySelector('.product-catalog-checkbox')) {
+                        return;
+                    }
                     e.preventDefault();
-                    const el = document.getElementById('importModal');
-                    if (el && window.bootstrap && bootstrap.Modal) {
-                        bootstrap.Modal.getOrCreateInstance(el).show();
+                    if (window.bootstrap && bootstrap.Modal) {
+                        bootstrap.Modal.getOrCreateInstance(importModal).show();
+                    } else if (window.jQuery) {
+                        jQuery(importModal).modal('show');
                     }
                 });
             });
@@ -205,6 +234,7 @@
 
         bindCatalogCheckboxes();
         bindPerCatalogApply();
+        bindModalSave();
         bindModalOpen();
         bindRoleChange();
         bindApplyAll();

@@ -113,43 +113,19 @@
     </div>
 </section>
 
-<section id="hz-catalog-lines" class="hz-section cl-catalog">
-    <div class="hz-container">
-        <h2 class="hz-section__title">Explore our featured cabinetry lines</h2>
-        <p class="hz-section__sub">Dive into our flagship brands — each line offers unique styles, finishes, and price points.</p>
-        @if ($catalogRows->count())
-            @foreach ($catalogRows as $catalog)
-                <div class="hz-catalog-row">
-                    <div class="hz-catalog-row__brand">
-                        @if ($catalog->image)
-                            <img src="{{ $sf->publicAsset($catalog->image) }}" alt="{{ $catalog->name }}">
-                        @endif
-                        <h3>{{ $catalog->name }}</h3>
-                        @if ($catalog->pdf_url)
-                            <a href="{{ $catalog->pdf_url }}" target="_blank" rel="noopener" class="hz-btn hz-btn--sm hz-btn--outline cl-pdf-link">
-                                <i class="fa-solid fa-file-pdf"></i> View catalog PDF
-                            </a>
-                        @endif
-                    </div>
-                    <div class="hz-catalog-row__track" tabindex="0">
-                        @foreach ($catalog->doorColors as $door)
-                            <article class="hz-finish-card">
-                                @if (!empty($door->image))
-                                    <div class="hz-finish-card__img">
-                                        <img src="{{ $sf->publicAsset($door->image) }}" alt="{{ $door->product_label }}">
-                                    </div>
-                                @else
-                                    <div class="hz-finish-card__img hz-finish-card__img--placeholder"></div>
-                                @endif
-                                <span class="hz-finish-card__label">{{ $door->product_label }}</span>
-                            </article>
-                        @endforeach
-                    </div>
-                </div>
-            @endforeach
-        @elseif ($doorstyles && $doorstyles->count())
+@if ($catalogRows->count())
+    @include('partials.storefront.featured-catalog-lines', [
+        'catalogRows' => $catalogRows,
+        'defaultBrands' => $defaultBrands,
+    ])
+@elseif ($doorstyles && $doorstyles->count())
+    <section id="hz-catalog-lines" class="hz-section cl-catalog cl-catalog--doors-only">
+        <div class="hz-container">
             <div class="cl-doors-swiper-wrap">
-                <h3 class="hz-section__title hz-section__title--sm text-center mb-4">Featured door styles</h3>
+                <header class="sf-catalog-lines__head">
+                    <span class="sf-catalog-lines__eyebrow">Door styles</span>
+                    <h2 class="hz-section__title sf-catalog-lines__title">Explore our featured cabinetry lines</h2>
+                </header>
                 <div class="swiper cl-doors-swiper">
                     <div class="swiper-wrapper">
                         @foreach ($doorstyles as $door)
@@ -166,23 +142,14 @@
                     <div class="swiper-pagination"></div>
                 </div>
             </div>
-        @else
-            @foreach ($defaultBrands as $brand)
-                <div class="hz-catalog-row">
-                    <div class="hz-catalog-row__brand"><h3>{{ $brand['name'] }}</h3></div>
-                    <div class="hz-catalog-row__track hz-catalog-row__track--placeholders">
-                        @for ($i = 0; $i < 4; $i++)
-                            <article class="hz-finish-card">
-                                <div class="hz-finish-card__img hz-finish-card__img--placeholder"></div>
-                                <span class="hz-finish-card__label">Sample finish</span>
-                            </article>
-                        @endfor
-                    </div>
-                </div>
-            @endforeach
-        @endif
-    </div>
-</section>
+        </div>
+    </section>
+@else
+    @include('partials.storefront.featured-catalog-lines', [
+        'catalogRows' => collect(),
+        'defaultBrands' => $defaultBrands,
+    ])
+@endif
 
 <section id="hz-steps" class="hz-section hz-section--cream">
     <div class="hz-container">
@@ -237,16 +204,6 @@
     </div>
 </section>
 
-<section id="hz-contact" class="hz-section hz-section--dark">
-    <div class="hz-container text-center">
-        <h2 class="hz-section__title" style="color:#fff;">Ready to partner with {{ $company }}?</h2>
-        <p class="hz-section__sub" style="color:rgba(255,255,255,.85);">Join dealers nationwide who trust us for quality, price, and delivery.</p>
-        <div class="hz-hero__actions" style="justify-content:center;">
-            <a href="{{ route('tenant_register') }}" class="hz-btn hz-btn--gold">Create your account</a>
-            <a href="{{ route('tenant_login') }}" class="hz-btn hz-btn--outline-light">Dealer login</a>
-        </div>
-    </div>
-</section>
 @endsection
 
 @push('scripts')

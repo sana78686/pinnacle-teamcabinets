@@ -10,21 +10,17 @@
         <link rel="stylesheet" href="{{ $sfBrandStylesheet }}">
     @endif
     <link rel="stylesheet" href="{{ tenant_static_asset('css/tenant-responsive.css') }}?v=1">
-    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-chrome.css') }}?v=3">
+    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-chrome.css') }}?v=7">
+    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-responsive.css') }}?v=2">
     @stack('head')
 </head>
-<body class="hz-body">
+<body class="hz-body sf-storefront">
     @include('themes.hazel.partials.header')
     <main class="hz-main">@yield('content')</main>
-    @include('partials.storefront.pre-footer-cta')
     @include('themes.hazel.partials.footer')
     @include('partials.storefront.chrome')
+    <script src="{{ tenant_static_asset('js/storefront-nav.js') }}?v=1"></script>
     <script>
-        document.getElementById('hz-menu-btn')?.addEventListener('click', function () {
-            var nav = document.getElementById('hz-mobile-nav');
-            var open = nav.classList.toggle('is-open');
-            this.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
         (function () {
             var btn = document.getElementById('hz-account-btn');
             var menu = document.getElementById('hz-account-menu');

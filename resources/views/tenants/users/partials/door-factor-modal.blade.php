@@ -74,7 +74,11 @@
                 @endif
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Close</button>
+                @unless ($door_factor_setup_incomplete ?? false)
+                    <button type="button" class="btn btn-primary btn-sm" data-door-factor-save>Save</button>
+                @else
+                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Close</button>
+                @endunless
             </div>
         </div>
     </div>

@@ -30,7 +30,7 @@
         };
     </script>
     <link rel="stylesheet" href="{{ tenant_static_asset('css/themes/modern-components.css') }}?v=1">
-    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-chrome.css') }}?v=3">
+    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-chrome.css') }}?v=7">
     @if (file_exists(public_path('css/themes/modern.css')))
         <link rel="stylesheet" href="{{ tenant_static_asset('css/themes/modern.css') }}?v=1">
     @endif
@@ -38,24 +38,17 @@
         <link rel="stylesheet" href="{{ $sfBrandStylesheet }}">
     @endif
     <link rel="stylesheet" href="{{ tenant_static_asset('css/tenant-responsive.css') }}?v=1">
+    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-responsive.css') }}?v=2">
     @stack('head')
 </head>
-<body class="bg-white font-sans text-md-ink antialiased">
+<body class="bg-white font-sans text-md-ink antialiased sf-storefront">
     @include('themes.modern.partials.header')
     <main>@yield('content')</main>
-    @include('partials.storefront.pre-footer-cta')
     @include('themes.modern.partials.footer')
     @include('partials.storefront.chrome')
+    <script src="{{ tenant_static_asset('js/storefront-nav.js') }}?v=1"></script>
     <script>
         (function () {
-            var btn = document.getElementById('md-menu-btn');
-            var nav = document.getElementById('md-mobile-nav');
-            if (btn && nav) {
-                btn.addEventListener('click', function () {
-                    var open = nav.classList.toggle('hidden');
-                    btn.setAttribute('aria-expanded', open ? 'false' : 'true');
-                });
-            }
             var accountBtn = document.getElementById('md-account-btn');
             var accountMenu = document.getElementById('md-account-menu');
             if (accountBtn && accountMenu) {

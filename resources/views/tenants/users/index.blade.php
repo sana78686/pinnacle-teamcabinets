@@ -165,6 +165,8 @@
             @include('partials.tenant-pagination', ['paginator' => $users])
         </div>
     </div>
+
+    @include('tenants.users.partials.approval-setup-modal')
 @endsection
 @section('script')
     {{-- sweet alert  start --}}
@@ -300,7 +302,11 @@ window.bindUserListRowActions = function (root) {
                     if (data.success) {
                         selectEl.dataset.currentStatus = newStatus;
                         syncUserStatusSelectSkin(selectEl);
-                        Swal.fire('Updated!', 'User status changed to ' + label + '.', 'success');
+                        Swal.fire('Updated!', 'User status changed to ' + label + '.', 'success').then(function () {
+                            if (data.show_approval_setup && window.TenantUserApprovalSetup) {
+                                window.TenantUserApprovalSetup.open(String(data.user_id || userId));
+                            }
+                        });
                     } else {
                         selectEl.value = previousStatus;
                         syncUserStatusSelectSkin(selectEl);
@@ -366,7 +372,11 @@ window.bindUserListRowActions = function (root) {
                                     '<span class="tc-verify-pill__label">Verified</span></span>';
                             }
 
-                            Swal.fire('Updated!', 'User has been verified successfully.', 'success');
+                            Swal.fire('Updated!', 'User has been verified successfully.', 'success').then(function () {
+                                if (data.show_approval_setup && window.TenantUserApprovalSetup) {
+                                    window.TenantUserApprovalSetup.open(String(data.user_id || userId));
+                                }
+                            });
                         } else {
                             Swal.fire('Error!', 'Failed to update user verification.', 'error');
                         }
@@ -421,6 +431,16 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     </script>
     @include('layouts.tenant.partials.panel-asset-fn')
+    <script>
+        window.TC_USER_APPROVAL_SETUP = {
+            formUrl: @json(str_replace('999999', '__ID__', route('tenant_user_approval_setup_form', ['id' => 999999]))),
+            saveUrl: @json(str_replace('999999', '__ID__', route('tenant_user_approval_setup_store', ['id' => 999999]))),
+            csrf: @json(csrf_token()),
+            pointFactorDefaults: @json($point_factor_defaults ?? []),
+            roleDefaultUrl: @json(route('tenant_user_role_default')),
+        };
+    </script>
+    <script src="{{ $panelAsset('js/tenant-user-approval-setup.js') }}?v=1"></script>
     <script src="{{ $panelAsset('js/tenant-users-list.js') }}?v=1"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {

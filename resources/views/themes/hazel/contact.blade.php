@@ -11,7 +11,7 @@
     $email = $site?->contactus_email ?: $site?->email;
     $pageTitle = $page?->title ?? 'Contact us';
     $sidebarTitle = $site?->contact_sidebar_title ?: 'Need Assistance?';
-    $intro = ($page && $sf->hasMeaningfulHtml($page->content)) ? $page->content : null;
+    $intro = ($page && $sf->contactShowsIntro($page)) ? $page->content : null;
     $mapEmbed = $site?->map_embed_url ?? null;
 @endphp
 

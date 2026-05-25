@@ -1,4 +1,4 @@
-<div class="iconsidebar-menu">
+<div class="iconsidebar-menu iconbar-second-close" id="pn-admin-sidebar" aria-label="Admin modules">
    <div class="sidebar">
       <ul class="iconMenu-bar custom-scrollbar">
          <li>

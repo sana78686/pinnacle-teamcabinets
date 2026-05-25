@@ -911,7 +911,7 @@
     flex-wrap: wrap;
     align-items: stretch;
     margin: 0 !important;
-    padding: 0 0.75rem;
+    padding: 0 0.5rem;
     gap: 0;
     width: 100%;
     float: none !important;
@@ -928,15 +928,15 @@
 .tc-tenant-nav #main-menu > li > a {
     display: inline-flex !important;
     align-items: center;
-    gap: 0.45rem;
-    padding: 0 0.7rem !important;
-    min-height: 40px;
-    font-size: 0.72rem !important;
+    gap: 0.2rem;
+    padding: 0 0.45rem !important;
+    min-height: 34px;
+    font-size: 0.65rem !important;
     font-weight: 600 !important;
-    line-height: 1.2 !important;
+    line-height: 1.15 !important;
     color: #64748b !important;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.03em;
     background: transparent !important;
     border: none !important;
     border-bottom: 3px solid transparent !important;
@@ -951,10 +951,16 @@
 }
 
 .tc-tenant-nav #main-menu > li > a svg {
-    width: 15px !important;
-    height: 15px !important;
+    width: 13px !important;
+    height: 13px !important;
     stroke: currentColor !important;
     flex-shrink: 0;
+    margin: 0 !important;
+}
+
+.tc-tenant-nav #main-menu > li > a > span {
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .tc-tenant-nav #main-menu > li > a:hover {
@@ -967,14 +973,14 @@
     border: none !important;
     border-radius: 0 !important;
     border-bottom: 3px solid transparent !important;
-    padding-right: 1.35rem !important;
+    padding-right: 1.05rem !important;
     position: relative;
 }
 
 .tc-tenant-nav #main-menu > li.tc-nav-has-children > a::after {
     content: "";
     position: absolute;
-    right: 0.45rem;
+    right: 0.3rem;
     top: 50%;
     width: 0.3rem;
     height: 0.3rem;
@@ -1218,10 +1224,10 @@
 
 .tc-tenant-nav .tc-nav-module-dot {
     position: absolute;
-    top: 8px;
-    right: 10px;
-    width: 8px;
-    height: 8px;
+    top: 5px;
+    right: 4px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: #dc3545;
     box-shadow: 0 0 0 2px #fff;

@@ -67,7 +67,7 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr v-for="row in rows" :key="row.id">
+                        <tr v-for="row in rows" :key="row.id" :class="{ 'tc-row-unviewed': row.is_unviewed }">
                             <td v-for="col in config.columns" :key="col.key">
                                 <span v-if="col.type === 'money'">$@{{ row[col.key] }}</span>
                                 <span v-else>@{{ row[col.key] ?? '—' }}</span>

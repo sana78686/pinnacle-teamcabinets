@@ -4,7 +4,7 @@
         $isVerified = (bool) $user->is_verified_by_admin;
         $isAdminUser = tenant_user_has_admin_role($user);
     @endphp
-    <tr data-tc-user-row-id="{{ $user->id }}">
+    <tr class="{{ tenant_admin_unviewed_row_class($user) }}" data-tc-user-row-id="{{ $user->id }}">
         <td>
             @if (!empty($user->getRoleNames()))
                 @forelse ($user->getRoleNames() as $v)

@@ -1204,17 +1204,44 @@
     font-size: 0.9375rem !important;
 }
 
-/* Admin list: unviewed / new rows (light yellow until admin opens the record) */
-.tc-admin-datatable tr.tc-row-unviewed > td,
-.table tr.tc-row-unviewed > td,
-#userTable tr.tc-row-unviewed > td {
-    background-color: #fffbea !important;
+/* Admin list: unviewed rows — same light yellow as free-trial banner/marquee */
+:root {
+    --tc-unviewed-row-bg: #fff8e6;
+    --tc-unviewed-row-hover: #fff3cd;
+    --tc-unviewed-row-border: #f0d78c;
 }
 
-.tc-admin-datatable tr.tc-row-unviewed:hover > td,
-.table tr.tc-row-unviewed:hover > td,
-#userTable tr.tc-row-unviewed:hover > td {
-    background-color: #fff8dc !important;
+.tc-admin-datatable tbody tr.tc-row-unviewed > td,
+.tc-admin-datatable tbody tr.tc-row-unviewed > th,
+.table tbody tr.tc-row-unviewed > td,
+.table tbody tr.tc-row-unviewed > th,
+#userTable tbody tr.tc-row-unviewed > td,
+#userTable tbody tr.tc-row-unviewed > th,
+.table-striped > tbody > tr.tc-row-unviewed > td,
+.table-striped > tbody > tr.tc-row-unviewed > th,
+.table-striped > tbody > tr.tc-row-unviewed:nth-of-type(odd) > td,
+.table-striped > tbody > tr.tc-row-unviewed:nth-of-type(odd) > th,
+.table-striped > tbody > tr.tc-row-unviewed:nth-of-type(even) > td,
+.table-striped > tbody > tr.tc-row-unviewed:nth-of-type(even) > th,
+.tc-tracker-row.tc-row-unviewed > td,
+.tc-tracker-row.tc-row-unviewed > th {
+    --bs-table-accent-bg: var(--tc-unviewed-row-bg);
+    --bs-table-bg-type: var(--tc-unviewed-row-bg);
+    background-color: var(--tc-unviewed-row-bg) !important;
+    box-shadow: inset 3px 0 0 var(--tc-unviewed-row-border);
+}
+
+.tc-admin-datatable tbody tr.tc-row-unviewed:hover > td,
+.tc-admin-datatable tbody tr.tc-row-unviewed:hover > th,
+.table tbody tr.tc-row-unviewed:hover > td,
+.table tbody tr.tc-row-unviewed:hover > th,
+#userTable tbody tr.tc-row-unviewed:hover > td,
+#userTable tbody tr.tc-row-unviewed:hover > th,
+.table-striped > tbody > tr.tc-row-unviewed:hover > td,
+.table-striped > tbody > tr.tc-row-unviewed:hover > th,
+.tc-tracker-row.tc-row-unviewed:hover > td,
+.tc-tracker-row.tc-row-unviewed:hover > th {
+    background-color: var(--tc-unviewed-row-hover) !important;
 }
 
 /* Nav module indicators (admin: orders, quotes, stock check) */

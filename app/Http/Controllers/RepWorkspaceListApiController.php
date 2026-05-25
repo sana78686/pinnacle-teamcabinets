@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Quote;
 use App\Models\ShippingQuote;
 use App\Models\StockCheckRequest;
+use App\Services\AdminRecordViewService;
 use App\Services\ClaimWorkspaceService;
 use App\Services\OrderWorkspaceService;
 use App\Services\QuoteWorkspaceService;
@@ -103,6 +104,7 @@ class RepWorkspaceListApiController extends Controller
         'claims_order_message' => Str::limit((string) $row->claims_order_message, 80),
         'customer_name' => $row->claimant?->name ?? '—',
         'created_at' => $row->created_at?->format('M j, Y') ?? '—',
+        'is_unviewed' => app(AdminRecordViewService::class)->isUnviewed($row),
       ]),
       'meta' => [
         'current_page' => $paginator->currentPage(),
@@ -115,6 +117,8 @@ class RepWorkspaceListApiController extends Controller
 
   protected function serializeWorkspace(object $row): array
   {
+    $views = app(AdminRecordViewService::class);
+
     return [
       'id' => $row->id,
       'job_name' => $row->job_name ?? '—',
@@ -124,6 +128,7 @@ class RepWorkspaceListApiController extends Controller
       'assemble_cabinets_check' => ucfirst((string) ($row->assemble_cabinets_check ?? '—')),
       'shipping_status' => ucfirst((string) ($row->shipping_status ?? '—')),
       'created_at' => $row->created_at?->format('M j, Y') ?? '—',
+      'is_unviewed' => $views->isUnviewed($row),
     ];
   }
 

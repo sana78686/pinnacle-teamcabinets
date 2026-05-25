@@ -446,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function () {
             roleDefaultUrl: @json(route('tenant_user_role_default')),
         };
     </script>
-    <script src="{{ $panelAsset('js/tenant-user-approval-setup.js') }}?v=1"></script>
+    <script src="{{ $panelAsset('js/tenant-user-approval-setup.js') }}?v=2"></script>
     <script src="{{ $panelAsset('js/tenant-users-list.js') }}?v=1"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {

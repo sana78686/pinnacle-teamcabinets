@@ -18,6 +18,15 @@
         return document.getElementById('userApprovalSetupModalBody');
     }
 
+    function resolveUrl(template, userId) {
+        if (!template || userId == null || userId === '') {
+            return '';
+        }
+        return String(template)
+            .replace(/__ID__/g, String(userId))
+            .replace(/:id\b/g, String(userId));
+    }
+
     function showModal() {
         var el = modalEl();
         if (!el) {
@@ -200,8 +209,21 @@
             saveBtn.disabled = true;
         }
 
+        var saveUrl = resolveUrl(state.saveUrl, state.userId);
+        if (!saveUrl || saveUrl.indexOf('__ID__') !== -1) {
+            if (window.Swal) {
+                Swal.fire('Error', 'Invalid save URL. Please close the dialog and open it again.', 'error');
+            } else {
+                alert('Invalid save URL. Please close the dialog and open it again.');
+            }
+            if (saveBtn) {
+                saveBtn.disabled = false;
+            }
+            return;
+        }
+
         try {
-            var res = await fetch(state.saveUrl, {
+            var res = await fetch(saveUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -211,10 +233,12 @@
                 },
                 body: JSON.stringify(collectPayload(root)),
             });
-            var data = await res.json();
+            var data = await res.json().catch(function () {
+                return {};
+            });
 
-            if (!data.success) {
-                var msg = data.message || 'Could not save catalog settings.';
+            if (!res.ok || !data.success) {
+                var msg = data.message || ('Could not save catalog settings.' + (res.status ? ' (HTTP ' + res.status + ')' : ''));
                 if (window.Swal) {
                     Swal.fire('Error', msg, 'error');
                 } else {
@@ -261,7 +285,13 @@
         showModal();
 
         try {
-            var url = state.formUrl.replace(':id', String(userId)).replace('__ID__', String(userId));
+            var url = resolveUrl(state.formUrl, userId);
+            if (!url || url.indexOf('__ID__') !== -1) {
+                if (root) {
+                    root.innerHTML = '<p class="text-danger">Invalid form URL. Please refresh the page and try again.</p>';
+                }
+                return;
+            }
             var res = await fetch(url, {
                 headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
             });

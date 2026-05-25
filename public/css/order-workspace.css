@@ -497,13 +497,66 @@
 
 .ow-cart-table .ow-check-cell {
     text-align: center;
-    line-height: 1.1;
-    padding: 0.25rem !important;
+    line-height: 1;
+    padding: 0.35rem 0.25rem !important;
+    white-space: nowrap;
 }
 
-.ow-cart-table .ow-check-cell input[type='checkbox'] {
+.ow-cart-table .ow-cart-chk {
+    display: inline-block;
+    position: relative;
+    width: 26px;
+    height: 26px;
+    margin: 0 3px;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.ow-cart-table .ow-cart-chk input[type='checkbox'] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.ow-cart-table .ow-cart-chk__mark {
     display: block;
-    margin: 0 auto 2px;
+    position: relative;
+    width: 26px;
+    height: 26px;
+    border-radius: 3px;
+    border: 2px solid #94a3b8;
+    box-sizing: border-box;
+}
+
+.ow-cart-table .ow-cart-chk--yellow .ow-cart-chk__mark {
+    background: #fef9c3;
+    border-color: #ca8a04;
+}
+
+.ow-cart-table .ow-cart-chk--green .ow-cart-chk__mark {
+    background: #dcfce7;
+    border-color: #16a34a;
+}
+
+.ow-cart-table .ow-cart-chk--yellow input:checked ~ .ow-cart-chk__mark {
+    background: #facc15;
+}
+
+.ow-cart-table .ow-cart-chk--green input:checked ~ .ow-cart-chk__mark {
+    background: #22c55e;
+}
+
+.ow-cart-table .ow-cart-chk input:checked ~ .ow-cart-chk__mark::after {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 3px;
+    width: 7px;
+    height: 13px;
+    border: solid #1e293b;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
 }
 
 .ow-cart-table tfoot th {
@@ -522,6 +575,37 @@
     font-size: 0.8125rem;
     font-weight: 700;
     color: #242934;
+}
+
+.ow-cart-table .ow-cart-remove-cell {
+    vertical-align: middle;
+    width: 2.5rem;
+}
+
+.ow-cart-table .btn-delete-row {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 4px;
+    color: #c0392b;
+    background: rgba(192, 57, 43, 0.08);
+    text-decoration: none;
+    line-height: 1;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ow-cart-table .btn-delete-row:hover,
+.ow-cart-table .btn-delete-row:focus {
+    color: #fff;
+    background: #c0392b;
+    text-decoration: none;
+}
+
+.ow-cart-table .btn-delete-row .fa-times {
+    font-size: 1.35rem;
+    font-weight: 700;
 }
 
 

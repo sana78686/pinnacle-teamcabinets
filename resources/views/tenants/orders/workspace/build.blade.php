@@ -157,7 +157,7 @@
                                     </th>
                                 </tr>
                                 <tr class="cart-header-row">
-                                    <th>Check</th>
+                                    <th>Double Check Work</th>
                                     <th>Name</th>
                                     <th>Desc</th>
                                     <th>Wt</th>
@@ -225,5 +225,5 @@
 @endsection
 
 @section('script')
-<script src="{{ tenant_static_asset('js/order-page.js') }}?v=26"></script>
+<script src="{{ tenant_static_asset('js/order-page.js') }}?v=27"></script>
 @endsection

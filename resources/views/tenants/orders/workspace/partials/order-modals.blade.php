@@ -117,6 +117,9 @@
                     <label class="d-block"><input type="radio" name="ow_stock_unload_type" value="by_hand"> By Hand</label>
                     <label class="d-block"><input type="radio" name="ow_stock_unload_type" value="by_forklift"> By ForkLift</label>
                 </div>
+                <div class="ow-terms-box d-none border p-2 mt-2" id="ow-stock-shipping-terms">
+                    <small>{!! $shipTerms ?? '<p>Standard shipping terms apply.</p>' !!}</small>
+                </div>
                 <span class="text-danger d-block" id="ow-err-stock-shipping"></span>
             </div>
             <div class="modal-footer">

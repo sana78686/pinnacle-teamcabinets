@@ -106,7 +106,15 @@
         scheduleAutosave();
     }
 
+    function syncRowCheckboxes($row) {
+        const val1 = $row.find('.chk-single').is(':checked');
+        const val2 = $row.find('.chk-double').is(':checked');
+        $row.find('.chk-single-val').val(val1 ? 1 : 0);
+        $row.find('.chk-double-val').val(val2 ? 1 : 0);
+    }
+
     function lineCheckboxPayload($r) {
+        syncRowCheckboxes($r);
         const val1 = $r.find('.chk-single').is(':checked');
         const val2 = $r.find('.chk-double').is(':checked');
         return {
@@ -114,6 +122,21 @@
             checkbox_val2: val2 ? 1 : 0,
             checkbox_status: val1 && val2 ? 'both' : val1 ? 'single' : val2 ? 'double' : 'none',
         };
+    }
+
+    function cartCheckCellHtml() {
+        return (
+            '<td class="ow-check-cell">' +
+            '<label class="ow-cart-chk ow-cart-chk--yellow" title="Single check">' +
+            '<input type="checkbox" class="chk-single">' +
+            '<input type="hidden" class="chk-single-val" value="0">' +
+            '<span class="ow-cart-chk__mark" aria-hidden="true"></span></label>' +
+            '<label class="ow-cart-chk ow-cart-chk--green" title="Double check">' +
+            '<input type="checkbox" class="chk-double">' +
+            '<input type="hidden" class="chk-double-val" value="0">' +
+            '<span class="ow-cart-chk__mark" aria-hidden="true"></span></label>' +
+            '</td>'
+        );
     }
 
     function num(v, fallback) {
@@ -375,6 +398,7 @@
             line.checkbox_status === 'both';
         $row.find('.chk-single').prop('checked', !!v1);
         $row.find('.chk-double').prop('checked', !!v2);
+        syncRowCheckboxes($row);
     }
 
     function roomsFromSaved(saved) {
@@ -612,10 +636,7 @@
             'data-product-note': line.product_note || '',
             'data-line-total': lineTotal,
         });
-        $tr.append(
-            '<td class="ow-check-cell"><input type="checkbox" class="cb-yellow chk-single" style="accent-color:yellow">' +
-                '<input type="checkbox" class="cb-green chk-double" style="accent-color:green"></td>'
-        );
+        $tr.append(cartCheckCellHtml());
         $tr.append($('<td></td>').text(line.label || ''));
         $tr.append($('<td></td>').text(line.description || ''));
         $tr.append($('<td class="line-weight"></td>').text(weight.toFixed(2) + ' lbs'));
@@ -630,7 +651,9 @@
                 '" data-unit-weight="' +
                 weight +
                 '">' +
-                '</td><td><a href="#" class="btn-delete-row text-primary">×</a></td>'
+                '</td><td class="ow-cart-remove-cell text-center">' +
+                '<a href="#" class="btn-delete-row" title="Remove line" aria-label="Remove product">' +
+                '<i class="fa fa-times" aria-hidden="true"></i></a></td>'
         );
         setRowQty($tr, qty);
         applyLineCheckboxes($tr, line);
@@ -672,7 +695,7 @@
             removeBtn +
             '</div>' +
             '<span class="err-roomlabel text-danger f-12 d-block"></span></th></tr>' +
-            '<tr class="cart-header-row"><th>Check</th><th>Name</th><th>Desc</th><th>Wt</th><th>Unit</th><th>Total</th><th>Qty</th><th></th></tr></tbody>';
+            '<tr class="cart-header-row"><th>Double Check Work</th><th>Name</th><th>Desc</th><th>Wt</th><th>Unit</th><th>Total</th><th>Qty</th><th></th></tr></tbody>';
         $('#cart_table tfoot').before(html);
     }
 
@@ -874,8 +897,22 @@
         recalcTotals();
     });
 
-    $(document).on('change', '.chk-single, .chk-double, .cb-yellow, .cb-green', function () {
+    $(document).on('change', '.chk-single, .chk-double', function () {
+        syncRowCheckboxes($(this).closest('tr'));
         scheduleAutosave();
+    });
+
+    function toggleUnloadTerms(radioName, termsSelector) {
+        const val = $('input[name="' + radioName + '"]:checked').val();
+        $(termsSelector).toggleClass('d-none', val !== 'by_hand');
+    }
+
+    $('input[name="ow_unload_type"]').on('change', function () {
+        toggleUnloadTerms('ow_unload_type', '#ow-shipping-terms');
+    });
+
+    $('input[name="ow_stock_unload_type"]').on('change', function () {
+        toggleUnloadTerms('ow_stock_unload_type', '#ow-stock-shipping-terms');
     });
 
     $(document).on('click', '.door-image-tile, .door-image-tile.ow-door-pill', function () {
@@ -991,9 +1028,6 @@
         $('#ow-modal-shipping-info').modal('show');
     });
 
-    $('input[name="ow_unload_type"]').on('change', function () {
-        $('#ow-shipping-terms').toggleClass('d-none', this.value !== 'by_hand');
-    });
 
     $('#ow-btn-save-shipping').on('click', function () {
         const name = $('#ow-shipping-quote-name').val().trim();

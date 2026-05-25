@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="{{ $panelAsset('css/tenant-forms.css') }}?v=8">
     <link rel="stylesheet" href="{{ $panelAsset('css/create-order.css') }}?v=8">
     <link rel="stylesheet" href="{{ $panelAsset('css/tenant-panel.css') }}?v=34">
-    <link rel="stylesheet" href="{{ $panelAsset('css/order-workspace.css') }}?v=11">
+    <link rel="stylesheet" href="{{ $panelAsset('css/order-workspace.css') }}?v=13">
     <link rel="stylesheet" href="{{ $panelAsset('css/tenant-order-theme.css') }}?v=1">
     @yield('style')
     @stack('head')

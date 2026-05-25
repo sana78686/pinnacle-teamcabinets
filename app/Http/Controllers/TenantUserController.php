@@ -341,7 +341,6 @@ class TenantUserController extends Controller
         $data['has_point_factor_defaults'] = count($data['point_factor_defaults']) > 0;
         $data['has_product_catalogs'] = $data['product_catalogs']->isNotEmpty();
         $data['has_door_styles'] = $data['door_colors']->isNotEmpty();
-        $data['user_point_factor'] = $data['user']->point_factor;
 
         foreach ($door_factors as $factor) {
         $existing_factors[$factor->catalog_id][$factor->door_style] = $factor->factor;
@@ -395,7 +394,6 @@ class TenantUserController extends Controller
         $user->company_name = $request->business_name;
         $user->gross_sale = $request->gross_sale;
         $user->status = $request->status;
-        $user->point_factor = $this->doorFactors->resolvePointFactor($request, $role?->name);
         $user->save();
 
         $user->update([

@@ -15,13 +15,13 @@
     data-patch-base="{{ url('setting/manage_commission') }}/">
     @include('partial.message')
 
-    <p class="text-muted">Commission is calculated from <strong>point factors</strong> (decimals, e.g. <code>0.24</code> = 24%). Changes save automatically when you leave each field.</p>
+    <p class="text-muted">Configure <strong>role commission point factors</strong> here (CI-style). Values can be any positive number (e.g. <code>0.24</code> or <code>0.42</code>). Changes save automatically when you leave each field.</p>
 
     <h5 class="mt-4">How it works</h5>
     <ul class="small">
-        <li><strong>This page:</strong> default point factor per role (auto-fills Create User).</li>
-        <li><strong>Users → Create/Edit:</strong> catalog visibility + door point factor per catalog and door style.</li>
-        <li><strong>Formula:</strong> Commission ≈ Gross sales × point factor (when stored as decimal).</li>
+        <li><strong>This page:</strong> default commission point factor per role (applied when a new user is created).</li>
+        <li><strong>Users → Create/Edit:</strong> assign catalog visibility and door point factor per catalog and door style only.</li>
+        <li><strong>Door factors:</strong> price multiplier on product cost (any non-negative number).</li>
     </ul>
 
     <h5 class="mt-4">Default point factors by role</h5>
@@ -33,7 +33,7 @@
                 <thead>
                     <tr>
                         <th>Role</th>
-                        <th style="min-width:160px">Point factor (decimal)</th>
+                        <th style="min-width:160px">Point factor</th>
                         <th>As %</th>
                         <th style="width:90px">Status</th>
                     </tr>
@@ -47,11 +47,11 @@
                         <tr data-tc-commission-role="{{ $key }}">
                             <td>{{ $role->name }}</td>
                             <td>
-                                <input type="number" step="0.0001" min="0" max="1"
+                                <input type="number" step="any" min="0"
                                     data-tc-commission-input
                                     class="form-control form-control-sm"
                                     value="{{ $value !== null ? (string) $value : '' }}"
-                                    placeholder="e.g. 0.24">
+                                    placeholder="e.g. 0.24 or 0.42">
                             </td>
                             <td class="text-muted small" data-tc-commission-pct>
                                 @if ($value !== null)

@@ -7,18 +7,27 @@
     $urlInputId = $urlInputId ?? $urlField;
     $labelText = $label ?? null;
     $mediaType = $mediaType ?? 'image';
-    $acceptAttr = $accept ?? ($mediaType === 'pdf' ? 'application/pdf' : \App\Support\ImageUpload::ACCEPT);
-    $hint = $hint ?? ($mediaType === 'pdf' ? \App\Support\MediaUpload::hint(5120, true) : \App\Support\MediaUpload::hint());
+    $acceptAttr = $accept ?? match ($mediaType) {
+        'pdf' => 'application/pdf',
+        'video' => 'video/mp4,video/webm',
+        default => \App\Support\ImageUpload::ACCEPT,
+    };
+    $hint = $hint ?? match ($mediaType) {
+        'pdf' => \App\Support\MediaUpload::hint(5120, true),
+        'video' => 'MP4 or WebM. Max 50 MB — compressed automatically when ffmpeg is available.',
+        default => \App\Support\MediaUpload::hint(),
+    };
     $previewClass = $previewClass ?? 'tc-settings-preview-img';
     $wrapperClass = $wrapperClass ?? 'tc-field';
     $currentPath = $currentPath ?? null;
 
-    if (! isset($previewUrl) && $currentPath && $mediaType === 'image') {
+    if (! isset($previewUrl) && $currentPath && in_array($mediaType, ['image', 'video'], true)) {
         $previewUrl = tenant_media_url($currentPath);
     }
 
     $urlValue = old($urlField, PublicUploadedFile::isExternalUrl($currentPath) ? $currentPath : '');
     $showImagePreview = $mediaType === 'image' && ! empty($previewUrl);
+    $showVideoPreview = $mediaType === 'video' && ! empty($previewUrl);
     $showPdfPreview = $mediaType === 'pdf' && filled($currentPath);
     $pdfHref = null;
     if ($showPdfPreview) {
@@ -26,6 +35,11 @@
             ? $currentPath
             : ($pdfViewRoute ?? tenant_media_url($currentPath));
     }
+    $removeLabel = match ($mediaType) {
+        'pdf' => 'PDF',
+        'video' => 'video',
+        default => 'image',
+    };
 @endphp
 
 <div class="{{ $wrapperClass }} tc-image-upload" data-tc-image-upload>
@@ -35,15 +49,17 @@
 
     <input type="hidden" name="remove_{{ $field }}" value="0" data-tc-image-remove-flag>
 
-    @if ($showImagePreview || $showPdfPreview)
+    @if ($showImagePreview || $showVideoPreview || $showPdfPreview)
         <div class="tc-image-upload__preview" data-tc-image-preview>
             @if ($showImagePreview)
                 <img src="{{ $previewUrl }}" alt="" class="{{ $previewClass }}">
+            @elseif ($showVideoPreview)
+                <video src="{{ $previewUrl }}" class="{{ $previewClass }} tc-settings-preview-video" controls muted playsinline></video>
             @elseif ($showPdfPreview && $pdfHref)
                 <a href="{{ $pdfHref }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">View PDF</a>
             @endif
             <button type="button" class="btn btn-outline-danger btn-sm tc-image-upload__remove" data-tc-image-remove>
-                Remove {{ $mediaType === 'pdf' ? 'PDF' : 'image' }}
+                Remove {{ $removeLabel }}
             </button>
         </div>
     @endif
@@ -64,7 +80,7 @@
             id="{{ $urlInputId }}"
             class="form-control form-control-sm"
             value="{{ $urlValue }}"
-            placeholder="{{ $mediaType === 'pdf' ? 'https://example.com/catalog.pdf' : 'https://example.com/image.webp' }}"
+            placeholder="{{ $mediaType === 'pdf' ? 'https://example.com/catalog.pdf' : ($mediaType === 'video' ? 'https://example.com/video.mp4' : 'https://example.com/image.webp') }}"
             data-tc-media-url
             inputmode="url"
             autocomplete="off"

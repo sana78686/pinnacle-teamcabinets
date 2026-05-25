@@ -25,7 +25,6 @@ class StoreUserRequest extends FormRequest
             'country_id' => 'required',
             'state_id' => 'required',
             'password' => 'nullable|string|min:8',
-            'point_factor' => 'nullable|numeric|min:0|max:1',
             'catalog_visibility' => 'nullable|array',
             'door_factors' => 'nullable|array',
         ];

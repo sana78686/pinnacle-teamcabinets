@@ -22,7 +22,6 @@ class UpdateUserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'.$userId,
             'role_id' => 'required',
-            'point_factor' => 'nullable|numeric|min:0|max:1',
             'catalog_visibility' => 'nullable|array',
             'door_factors' => 'nullable|array',
         ];

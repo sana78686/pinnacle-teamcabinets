@@ -147,6 +147,55 @@
     </section>
 
     <section class="tc-settings-section">
+        <h3 class="tc-settings-section__title">Modern theme — homepage videos</h3>
+        <p class="text-muted small mb-3">
+            Used when the <strong>Modern</strong> storefront theme is active. Upload your own hero and factory videos; images are resized automatically and videos are compressed when ffmpeg is installed on the server.
+        </p>
+        <div class="row g-3">
+            <div class="col-md-6">
+                @include('layouts.tenant.partials.image-upload-field', [
+                    'name' => 'modern_hero_video',
+                    'label' => 'Hero background video',
+                    'currentPath' => $settings->modern_hero_video ?? null,
+                    'mediaType' => 'video',
+                ])
+            </div>
+            <div class="col-md-6">
+                @include('layouts.tenant.partials.image-upload-field', [
+                    'name' => 'modern_hero_poster',
+                    'label' => 'Hero video poster (fallback image)',
+                    'currentPath' => $settings->modern_hero_poster ?? null,
+                    'hint' => 'Shown while the hero video loads. Optimized on upload.',
+                ])
+            </div>
+            <div class="col-md-6">
+                @include('layouts.tenant.partials.image-upload-field', [
+                    'name' => 'modern_factory_video',
+                    'label' => 'Factory section video',
+                    'currentPath' => $settings->modern_factory_video ?? null,
+                    'mediaType' => 'video',
+                ])
+            </div>
+            <div class="col-md-6">
+                @include('layouts.tenant.partials.image-upload-field', [
+                    'name' => 'modern_factory_poster',
+                    'label' => 'Factory video poster',
+                    'currentPath' => $settings->modern_factory_poster ?? null,
+                ])
+            </div>
+            <div class="col-md-4">
+                <div class="tc-field">
+                    <label for="modern_slideshow_interval_ms">Gallery &amp; showcase change interval (ms)</label>
+                    <input type="number" name="modern_slideshow_interval_ms" id="modern_slideshow_interval_ms"
+                        class="form-control" min="1000" max="10000" step="500"
+                        value="{{ old('modern_slideshow_interval_ms', $settings->modern_slideshow_interval_ms ?? 2000) }}">
+                    <small class="text-muted">Default 2000 = change every 2 seconds.</small>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="tc-settings-section">
         <h3 class="tc-settings-section__title">Homepage FAQ</h3>
         <p class="tc-field-hint mb-3">These questions appear in the FAQ section on your public storefront (Hazel theme). Leave empty rows out before saving.</p>
         <div id="tc-faq-list" class="tc-faq-list">

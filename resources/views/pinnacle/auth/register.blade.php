@@ -127,7 +127,9 @@
                     </label>
                 </div>
 
-                @include('partials.cloudflare-turnstile')
+                <div class="pn-field pn-field--full">
+                    @include('partials.cloudflare-turnstile', ['class' => 'cf-turnstile-wrap--register'])
+                </div>
                 <button type="submit" class="pn-btn pn-btn--primary pn-btn--block" id="submit-btn">Create account</button>
             </form>
 
@@ -169,7 +171,16 @@
     var form = document.getElementById('tenant-form');
     var progress = document.getElementById('pn-progress');
     var btn = document.getElementById('submit-btn');
-    form.addEventListener('submit', function () {
+    form.addEventListener('submit', function (e) {
+        var token = form.querySelector('[name="cf-turnstile-response"]');
+        if (token && !token.value) {
+            e.preventDefault();
+            alert('Please complete the security verification, then try again.');
+            if (typeof window.mountTurnstileWidgets === 'function') {
+                window.mountTurnstileWidgets();
+            }
+            return;
+        }
         progress.style.display = 'block';
         btn.disabled = true;
         btn.textContent = 'Creating account…';
@@ -188,6 +199,9 @@
                 sel.appendChild(o);
             });
         });
+    if (typeof window.mountTurnstileWidgets === 'function') {
+        window.mountTurnstileWidgets();
+    }
 })();
 </script>
 @endpush

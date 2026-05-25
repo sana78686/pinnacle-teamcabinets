@@ -17,13 +17,15 @@
         <div class="tc-alert tc-alert--error">{{ $errors->first() }}</div>
     @endif
 
-    <form method="POST" action="{{ route('tenant_login_post') }}" novalidate>
+    <form method="POST" action="{{ route('tenant_login_post') }}" novalidate
+        data-remember-login="tc_remember_tenant_{{ tenant('id') }}">
         @csrf
         <div class="tc-field">
             <label for="login">Email or username</label>
             <div class="tc-input-wrap">
                 <span class="tc-icon"><i class="fa-regular fa-user" aria-hidden="true"></i></span>
                 <input class="tc-input" type="text" name="login" id="login" placeholder="Email or username"
+                    data-remember-field="login"
                     value="{{ old('login', Cookie::get('login')) }}" required autocomplete="username">
             </div>
         </div>
@@ -31,11 +33,12 @@
             <label for="password">Password</label>
             <div class="tc-input-wrap">
                 <span class="tc-icon"><i class="fa-solid fa-lock" aria-hidden="true"></i></span>
-                <input class="tc-input" type="password" name="password" id="password" placeholder="Password" required autocomplete="current-password">
+                <input class="tc-input" type="password" name="password" id="password" placeholder="Password"
+                    data-remember-field="password" required autocomplete="current-password">
             </div>
         </div>
         <div class="tc-check">
-            <input type="checkbox" name="remember" id="remember" value="1"
+            <input type="checkbox" name="remember" id="remember" value="1" data-remember-checkbox
                 {{ old('remember', Cookie::get('login') ? '1' : null) ? 'checked' : '' }}>
             <label for="remember">Remember me</label>
         </div>

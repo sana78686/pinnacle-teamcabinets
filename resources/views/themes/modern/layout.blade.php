@@ -30,7 +30,7 @@
         };
     </script>
     <link rel="stylesheet" href="{{ tenant_static_asset('css/themes/modern-components.css') }}?v=1">
-    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-chrome.css') }}?v=1">
+    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-chrome.css') }}?v=2">
     @if (file_exists(public_path('css/themes/modern.css')))
         <link rel="stylesheet" href="{{ tenant_static_asset('css/themes/modern.css') }}?v=1">
     @endif

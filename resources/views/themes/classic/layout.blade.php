@@ -12,7 +12,7 @@
     @endif
     <link rel="stylesheet" href="{{ tenant_static_asset('css/tenant-responsive.css') }}?v=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
-    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-chrome.css') }}?v=1">
+    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-chrome.css') }}?v=2">
     @stack('head')
 </head>
 <body class="cl-body hz-body">

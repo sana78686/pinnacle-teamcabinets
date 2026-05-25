@@ -21,7 +21,14 @@ class CloudflareTurnstileService
             return false;
         }
 
-        return filled(config('turnstile.site_key')) && filled(config('turnstile.secret_key'));
+        return filled($this->siteKey()) && filled($this->secretKey());
+    }
+
+    public function usesTestKeys(): bool
+    {
+        return ! filled(config('turnstile.site_key'))
+            && ! filled(config('turnstile.secret_key'))
+            && filter_var(config('turnstile.use_test_keys', false), FILTER_VALIDATE_BOOL);
     }
 
     public function shouldSkipForLocalHost(): bool
@@ -40,7 +47,28 @@ class CloudflareTurnstileService
 
     public function siteKey(): ?string
     {
-        return config('turnstile.site_key');
+        if (filled(config('turnstile.site_key'))) {
+            return config('turnstile.site_key');
+        }
+
+        if ($this->usesTestKeys()) {
+            return config('turnstile.test_site_key');
+        }
+
+        return null;
+    }
+
+    public function secretKey(): ?string
+    {
+        if (filled(config('turnstile.secret_key'))) {
+            return config('turnstile.secret_key');
+        }
+
+        if ($this->usesTestKeys()) {
+            return config('turnstile.test_secret_key');
+        }
+
+        return null;
     }
 
     /** @return list<string> */
@@ -74,7 +102,7 @@ class CloudflareTurnstileService
         }
 
         $payload = [
-            'secret' => config('turnstile.secret_key'),
+            'secret' => $this->secretKey(),
             'response' => $token,
         ];
 

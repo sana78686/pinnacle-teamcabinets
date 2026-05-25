@@ -10,6 +10,9 @@ return [
     'factory_video' => 'video/factory.mp4',
     'factory_poster' => 'video/factory-poster.jpg',
 
+    /** Gallery & showcase image rotation interval (milliseconds). */
+    'slideshow_interval_ms' => 2000,
+
     'door_styles' => [
         ['file' => 'door-styles/shaker-solid.png', 'alt' => 'Shaker solid maple doors'],
         ['file' => 'door-styles/belleair-glass.png', 'alt' => 'Belleair glass doors'],

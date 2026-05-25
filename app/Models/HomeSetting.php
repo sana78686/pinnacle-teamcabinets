@@ -34,6 +34,11 @@ class HomeSetting extends Model
         'meta_title',
         'meta_description',
         'meta_keywords',
+        'modern_hero_video',
+        'modern_hero_poster',
+        'modern_factory_video',
+        'modern_factory_poster',
+        'modern_slideshow_interval_ms',
     ];
 
     protected $casts = [

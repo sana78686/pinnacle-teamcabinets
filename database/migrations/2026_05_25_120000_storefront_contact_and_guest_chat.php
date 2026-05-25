@@ -42,7 +42,7 @@ return new class extends Migration
                 }
             });
 
-            if (Schema::hasColumn('support_threads', 'user_id')) {
+            if (Schema::hasColumn('support_threads', 'user_id') && Schema::getConnection()->getDriverName() === 'mysql') {
                 try {
                     DB::statement('ALTER TABLE support_threads MODIFY user_id BIGINT UNSIGNED NULL');
                 } catch (\Throwable) {

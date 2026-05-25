@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('counties')) {
+            return;
+        }
+
         Schema::create('counties', function (Blueprint $table) {
             $table->id();
             $table->string('name', 30); // Name of the state

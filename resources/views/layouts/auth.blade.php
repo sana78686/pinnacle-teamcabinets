@@ -71,7 +71,6 @@
         }
     </style>
     @yield('styles')
-    @include('partials.cloudflare-turnstile-scripts')
 </head>
 
 <body class="font-sans antialiased">
@@ -121,6 +120,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script> --}}
     @yield('scripts')
+    @include('partials.cloudflare-turnstile-scripts')
 </body>
 
 </html>

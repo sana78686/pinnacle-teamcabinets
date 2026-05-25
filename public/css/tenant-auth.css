@@ -346,6 +346,11 @@
     margin: 0.75rem 0 0;
 }
 
+.cf-turnstile-wrap--register {
+    margin: 1rem 0 0.75rem;
+    min-height: 68px;
+}
+
 .cf-turnstile-error {
     margin: 0;
     font-size: 0.8125rem;

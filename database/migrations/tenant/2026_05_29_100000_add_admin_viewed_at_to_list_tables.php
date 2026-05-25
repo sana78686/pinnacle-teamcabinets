@@ -26,9 +26,13 @@ return new class extends Migration
                 $blueprint->timestamp('admin_viewed_at')->nullable()->after('updated_at');
             });
 
+            $nowExpr = Schema::getConnection()->getDriverName() === 'sqlite'
+                ? "datetime('now')"
+                : 'NOW()';
+
             DB::table($table)
                 ->whereNull('admin_viewed_at')
-                ->update(['admin_viewed_at' => DB::raw('COALESCE(updated_at, created_at, NOW())')]);
+                ->update(['admin_viewed_at' => DB::raw("COALESCE(updated_at, created_at, {$nowExpr})")]);
         }
     }
 

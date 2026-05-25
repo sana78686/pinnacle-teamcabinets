@@ -64,10 +64,11 @@
                 </a> --}}
                 <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4 ">
                     <div class="form-group">
-                        <strong>Product Catalog:<span class="txt-danger">*</span></strong>
+                        <strong>Product Catalog &amp; door factors:</strong>
+                        <span class="text-muted small">(optional — user sees no catalogs in Create Order until assigned)</span>
                         <a href="#" class="pull-right btn-import form-control b-r-0" data-toggle="tooltip"
-                            data-toggle="tooltip" title="Click Me: To Set Point Factors" autofocus>
-                            + Set Door Point Factors For Product Catalogs
+                            title="Open catalog visibility and door point factor settings">
+                            + Set door point factors for product catalogs
                         </a>
                     </div>
                 </div>
@@ -98,15 +99,6 @@
                                 </option>
                             @endforeach
                         </select>
-                    </div>
-                </div>
-
-                <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4 ">
-                    <div class="form-group">
-                        <strong>Point factor (commission):<span class="txt-danger">*</span></strong>
-                        <input type="number" step="0.0001" min="0" max="1" name="point_factor" id="user-point-factor"
-                            class="form-control b-r-0" value="{{ $user_point_factor ?? '' }}"
-                            placeholder="e.g. 0.24">
                     </div>
                 </div>
 
@@ -545,7 +537,7 @@
             });
         });
     </script>
-    <script src="{{ tenant_panel_asset('js/tenant-user-door-factors.js') }}?v=1"></script>
+    <script src="{{ tenant_panel_asset('js/tenant-user-door-factors.js') }}?v=2"></script>
     <script src="{{ tenant_panel_asset('js/tenant-user-form.js') }}?v=1"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {

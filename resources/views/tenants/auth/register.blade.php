@@ -17,7 +17,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('tenant_register_post') }}" novalidate>
+            <form method="POST" action="{{ route('tenant_register_post') }}" novalidate id="tenant-register-form">
                 @csrf
 
                 <div class="tc-register-grid">
@@ -86,7 +86,7 @@
                     </div>
 
                     <div class="tc-field tc-field--full">
-                        @include('partials.cloudflare-turnstile')
+                        @include('partials.cloudflare-turnstile', ['class' => 'cf-turnstile-wrap--register'])
                     </div>
                 </div>
 
@@ -99,4 +99,14 @@
             </div>
 </x-tenant-auth-shell>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    if (typeof window.mountTurnstileWidgets === 'function') {
+        window.mountTurnstileWidgets();
+    }
+})();
+</script>
+@endpush
 

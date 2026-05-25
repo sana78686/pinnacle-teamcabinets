@@ -41,3 +41,20 @@
 </script>
 <script src="{{ tenant_static_asset('js/storefront-chat.js') }}?v=1"></script>
 <script src="{{ tenant_static_asset('js/storefront-chrome.js') }}?v=1"></script>
+@php
+    $sfCookiePolicyUrl = null;
+    if (isset($sfLegalNav) && $sfLegalNav->isNotEmpty()) {
+        foreach ($sfLegalNav as $sfLegalItem) {
+            $label = strtolower($sfLegalItem['label'] ?? '');
+            if (str_contains($label, 'cookie') || str_contains($label, 'privacy')) {
+                $sfCookiePolicyUrl = $sfLegalItem['url'] ?? null;
+                break;
+            }
+        }
+    }
+@endphp
+@include('partials.cookie-consent', [
+    'cookieStorageKey' => 'sf_cookie_consent_'.(tenant('id') ?? 'default'),
+    'cookiePolicyUrl' => $sfCookiePolicyUrl,
+    'cookieVariant' => 'storefront',
+])

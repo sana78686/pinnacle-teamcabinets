@@ -13,6 +13,17 @@ return [
             ],
         ],
         [
+            'label' => 'Menu Layout',
+            'route' => 'tenant_nav_menu_edit',
+            'icon' => 'sliders',
+            'panel_admin_only' => true,
+            'active' => [
+                'tenant_nav_menu_edit',
+                'tenant_nav_menu_update',
+                'tenant_nav_menu_reset',
+            ],
+        ],
+        [
             'label' => 'Site Settings',
             'route' => 'tenant_site_setting',
             'active' => ['tenant_site_setting', 'tenant_site_settings_store'],
@@ -108,6 +119,7 @@ return [
         'tenant_setting_profile',
         'tenant_setting_profile_update',
         'tenant_setting_profile_password',
+        'tenant_nav_menu_*',
         'tenant_site_setting',
         'tenant_site_settings_store',
         'tenant_website_designing',

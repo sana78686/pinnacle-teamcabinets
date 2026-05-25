@@ -12,12 +12,20 @@ return new class extends Migration
             return;
         }
 
+        if (Schema::getConnection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
         DB::statement('ALTER TABLE `tax_values` MODIFY `option_value` TEXT NULL');
     }
 
     public function down(): void
     {
         if (! Schema::hasTable('tax_values') || ! Schema::hasColumn('tax_values', 'option_value')) {
+            return;
+        }
+
+        if (Schema::getConnection()->getDriverName() !== 'mysql') {
             return;
         }
 

@@ -413,7 +413,7 @@ class TenantSettingController extends Controller
     {
         $validated = $request->validate([
             'defaults' => 'required|array',
-            'defaults.*' => 'nullable|numeric|min:0|max:1',
+            'defaults.*' => 'nullable|numeric|min:0',
         ]);
 
         foreach ($validated['defaults'] as $userType => $pct) {
@@ -432,13 +432,13 @@ class TenantSettingController extends Controller
 
         return redirect()
             ->route('tenant_setting_commission')
-            ->with('success', 'Default door point factors saved.');
+            ->with('success', 'Default point factors saved.');
     }
 
     public function update_commission_role(Request $request, string $role): JsonResponse
     {
         $validated = $request->validate([
-            'default_factor' => 'required|numeric|min:0|max:1',
+            'default_factor' => 'required|numeric|min:0',
         ]);
 
         $roleKey = tenant_role_factor_key(urldecode($role));

@@ -58,9 +58,9 @@
                                         @foreach ($door_colors->where('product_catalog_id', $product_catalog->id) as $door_color)
                                             <div class="mb-2">
                                                 <label class="form-label small mb-1">{{ $door_color->product_label }}</label>
-                                                <input type="number" step="0.0001" min="0" max="1"
+                                                <input type="number" step="any" min="0"
                                                     name="door_factors[{{ $product_catalog->id }}][{{ $door_color->id }}]"
-                                                    placeholder="e.g. 0.36"
+                                                    placeholder="e.g. 0.42"
                                                     class="form-control form-control-sm door-factor-input"
                                                     inputmode="decimal"
                                                     value="{{ is_callable($doorFactorValue) ? $doorFactorValue($product_catalog->id, $door_color->id) : '' }}">

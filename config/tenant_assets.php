@@ -22,6 +22,7 @@ return [
         'tenant_frontend_theme',
         'tenant_frontend_theme_store',
         'tenant_setting_*',
+        'tenant_nav_menu_*',
         'tenant_storefront_*',
         'tenant_quickbooks_*',
         'pages.*',

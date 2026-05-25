@@ -34,6 +34,9 @@
     <h3 class="tc-settings-sidebar-title">Settings</h3>
     <nav class="tc-settings-nav" aria-label="Settings sections">
         @foreach (config('tenant_settings_menu.sections', []) as $section)
+            @if (! empty($section['panel_admin_only']) && ! tenant_user_is_panel_admin())
+                @continue
+            @endif
             @php
                 $isActive = request()->routeIs($section['active'] ?? []);
                 $icon = $section['icon'] ?? ($sectionIcons[$section['route']] ?? 'circle');

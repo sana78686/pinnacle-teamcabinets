@@ -144,6 +144,7 @@ return [
                 'pages.*',
                 'tenant_frontend_theme*',
                 'tenant_contact_queries_*',
+                'tenant_nav_menu_*',
             ],
         ],
     ],

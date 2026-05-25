@@ -1927,6 +1927,16 @@
     max-width: 48px;
 }
 
+.tc-settings-preview-video {
+    display: block;
+    max-width: 100%;
+    max-height: 160px;
+    margin-bottom: 0.375rem;
+    border-radius: 4px;
+    border: 1px solid #e8ebf2;
+    background: #000;
+}
+
 .tc-image-upload__preview {
     margin-bottom: 0.5rem;
 }

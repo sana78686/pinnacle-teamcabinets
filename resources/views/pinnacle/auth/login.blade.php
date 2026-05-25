@@ -15,7 +15,8 @@
             <div class="pn-alert pn-alert--error">{{ session('error') }}</div>
         @endif
 
-        <form method="POST" action="{{ route('login_post') }}" class="pn-auth-form-plain__form">
+        <form method="POST" action="{{ route('login_post') }}" class="pn-auth-form-plain__form"
+            data-remember-login="tc_remember_pinnacle_admin">
             @csrf
             <div class="pn-form-grid">
                 <div class="pn-field">
@@ -26,6 +27,7 @@
                         'tip' => 'Your Pinnacle super-admin email address.',
                     ])
                     <input type="email" name="email" id="email" class="pn-input pn-input--lg @error('email') is-invalid @enderror"
+                        data-remember-field="login"
                         value="{{ old('email', Cookie::get('super_admin_login')) }}" placeholder="admin@example.com" required autofocus autocomplete="email">
                     @error('email')<p class="pn-field-error">{{ $message }}</p>@enderror
                 </div>
@@ -38,12 +40,13 @@
                         'tip' => 'Your account password.',
                     ])
                     <input type="password" name="password" id="password" class="pn-input pn-input--lg @error('password') is-invalid @enderror"
+                        data-remember-field="password"
                         placeholder="Enter your password" required autocomplete="current-password">
                     @error('password')<p class="pn-field-error">{{ $message }}</p>@enderror
                 </div>
 
                 <div class="pn-check">
-                    <input type="checkbox" name="remember" id="remember" value="1"
+                    <input type="checkbox" name="remember" id="remember" value="1" data-remember-checkbox
                         {{ old('remember', Cookie::get('super_admin_login') ? '1' : null) ? 'checked' : '' }}>
                     <label for="remember">Remember me</label>
                 </div>

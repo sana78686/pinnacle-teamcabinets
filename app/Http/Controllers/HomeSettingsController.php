@@ -4,12 +4,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\HomeSetting;
+use App\Services\ModernHomeMediaService;
 use App\Support\MediaUpload;
 use App\Support\PublicUploadedFile;
 use Illuminate\Support\Facades\Schema;
 
 class HomeSettingsController extends Controller
 {
+    public function __construct(
+        protected ModernHomeMediaService $modernMedia,
+    ) {}
 
      public function index()
     {
@@ -44,6 +48,15 @@ class HomeSettingsController extends Controller
         'meta_title' => 'nullable|string|max:255',
         'meta_description' => 'nullable|string|max:1000',
         'meta_keywords' => 'nullable|string|max:500',
+        'modern_hero_video' => 'nullable|file|mimes:mp4,webm|max:51200',
+        'modern_hero_video_url' => 'nullable|url|max:2048',
+        'modern_hero_poster' => 'nullable|image|max:5120',
+        'modern_hero_poster_url' => 'nullable|url|max:2048',
+        'modern_factory_video' => 'nullable|file|mimes:mp4,webm|max:51200',
+        'modern_factory_video_url' => 'nullable|url|max:2048',
+        'modern_factory_poster' => 'nullable|image|max:5120',
+        'modern_factory_poster_url' => 'nullable|url|max:2048',
+        'modern_slideshow_interval_ms' => 'nullable|integer|min:1000|max:10000',
     ]);
 
     // 🔹 Fetch or create settings for this tenant
@@ -82,6 +95,23 @@ class HomeSettingsController extends Controller
         $settings->meta_description = $request->meta_description;
         $settings->meta_keywords = $request->meta_keywords;
     }
+
+    if (Schema::hasColumn('home_settings', 'modern_hero_video')) {
+        $settings->modern_hero_video = $this->modernMedia->storeUploadedMedia(
+            PublicUploadedFile::resolve($request, 'modern_hero_video', $settings->modern_hero_video, 'uploads/modern-home')
+        );
+        $settings->modern_hero_poster = $this->modernMedia->storeUploadedMedia(
+            PublicUploadedFile::resolve($request, 'modern_hero_poster', $settings->modern_hero_poster, 'uploads/modern-home')
+        );
+        $settings->modern_factory_video = $this->modernMedia->storeUploadedMedia(
+            PublicUploadedFile::resolve($request, 'modern_factory_video', $settings->modern_factory_video, 'uploads/modern-home')
+        );
+        $settings->modern_factory_poster = $this->modernMedia->storeUploadedMedia(
+            PublicUploadedFile::resolve($request, 'modern_factory_poster', $settings->modern_factory_poster, 'uploads/modern-home')
+        );
+        $settings->modern_slideshow_interval_ms = (int) ($request->input('modern_slideshow_interval_ms') ?: 2000);
+    }
+
     $settings->save();
 
     return redirect()->back()->with('success', '✅ Home page settings updated successfully!');

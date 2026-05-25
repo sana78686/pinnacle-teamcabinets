@@ -7,7 +7,6 @@
         const emptyState = document.getElementById('door-factor-empty');
         const setState = document.getElementById('door-factor-set');
         const countEl = document.getElementById('door-factor-count');
-        const pointFactorInput = document.getElementById('user-point-factor');
         const applyAllBtn = document.getElementById('apply-default-factors');
 
         function doorFactorInputs() {
@@ -160,16 +159,10 @@
             }
             jQuery(roleEl).on('select2:select', async function (e) {
                 const val = await fetchRoleDefault(e.params.data.id, e.params.data.text);
-                if (pointFactorInput && val != null) {
-                    pointFactorInput.value = val;
-                }
                 if (applyAllBtn) {
                     applyAllBtn.classList.toggle('d-none', val == null);
                 }
             }).on('select2:clear', function () {
-                if (pointFactorInput) {
-                    pointFactorInput.value = '';
-                }
                 if (applyAllBtn) {
                     applyAllBtn.classList.add('d-none');
                 }

@@ -2,15 +2,18 @@
 
 @section('content')
 @php
+    use App\Services\ModernHomeMediaService;
+
     $company = tenant('company_name') ?? tenant('name') ?? 'Your business';
-    $md = config('tenant_modern_home');
+    $md = app(ModernHomeMediaService::class)->resolve($homesettings ?? null);
     $mdMedia = fn (string $path) => tenant_static_asset('themes/modern/media/'.$path);
     $heroTitle = $homesettings?->benner_title ?? 'Built-to-Order Cabinets, Delivered Fully Assembled.';
     $heroLead = $homesettings?->benner_description ?? 'From fan-favorite Shaker to sleek modern slab — over 600 style &amp; finish combinations for dealers, showrooms, and contractors.';
-    $heroVideo = $mdMedia($md['hero_video']);
-    $heroPoster = $mdMedia($md['hero_poster']);
-    $factoryVideo = $mdMedia($md['factory_video']);
-    $factoryPoster = $mdMedia($md['factory_poster']);
+    $heroVideo = $md['hero_video'];
+    $heroPoster = $md['hero_poster'];
+    $factoryVideo = $md['factory_video'];
+    $factoryPoster = $md['factory_poster'];
+    $slideshowMs = (int) ($md['slideshow_interval_ms'] ?? 2000);
     $contactUrl = $sfContactPage ? route('cms.page', $sfContactPage->slug) : ($sfShowContact ? route('cms.page', 'contact') : '#md-contact');
     $catalogRows = isset($catalogs) ? $catalogs->filter(fn ($c) => $c->doorColors && $c->doorColors->count() > 0) : collect();
 @endphp
@@ -45,7 +48,7 @@
     </div>
 
     <div class="mx-auto mt-12 max-w-md-page overflow-hidden rounded-sm border border-md-line bg-white shadow-sm">
-        <div class="md-showcase-strip bg-white">
+        <div class="md-showcase-strip bg-white" data-md-showcase-strip>
             @foreach ($md['door_styles'] as $door)
                 <img src="{{ $mdMedia($door['file']) }}" alt="{{ $door['alt'] }}" loading="lazy" width="200" height="140">
             @endforeach
@@ -64,7 +67,7 @@
     </div>
 
     <div class="mx-auto mt-6 max-w-md-page overflow-hidden rounded-sm border border-md-line bg-white shadow-sm">
-        <div class="md-showcase-strip bg-neutral-50">
+        <div class="md-showcase-strip bg-neutral-50" data-md-showcase-strip>
             @foreach ($md['finish_options'] as $finish)
                 <img src="{{ $mdMedia($finish['file']) }}" alt="{{ $finish['alt'] }}" loading="lazy" width="160" height="120">
             @endforeach
@@ -174,3 +177,10 @@
     </div>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+    window.TC_MODERN_HOME = { intervalMs: {{ (int) $slideshowMs }} };
+</script>
+<script src="{{ tenant_static_asset('js/modern-home.js') }}?v=1"></script>
+@endpush

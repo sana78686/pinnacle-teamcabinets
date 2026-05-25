@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('shipping_quotes')) {
+            return;
+        }
+
         Schema::table('shipping_quotes', function (Blueprint $table) {
             if (! Schema::hasColumn('shipping_quotes', 'quote_name')) {
                 $table->string('quote_name')->nullable()->after('job_name');

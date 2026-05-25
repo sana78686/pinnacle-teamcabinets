@@ -99,15 +99,6 @@
                         </select>
                     </div>
                 </div>
-                <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4 ">
-                    <div class="form-group">
-                        <strong>Point factor (commission):<span class="txt-danger">*</span></strong>
-                        <input type="number" step="0.0001" min="0" max="1" name="point_factor" id="user-point-factor"
-                            class="form-control b-r-0" placeholder="Auto-filled from role (e.g. 0.24)"
-                            data-toggle="tooltip" title="Commission point factor — auto-filled when you select a role">
-                        <small class="text-muted">Decimal under 1 (e.g. 0.24 = 24%). Filled from role default.</small>
-                    </div>
-                </div>
                 <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
                     <div class="form-group">
                         <strong>User Name &nbsp;<span class="txt-danger">*</span></strong>
@@ -487,7 +478,7 @@
         });
     </script>
     @if (! ($door_factor_setup_incomplete ?? false))
-        <script src="{{ tenant_panel_asset('js/tenant-user-door-factors.js') }}?v=1"></script>
+        <script src="{{ tenant_panel_asset('js/tenant-user-door-factors.js') }}?v=2"></script>
         <script src="{{ tenant_panel_asset('js/tenant-user-form.js') }}?v=1"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {

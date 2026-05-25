@@ -98,9 +98,9 @@ class UserDoorFactorService
                     $errors["door_factors.{$catalogId}.{$door->id}"] = [
                         "Door point factor required for {$door->product_label} ({$catalogLabel}).",
                     ];
-                } elseif ((float) $val < 0 || (float) $val > 1) {
+                } elseif ((float) $val < 0) {
                     $errors["door_factors.{$catalogId}.{$door->id}"] = [
-                        'Factor must be a decimal between 0 and 1 (e.g. 0.24).',
+                        'Factor must be zero or greater.',
                     ];
                 }
             }
@@ -261,10 +261,6 @@ class UserDoorFactorService
 
     public function resolvePointFactor(Request $request, ?string $roleName): float
     {
-        if ($request->filled('point_factor') && is_numeric($request->input('point_factor'))) {
-            return (float) $request->input('point_factor');
-        }
-
         return (float) ($this->roleDefaultFactor($roleName) ?? 0);
     }
 }

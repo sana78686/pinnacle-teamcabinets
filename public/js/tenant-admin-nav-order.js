@@ -94,8 +94,8 @@
                             return json;
                         });
                     })
-                    .then(function (json) {
-                        showFlash(true, (json.message || 'Saved.') + ' Refresh the page to update the navigation bar.');
+                    .then(function () {
+                        window.location.href = config.dashboardUrl || '/';
                     })
                     .catch(function (e) {
                         showFlash(false, e.message || 'Save failed.');

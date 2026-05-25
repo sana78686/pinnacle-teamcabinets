@@ -600,6 +600,7 @@ Route::prefix('storefront-chat')->group(function () {
           Route::get('stock_check/index', [TenantStockCheckController::class, 'index'])->name('tenant_stock_check_index');
           Route::get('stock_check/{id}/edit', [TenantStockCheckController::class, 'edit'])->name('tenant_stock_check_edit');
           Route::get('stock_check/{id}/show', [TenantStockCheckController::class, 'show'])->name('tenant_stock_check_show');
+          Route::post('stock_check/{id}/item-notes', [TenantStockCheckController::class, 'updateItemNotes'])->name('tenant_stock_check_item_notes');
           Route::get('stock_check/{id}/print', [TenantStockCheckController::class, 'print'])->name('tenant_stock_check_print');
           Route::post('stock_check/{id}/warehouse-email', [TenantStockCheckController::class, 'sendWarehouseEmail'])->name('tenant_stock_check_warehouse_email');
           Route::put('stock_check/{id}', [TenantStockCheckController::class, 'update'])->name('tenant_stock_check_update');

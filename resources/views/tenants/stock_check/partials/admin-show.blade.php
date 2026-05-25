@@ -135,83 +135,12 @@
                 @endforelse
             </tbody>
             <tfoot>
-                <tr class="table-light fw-semibold">
-                    <td colspan="3" class="text-end">Sub Total</td>
-                    <td class="text-end">{{ number_format($sub_total_weight ?? 0, 2) }} lbs</td>
-                    <td></td>
-                    <td class="text-end">${{ number_format($sub_total_price ?? 0, 2) }}</td>
-                    <td></td>
-                    @if ($hasAssemble)
-                        <td class="text-end">${{ number_format($sub_total_assemble ?? 0, 2) }}</td>
-                    @endif
-                    <td></td>
-                </tr>
-                <tr>
-                    <th colspan="5" class="text-end">Fuel Charges ({{ number_format($fuelPercent ?? 0, 0) }}%)</th>
-                    <td class="text-end">${{ number_format($fuel_charges ?? 0, 2) }}</td>
-                    <td></td>
-                    @if ($hasAssemble)<td></td>@endif
-                    <td></td>
-                </tr>
-                @if ($hasAssemble)
-                    <tr>
-                        <th colspan="5" class="text-end">Cabinetry Assembly Cost</th>
-                        <td class="text-end">${{ number_format($sub_total_assemble ?? 0, 2) }}</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                @endif
-                @if ($isShippingRequired ?? false)
-                    <tr class="table-secondary">
-                        <th colspan="{{ $colSpan }}" class="text-start">Shipping Charges</th>
-                    </tr>
-                    <tr>
-                        <td colspan="5">Pallets Cost (Total Pallets = <span id="sc-summary-pallets-count">{{ $total_pallets ?? 1 }}</span>)</td>
-                        <td class="text-end">$<span id="sc-summary-pallets-cost">{{ number_format($pallets_cost ?? 0, 2) }}</span></td>
-                        <td></td>
-                        @if ($hasAssemble)<td></td>@endif
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td colspan="5">Delivery Cost ({{ $deliveryLabel ?? 'Residential' }})</td>
-                        <td class="text-end">$<span id="sc-summary-delivery">{{ number_format($delivery_cost ?? 0, 2) }}</span></td>
-                        <td></td>
-                        @if ($hasAssemble)<td></td>@endif
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td colspan="5">Liftgate Cost</td>
-                        <td class="text-end">$<span id="sc-summary-liftgate">{{ number_format($liftgate_cost ?? 0, 2) }}</span></td>
-                        <td></td>
-                        @if ($hasAssemble)<td></td>@endif
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td colspan="5">Unload Cost ({{ $unloadLabel ?? 'By Hand' }})</td>
-                        <td class="text-end">$<span id="sc-summary-unload">{{ number_format($unload_cost ?? 0, 2) }}</span></td>
-                        <td></td>
-                        @if ($hasAssemble)<td></td>@endif
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td colspan="5">Miscellaneous Charges</td>
-                        <td class="text-end">$<span id="sc-summary-misc">{{ number_format($miscellaneous_cost ?? 0, 2) }}</span></td>
-                        <td></td>
-                        @if ($hasAssemble)<td></td>@endif
-                        <td></td>
-                    </tr>
-                @endif
-                <tr class="table-light fw-semibold">
-                    <th colspan="2" class="text-end">Order Total</th>
-                    <td></td>
-                    <td class="text-end">{{ number_format($sub_total_weight ?? 0, 0) }} lbs</td>
-                    <td></td>
-                    <td class="text-end">$<span id="sc-display-order-total">{{ number_format($grand_total ?? 0, 2) }}</span></td>
-                    <td></td>
-                    @if ($hasAssemble)<td></td>@endif
-                    <td></td>
-                </tr>
+                @include('tenants.stock_check.partials.summary-footer', [
+                    'assembleYes' => $hasAssemble,
+                    'showShippingBreakdown' => $isShippingRequired ?? false,
+                    'showSimpleShipping' => ! ($isShippingRequired ?? false) && ($isApproved ?? false) && (float) ($shipping_cost ?? 0) > 0,
+                    'totalLabel' => 'Order Total',
+                ])
             </tfoot>
         </table>
     </div>

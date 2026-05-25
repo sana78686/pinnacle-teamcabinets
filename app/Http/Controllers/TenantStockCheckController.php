@@ -79,7 +79,38 @@ class TenantStockCheckController extends Controller
             $adminView->markViewed($stockCheck, Auth::user());
         }
 
-        return view('tenants.stock_check.show', $this->stockAdminView->viewData($stockCheck, $rooms, $viewingOrgData));
+        $data = $this->stockAdminView->viewData($stockCheck, $rooms, $viewingOrgData);
+        $data['isAdminView'] = Auth::user()->isAdmin();
+
+        return view('tenants.stock_check.show', $data);
+    }
+
+    public function updateItemNotes(Request $request, string $id): JsonResponse|RedirectResponse
+    {
+        $stockCheck = StockCheckRequest::query()->findOrFail($id);
+
+        if (! $this->recordWorkspace->userMayAccess($stockCheck, Auth::user())) {
+            abort(403);
+        }
+
+        if (Auth::user()->isAdmin() || $stockCheck->isApproved()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'line_notes' => 'nullable|array',
+            'line_notes.*' => 'nullable|string|max:5000',
+        ]);
+
+        $this->stockAdminView->applyItemNotes($stockCheck, $validated['line_notes'] ?? []);
+
+        if ($request->expectsJson()) {
+            return response()->json(['status' => true, 'message' => 'Item notes updated successfully.']);
+        }
+
+        return redirect()
+            ->route('tenant_stock_check_show', $stockCheck->id)
+            ->with('success', 'Item notes updated successfully.');
     }
 
     public function edit(string $id, AdminRecordViewService $adminView): RedirectResponse

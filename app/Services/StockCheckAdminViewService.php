@@ -30,6 +30,8 @@ class StockCheckAdminViewService
         $totals = $this->totalsFromRecord($record, $assembleYes);
         $isShippingRequired = $this->isShippingRequired($record);
 
+        $isApproved = $record->isApproved();
+
         return array_merge($addresses, $totals, [
             'stock_check_request' => $record,
             'record' => $record,
@@ -40,8 +42,11 @@ class StockCheckAdminViewService
             'billName' => $record->billToName(),
             'assembleYes' => $assembleYes,
             'isShippingRequired' => $isShippingRequired,
-            'isApproved' => $record->isApproved(),
-            'showAdminForm' => ! $record->isApproved(),
+            'isApproved' => $isApproved,
+            'notesLocked' => $isApproved,
+            'showUserShipping' => $isApproved && $isShippingRequired,
+            'showSimpleShipping' => $isApproved && ! $isShippingRequired && (float) ($record->shipping_cost ?? 0) > 0,
+            'showAdminForm' => ! $isApproved,
             'deliveryLabel' => $this->deliveryLabel($record),
             'unloadLabel' => $this->unloadLabel($record),
             'palletUnitCost' => $this->taxValues->getFloat('pallet_cost', OrderWorkspaceShippingService::PALLET_COST),
@@ -50,8 +55,38 @@ class StockCheckAdminViewService
             'warehouseEmailRoute' => route('tenant_stock_check_warehouse_email', $record->id),
             'editRoute' => route('tenant_stock_check_edit', $record->id),
             'listRoute' => route('tenant_stock_check_index'),
+            'itemNotesRoute' => route('tenant_stock_check_item_notes', $record->id),
             'pageTitle' => 'View Stock Check Request',
         ]);
+    }
+
+    /**
+     * @param  array<int|string, string|null>  $lineNotes
+     */
+    public function applyItemNotes(StockCheckRequest $record, array $lineNotes): StockCheckRequest
+    {
+        $rooms = $this->checkout->normalizeRoomsFromStorage($record->normalizedRooms());
+        $lineIndex = 0;
+
+        foreach ($rooms as $roomIndex => $room) {
+            $products = $room['products'] ?? [];
+            if (! is_array($products)) {
+                continue;
+            }
+            foreach ($products as $productIndex => $product) {
+                if (array_key_exists($lineIndex, $lineNotes)) {
+                    $note = trim((string) $lineNotes[$lineIndex]);
+                    $products[$productIndex]['note'] = $note;
+                    $products[$productIndex]['product_note'] = $note;
+                }
+                $lineIndex++;
+            }
+            $rooms[$roomIndex]['products'] = $products;
+        }
+
+        $record->update(['rooms' => $rooms]);
+
+        return $record->fresh();
     }
 
     public function isShippingRequired(StockCheckRequest $record): bool

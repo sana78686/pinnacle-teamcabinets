@@ -38,9 +38,9 @@ return [
     'verify_remote_ip' => env('TURNSTILE_VERIFY_REMOTE_IP', false),
 
     /**
-     * Skip Turnstile on localhost / 127.0.0.1 (widget can show Success but
-     * siteverify fails with hostname-mismatch unless those hosts are in Cloudflare).
-     * Defaults to true when APP_ENV=local.
+     * Hide widget on localhost / 127.0.0.1 / *.localhost (opt-in only).
+     * Do not tie to APP_ENV — staging often uses production env with a local hostname.
+     * When false (default), the widget shows wherever real keys are configured.
      */
-    'skip_on_localhost' => env('TURNSTILE_SKIP_LOCALHOST', env('APP_ENV', 'production') === 'local'),
+    'skip_on_localhost' => env('TURNSTILE_SKIP_LOCALHOST', false),
 ];

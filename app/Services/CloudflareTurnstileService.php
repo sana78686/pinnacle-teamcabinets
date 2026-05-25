@@ -13,7 +13,7 @@ class CloudflareTurnstileService
 
     public function isEnabled(): bool
     {
-        if (! config('turnstile.enabled', true)) {
+        if (! filter_var(config('turnstile.enabled', true), FILTER_VALIDATE_BOOL)) {
             return false;
         }
 
@@ -26,9 +26,15 @@ class CloudflareTurnstileService
 
     public function usesTestKeys(): bool
     {
-        return ! filled(config('turnstile.site_key'))
-            && ! filled(config('turnstile.secret_key'))
+        return ! $this->hasRealKeys()
             && filter_var(config('turnstile.use_test_keys', false), FILTER_VALIDATE_BOOL);
+    }
+
+    /** Real .env keys only (not Cloudflare test keys). */
+    public function hasRealKeys(): bool
+    {
+        return $this->normalizeKey(config('turnstile.site_key')) !== null
+            && $this->normalizeKey(config('turnstile.secret_key')) !== null;
     }
 
     public function shouldSkipForLocalHost(): bool
@@ -47,8 +53,10 @@ class CloudflareTurnstileService
 
     public function siteKey(): ?string
     {
-        if (filled(config('turnstile.site_key'))) {
-            return config('turnstile.site_key');
+        $key = $this->normalizeKey(config('turnstile.site_key'));
+
+        if ($key !== null) {
+            return $key;
         }
 
         if ($this->usesTestKeys()) {
@@ -60,8 +68,10 @@ class CloudflareTurnstileService
 
     public function secretKey(): ?string
     {
-        if (filled(config('turnstile.secret_key'))) {
-            return config('turnstile.secret_key');
+        $key = $this->normalizeKey(config('turnstile.secret_key'));
+
+        if ($key !== null) {
+            return $key;
         }
 
         if ($this->usesTestKeys()) {
@@ -69,6 +79,17 @@ class CloudflareTurnstileService
         }
 
         return null;
+    }
+
+    protected function normalizeKey(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        return $value !== '' ? $value : null;
     }
 
     /** @return list<string> */

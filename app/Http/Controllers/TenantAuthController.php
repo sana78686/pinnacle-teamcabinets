@@ -195,8 +195,9 @@ public function postLogin(Request $request)
         }
 
 
-        return back()->with('success', 'Registration submitted. The dealer admin will review and approve your account before you can sign in.');
-        // return redirect()->route('tenant_login')->with('success', 'Registration success.');
+        return redirect()
+            ->route('tenant_login')
+            ->with('success', 'Registration submitted successfully. The dealer admin will review and approve your account — then you can sign in below.');
     }
 
 

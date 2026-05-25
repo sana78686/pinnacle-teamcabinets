@@ -10,7 +10,7 @@
         <link rel="stylesheet" href="{{ $sfBrandStylesheet }}">
     @endif
     <link rel="stylesheet" href="{{ tenant_static_asset('css/tenant-responsive.css') }}?v=1">
-    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-chrome.css') }}?v=2">
+    <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-chrome.css') }}?v=3">
     @stack('head')
 </head>
 <body class="hz-body">

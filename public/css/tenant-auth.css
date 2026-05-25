@@ -348,11 +348,24 @@
 
 .cf-turnstile-wrap--register {
     margin: 1rem 0 0.75rem;
-    min-height: 68px;
 }
 
 .cf-turnstile-error {
     margin: 0;
     font-size: 0.8125rem;
     color: #b91c1c;
+}
+
+.cf-turnstile-wrap input[name="cf-turnstile-response"],
+.cf-turnstile-wrap textarea[name="cf-turnstile-response"] {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
 }

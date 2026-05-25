@@ -23,6 +23,7 @@
 <script src="{{ $panelAsset('js/password-toggle.js') }}?v=1"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@stack('after_sweetalert')
 <script src="{{ $panelAsset('js/tenant-session-flash.js') }}?v=4"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 

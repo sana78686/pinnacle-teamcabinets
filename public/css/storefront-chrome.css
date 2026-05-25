@@ -95,14 +95,35 @@
     position: fixed; right: 1.25rem; bottom: 5.5rem; z-index: 9992;
     width: min(360px, calc(100vw - 2rem)); max-height: 480px;
     background: #fff; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    display: flex; flex-direction: column; overflow: hidden;
+    flex-direction: column; overflow: hidden;
+    display: none;
+}
+.sf-chat-panel.is-open,
+.sf-chat-panel:not([hidden]) {
+    display: flex;
+}
+.sf-chat-panel[hidden] {
+    display: none !important;
 }
 .sf-chat-panel__head {
     background: var(--sf-teal); color: #fff; padding: 0.75rem 1rem;
     display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
 }
 .sf-chat-panel__title { margin: 0; font-size: 1rem; font-weight: 600; }
-.sf-chat-panel__close { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; line-height: 1; }
+.sf-chat-panel__close {
+    background: none; border: none; color: #fff; font-size: 1.5rem;
+    cursor: pointer; line-height: 1;
+    min-width: 2.25rem; min-height: 2.25rem;
+    padding: 0.25rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    pointer-events: auto;
+    position: relative;
+    z-index: 3;
+}
+.sf-chat-panel__close:hover { opacity: 0.85; }
 
 .sf-chat-gate, .sf-chat-room { padding: 1rem; }
 .sf-chat-gate__lead { font-size: 0.875rem; color: var(--sf-muted); margin: 0 0 0.75rem; }

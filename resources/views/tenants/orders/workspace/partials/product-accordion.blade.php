@@ -8,8 +8,8 @@
                         <th>Cabinet Label</th>
                         <th>SKU</th>
                         <th>Description</th>
-                        <th>Weight</th>
-                        <th>Cost</th>
+                        <th>Weight (lbs)</th>
+                        <th>Price</th>
                         <th>Qty</th>
                     </tr>
                 </thead>
@@ -43,7 +43,7 @@
                             <td class="cabinet-label-cell ow-product-label">{{ $product->label }}</td>
                             <td>{{ $product->sku }}</td>
                             <td>{{ $listDesc }}</td>
-                            <td>{{ $product->weight }}</td>
+                            <td>{{ \App\Support\ProductFieldFormat::formatWeight($rawWeight ?: $product->weight) }}</td>
                             <td>${{ number_format($rawCost, 2) }}</td>
                             <td>{{ $product->qty }}</td>
                         </tr>

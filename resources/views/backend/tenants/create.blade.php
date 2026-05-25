@@ -94,26 +94,12 @@
                                 <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
                             </div>
                             <div class="mt-2 col-md-6">
-                                <x-input-label for="g-recaptcha-response" :value="__('ReCaptcha')" />
-
-                                {{-- <x-text-input id="password_confirmation" class="block w-full mt-1" type="password"
-                                name="password_confirmation" required autocomplete="new-password" /> --}}
-
-                                {{-- <x-input-error :messages="$errors->get('g-recaptcha-response')" class="mt-2" /> --}}
-                                <div class="g-recaptcha" data-sitekey="{{ env('GOOGLE_RECAPTCHA_KEY') }}"></div>
-                                @if ($errors->has('g-recaptcha-response'))
-                                    <span class="text-danger">{{ $errors->first('g-recaptcha-response') }}</span>
-                                @endif
-                            </div>
-
-                            <div class="mt-2 col-md-6">
                                 <x-input-label for="seperate_domain" :value="__('Want a separate
                                                                             domain?')" />
 
                                 <x-text-input id="seperate_domain" class="block mt-1" type="checkbox"
                                     name="seperate_domain" autocomplete="seperate_domain" />
 
-                                <x-input-error :messages="$errors->get('g-recaptcha-response')" class="mt-2" />
                             </div>
 
                             <input type="hidden" name="owner_business_name" id="owner_business_name" />

@@ -144,6 +144,19 @@ if (! function_exists('tenant_media_url')) {
     }
 }
 
+if (! function_exists('tenant_brand_logo_url')) {
+    /** Site Settings logo URL, or Pinnacle default when the tenant has not uploaded one. */
+    function tenant_brand_logo_url(): string
+    {
+        $logo = trim((string) (\App\Models\SiteSetting::query()->value('logo') ?? ''));
+        if ($logo !== '') {
+            return tenant_media_url($logo) ?? asset($logo);
+        }
+
+        return tenant_static_asset((string) config('pinnacle.email.logo', 'assets/logo/pinnacle-tenant.png'));
+    }
+}
+
 if (! function_exists('tenant_panel_asset_is_local')) {
     function tenant_panel_asset_is_local(): bool
     {

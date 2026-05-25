@@ -8,7 +8,7 @@
     <title>@yield('title', ucfirst(tenant('company_name') ?? tenant('name') ?? config('app.name')))</title>
     <link rel="icon" href="{{ tenant_static_asset('assets/logo/pinnacle-favicon.png') }}" type="image/png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ tenant_static_asset('css/tenant-auth.css') }}?v=7">
+    <link rel="stylesheet" href="{{ tenant_static_asset('css/tenant-auth.css') }}?v=8">
     <link rel="stylesheet" href="{{ tenant_static_asset('css/tenant-forms.css') }}?v=8">
     <link rel="stylesheet" href="{{ tenant_static_asset('css/tenant-tooltips.css') }}?v=1">
     <link rel="stylesheet" href="{{ tenant_static_asset('css/storefront-chrome.css') }}?v=2">

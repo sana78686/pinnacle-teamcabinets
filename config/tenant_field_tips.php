@@ -45,7 +45,7 @@ return [
     'sku' => 'Stock keeping unit — unique product identifier.',
     'weight' => 'Shipping weight in pounds (decimals allowed).',
     'price' => 'Base unit price before discounts or factors.',
-    'cost' => 'Internal cost used for margin and commission reports.',
+    'cost' => 'Product price in US dollars (decimals allowed).',
     'description' => 'Detailed product description for staff and customers.',
     'image' => 'Upload a product image (JPG or PNG recommended).',
     'product_label' => 'Label shown for this door style or variant.',

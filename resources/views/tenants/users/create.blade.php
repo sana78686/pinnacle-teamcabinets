@@ -479,7 +479,9 @@
     </script>
     @if (! ($door_factor_setup_incomplete ?? false))
         <script src="{{ tenant_panel_asset('js/tenant-user-door-factors.js') }}?v=2"></script>
-        <script src="{{ tenant_panel_asset('js/tenant-user-form.js') }}?v=1"></script>
+        @push('after_sweetalert')
+            <script src="{{ tenant_panel_asset('js/tenant-user-form.js') }}?v=2"></script>
+        @endpush
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 TenantUserDoorFactors({
@@ -500,6 +502,8 @@
             });
         </script>
     @else
-        <script src="{{ tenant_panel_asset('js/tenant-user-form.js') }}?v=1"></script>
+        @push('after_sweetalert')
+            <script src="{{ tenant_panel_asset('js/tenant-user-form.js') }}?v=2"></script>
+        @endpush
     @endif
 @endsection

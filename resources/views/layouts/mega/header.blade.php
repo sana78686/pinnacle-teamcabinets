@@ -12,9 +12,11 @@
             @endif
         </a></div>
       </div>
-      <div class="mobile-sidebar d-none">
+      <div class="mobile-sidebar d-flex d-lg-none align-items-center">
          <div class="flex-grow-1 text-end switch-sm">
-            <label class="switch ms-3"><i class="font-primary" id="sidebar-toggle" data-feather="align-center"></i></label>
+            <label class="switch ms-0" aria-label="Open menu">
+               <i class="font-primary" id="sidebar-toggle" data-feather="align-center" role="button" tabindex="0"></i>
+            </label>
          </div>
       </div>
       <div class="vertical-mobile-sidebar"><i class="fa fa-bars sidebar-bar">               </i></div>

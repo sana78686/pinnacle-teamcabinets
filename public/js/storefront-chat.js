@@ -20,6 +20,10 @@
     var token = localStorage.getItem('sf_chat_token') || '';
     var pollTimer = null;
 
+    function isOpen() {
+        return panel && panel.classList.contains('is-open');
+    }
+
     function headers(json) {
         var h = {
             Accept: 'application/json',
@@ -36,7 +40,9 @@
     }
 
     function openPanel() {
+        if (!panel) return;
         panel.hidden = false;
+        panel.classList.add('is-open');
         panel.setAttribute('aria-hidden', 'false');
         if (token) {
             showRoom();
@@ -45,15 +51,29 @@
         }
     }
 
-    function closePanel() {
+    function closePanel(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        if (!panel) return;
         panel.hidden = true;
+        panel.classList.remove('is-open');
         panel.setAttribute('aria-hidden', 'true');
         stopPolling();
     }
 
+    function togglePanel() {
+        if (isOpen()) {
+            closePanel();
+        } else {
+            openPanel();
+        }
+    }
+
     function showRoom() {
-        gate.hidden = true;
-        room.hidden = false;
+        if (gate) gate.hidden = true;
+        if (room) room.hidden = false;
     }
 
     function renderMessages(list) {
@@ -146,8 +166,35 @@
         }
     }
 
-    if (fab) fab.addEventListener('click', openPanel);
-    if (closeBtn) closeBtn.addEventListener('click', closePanel);
+    if (fab) {
+        fab.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            togglePanel();
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closePanel);
+    }
+
+    if (panel) {
+        var head = panel.querySelector('.sf-chat-panel__head');
+        if (head) {
+            head.addEventListener('click', function (e) {
+                if (e.target.closest('.sf-chat-panel__close, #sf-chat-close')) {
+                    closePanel(e);
+                }
+            });
+        }
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && isOpen()) {
+            closePanel();
+        }
+    });
+
     if (startBtn) startBtn.addEventListener('click', startChat);
 
     if (form) {

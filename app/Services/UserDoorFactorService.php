@@ -92,14 +92,22 @@ class UserDoorFactorService
                 $factors = [];
             }
 
-            foreach ($doors as $door) {
-                $val = trim((string) ($factors[$door->id] ?? ''));
-                if ($val === '' || ! is_numeric($val)) {
-                    $errors["door_factors.{$catalogId}.{$door->id}"] = [
-                        "Door point factor required for {$door->product_label} ({$catalogLabel}).",
+            foreach ($factors as $doorColorId => $factor) {
+                $val = trim((string) $factor);
+                if ($val === '') {
+                    continue;
+                }
+                if (! is_numeric($val)) {
+                    $door = $doors->firstWhere('id', (int) $doorColorId);
+                    $label = $door?->product_label ?? "door #{$doorColorId}";
+                    $errors["door_factors.{$catalogId}.{$doorColorId}"] = [
+                        "Invalid door point factor for {$label} ({$catalogLabel}).",
                     ];
-                } elseif ((float) $val < 0) {
-                    $errors["door_factors.{$catalogId}.{$door->id}"] = [
+
+                    continue;
+                }
+                if ((float) $val < 0) {
+                    $errors["door_factors.{$catalogId}.{$doorColorId}"] = [
                         'Factor must be zero or greater.',
                     ];
                 }
@@ -130,11 +138,9 @@ class UserDoorFactorService
                     'catalog_id' => $catalogId,
                 ]);
 
-                if ($visibility->exists) {
-                    if ($visibility->trashed()) {
-                        $visibility->restore();
-                    }
-                } else {
+                if ($visibility->trashed()) {
+                    $visibility->restore();
+                } elseif (! $visibility->exists) {
                     $visibility->save();
                 }
 

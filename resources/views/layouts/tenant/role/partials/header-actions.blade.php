@@ -16,6 +16,8 @@
         <li class="d-none d-md-flex align-items-center txt-muted f-12 px-1" aria-hidden="true">|</li>
     @endif
 
+    @include('layouts.tenant.partials.header-create-order')
+
     <li>
         <a class="tc-header-icon-btn" href="#!" onclick="javascript:toggleFullScreen(); return false;" aria-label="Fullscreen">
             <i data-feather="maximize"></i>

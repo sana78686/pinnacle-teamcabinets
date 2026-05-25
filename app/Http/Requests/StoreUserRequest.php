@@ -49,6 +49,7 @@ class StoreUserRequest extends FormRequest
         if ($this->ajax() || $this->wantsJson()) {
             throw new HttpResponseException(response()->json([
                 'success' => false,
+                'message' => 'Please fix the errors below.',
                 'errors' => $validator->errors(),
             ], 422));
         }

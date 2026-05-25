@@ -71,22 +71,31 @@
 
                 <div class="p-2 col-lg-4">
                     <div class="form-group">
-                        <label>Weight<span class="asterisk text-danger"> *</span></label>
-                        <input name="weight" type="text" step="0.01" class="form-control" required autofocus>
+                        <label>Weight (lbs)<span class="asterisk text-danger"> *</span></label>
+                        <div class="input-group">
+                            <input name="weight" type="number" step="any" min="0" class="form-control" required autofocus placeholder="e.g. 38.5">
+                            <span class="input-group-text">lbs</span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="p-2 col-lg-4">
                     <div class="form-group">
-                        <label>Cost<span class="asterisk text-danger"> *</span></label>
-                        <input name="cost" type="number" step="0.01" class="form-control" required autofocus>
+                        <label>Price<span class="asterisk text-danger"> *</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input name="cost" type="number" step="any" min="0" class="form-control" required autofocus placeholder="e.g. 201.60">
+                        </div>
                     </div>
                 </div>
 
                 <div class="p-2 col-lg-4">
                     <div class="form-group">
-                        <label>Assemble Cost<span class="asterisk text-danger"> *</span></label>
-                        <input name="assemble_cost" type="number" step="0.01" class="form-control" required autofocus>
+                        <label>Assemble cost</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input name="assemble_cost" type="number" step="any" min="0" class="form-control" placeholder="e.g. 20.00">
+                        </div>
                     </div>
                 </div>
                 <div class="p-2 col-lg-4">

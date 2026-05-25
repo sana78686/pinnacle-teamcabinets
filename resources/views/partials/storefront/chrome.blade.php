@@ -39,7 +39,7 @@
         csrf: @json(csrf_token()),
     };
 </script>
-<script src="{{ tenant_static_asset('js/storefront-chat.js') }}?v=1"></script>
+<script src="{{ tenant_static_asset('js/storefront-chat.js') }}?v=2"></script>
 <script src="{{ tenant_static_asset('js/storefront-chrome.js') }}?v=1"></script>
 @php
     $sfCookiePolicyUrl = null;

@@ -236,6 +236,17 @@
     list-style: none;
 }
 
+.tc-compact-chrome .tc-header-create-order {
+    margin-right: 0.35rem;
+}
+
+.tc-compact-chrome .tc-header-create-order .tc-pn-btn {
+    padding: 0.35rem 0.85rem;
+    font-size: 0.8125rem;
+    line-height: 1.25;
+    white-space: nowrap;
+}
+
 /* Header icon buttons — same size, no height change */
 .tc-compact-chrome .tc-header-icon-btn {
     display: inline-flex;

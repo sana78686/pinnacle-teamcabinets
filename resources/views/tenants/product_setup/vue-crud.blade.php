@@ -45,6 +45,8 @@
                             <a v-if="row.pdf_view_url" :href="row.pdf_view_url" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">View PDF</a>
                             <span v-else class="text-muted">—</span>
                         </template>
+                        <span v-else-if="col.type === 'currency'">@{{ formatMoney(row[col.key]) }}</span>
+                        <span v-else-if="col.type === 'weight'">@{{ formatWeight(row[col.key]) }}</span>
                         <span v-else>@{{ row[col.key] ?? '—' }}</span>
                     </td>
                     <td class="text-nowrap tc-admin-datatable__actions">
@@ -117,6 +119,12 @@
                                         <span v-if="field.tip" class="tc-tip" :data-tip="field.tip" data-placement="top" tabindex="0" role="button" :aria-label="field.tip"><i>i</i></span>
                                     </label>
                                 </div>
+                                <div v-else-if="field.prefix || field.suffix" class="input-group">
+                                    <span v-if="field.prefix" class="input-group-text">@{{ field.prefix }}</span>
+                                    <input class="form-control" :id="'ps-' + field.name" :name="field.name" type="number" v-model="form[field.name]" :required="field.required" :placeholder="field.placeholder || ''" :step="field.step || 'any'" :min="field.min ?? 0" :data-tip="field.tip || null" inputmode="decimal">
+                                    <span v-if="field.suffix" class="input-group-text">@{{ field.suffix }}</span>
+                                </div>
+                                <input v-else-if="field.type === 'number'" class="form-control" :id="'ps-' + field.name" :name="field.name" type="number" v-model="form[field.name]" :required="field.required" :placeholder="field.placeholder || ''" :step="field.step || 'any'" :min="field.min ?? 0" :data-tip="field.tip || null" inputmode="decimal">
                                 <input v-else class="form-control" :id="'ps-' + field.name" :name="field.name" :type="field.type || 'text'" v-model="form[field.name]" :required="field.required" :placeholder="field.placeholder || ''" :data-tip="field.tip || null">
                             </div>
                         </div>
@@ -146,6 +154,8 @@
                                     <img v-if="col.type === 'image' && showRecord[col.key]" :src="showRecord[col.key]" alt="" style="max-width:200px;border-radius:6px;">
                                     <a v-else-if="col.type === 'pdf' && showRecord.pdf_view_url" :href="showRecord.pdf_view_url" target="_blank" rel="noopener">View PDF</a>
                                     <a v-else-if="col.type === 'link' && showRecord[col.key]" :href="showRecord[col.key]" target="_blank" rel="noopener">Download</a>
+                                    <span v-else-if="col.type === 'currency'">@{{ formatMoney(showRecord[col.key]) }}</span>
+                                    <span v-else-if="col.type === 'weight'">@{{ formatWeight(showRecord[col.key]) }}</span>
                                     <span v-else-if="col.type === 'status'">@{{ showRecord[col.key] ? 'Active' : 'Inactive' }}</span>
                                     <span v-else>@{{ showRecord[col.key] ?? '—' }}</span>
                                 </td>

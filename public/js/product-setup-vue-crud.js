@@ -212,6 +212,27 @@
                     }
                     return [];
                 },
+                formatMoney(value) {
+                    if (value === null || value === undefined || value === '') {
+                        return '—';
+                    }
+                    const num = parseFloat(String(value).replace(/[^0-9.\-]/g, ''));
+                    if (Number.isNaN(num)) {
+                        return String(value);
+                    }
+                    return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                },
+                formatWeight(value) {
+                    if (value === null || value === undefined || value === '') {
+                        return '—';
+                    }
+                    const num = parseFloat(String(value).replace(/[^0-9.\-]/g, ''));
+                    if (Number.isNaN(num)) {
+                        return String(value);
+                    }
+                    const formatted = num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                    return formatted + ' lbs';
+                },
                 buildFormData() {
                     const fd = new FormData();
                     Object.keys(this.form).forEach((key) => {

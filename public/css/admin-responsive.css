@@ -2,18 +2,94 @@
  * Pinnacle super-admin (mega layout) — mobile / tablet
  */
 
+/* ─── Layout & sidebar ─── */
 @media (max-width: 991.98px) {
+    .page-wrapper {
+        overflow-x: hidden;
+    }
+
+    .page-wrapper .page-body-wrapper {
+        margin-left: 0 !important;
+    }
+
     .page-wrapper .page-body {
         margin-left: 0 !important;
         padding: 0.75rem;
+        width: 100%;
+        max-width: 100%;
     }
 
     .page-wrapper .page-main-header {
         margin-left: 0 !important;
         width: 100% !important;
+        position: sticky;
+        top: 0;
+        z-index: 1040;
     }
 
-    .page-wrapper .page-header .row > [class*="col-"] {
+    .page-wrapper .page-main-header .main-header-right {
+        flex-wrap: wrap;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .page-wrapper .page-main-header .main-header-left {
+        flex: 1 1 auto;
+        text-align: left !important;
+    }
+
+    .page-wrapper .mobile-sidebar {
+        display: flex !important;
+        align-items: center;
+        margin-right: 0.5rem;
+    }
+
+    .page-wrapper .mobile-sidebar .switch {
+        margin: 0 !important;
+    }
+
+    .page-wrapper .page-main-header .vertical-menu-main,
+    .page-wrapper .page-main-header .mega-menu-header .vertical-menu-main {
+        display: none !important;
+    }
+
+    .page-wrapper .page-main-header .nav-right .search-form {
+        display: none;
+    }
+
+    .page-wrapper .page-main-header .nav-menus {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .page-wrapper .iconsidebar-menu {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1050;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+        transition: transform 0.25s ease;
+    }
+
+    .page-wrapper .iconsidebar-menu.iconbar-second-close {
+        transform: translateX(-100%);
+        pointer-events: none;
+    }
+
+    .page-wrapper .iconsidebar-menu.iconbar-mainmenu-close {
+        transform: translateX(0);
+        pointer-events: auto;
+    }
+
+    body.pn-admin-sidebar-open::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(7, 22, 40, 0.45);
+        z-index: 1045;
+    }
+
+    .page-wrapper .page-header .row > [class*='col-'] {
         width: 100%;
         max-width: 100%;
         flex: 0 0 100%;
@@ -22,16 +98,12 @@
     .page-wrapper .breadcrumb-right .breadcrumb {
         justify-content: flex-start !important;
         margin-top: 0.5rem;
+        flex-wrap: wrap;
     }
 
     .page-wrapper .main-header h2,
     .page-wrapper .main-header h1 {
         font-size: 1.25rem;
-    }
-
-    .page-wrapper .table-responsive {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
     }
 
     .page-wrapper .card .card-header {
@@ -58,6 +130,145 @@
     .page-wrapper .form-select {
         font-size: 16px;
     }
+
+    .admin-list-toolbar {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .admin-list-actions {
+        width: 100%;
+    }
+
+    .admin-btn-create {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .admin-list-card-body {
+        padding: 1rem !important;
+    }
+
+    /* Generic tables inside portal cards */
+    .page-wrapper .card-body > .table-responsive,
+    .page-wrapper .card-body > table {
+        display: block;
+        width: 100%;
+    }
+
+    .page-wrapper .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -0.25rem;
+        padding: 0 0.25rem;
+    }
+}
+
+/* ─── Admin tables: horizontal scroll (tablet) ─── */
+@media (max-width: 991.98px) {
+    .admin-table-wrap:not(.admin-table-wrap--stackable) {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .admin-table-wrap::after {
+        content: 'Swipe to see more →';
+        display: block;
+        font-size: 0.75rem;
+        color: #64748b;
+        text-align: center;
+        padding: 0.35rem 0 0;
+    }
+
+    .admin-table {
+        min-width: 640px;
+    }
+}
+
+/* ─── Admin tables: card stack (phone) ─── */
+@media (max-width: 767.98px) {
+    .admin-table-wrap--stackable::after {
+        display: none;
+    }
+
+    .admin-table-wrap--stackable {
+        overflow: visible;
+    }
+
+    .admin-table-wrap--stackable .admin-table {
+        min-width: 0;
+    }
+
+    .admin-table-wrap--stackable .admin-table thead {
+        display: none;
+    }
+
+    .admin-table-wrap--stackable .admin-table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+    }
+
+    .admin-table-wrap--stackable .admin-table tbody tr:nth-child(even) td {
+        background: transparent;
+    }
+
+    .admin-table-wrap--stackable .admin-table tbody td {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.65rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        text-align: right;
+        word-break: break-word;
+    }
+
+    .admin-table-wrap--stackable .admin-table tbody td:last-child {
+        border-bottom: none;
+    }
+
+    .admin-table-wrap--stackable .admin-table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #0c2340;
+        text-align: left;
+        flex: 0 0 42%;
+        max-width: 48%;
+    }
+
+    .admin-table-wrap--stackable .admin-table tbody td .btn {
+        margin-left: auto;
+    }
+
+    .admin-table-wrap--stackable .admin-table-empty td {
+        display: block;
+        text-align: center;
+    }
+
+    .admin-table-wrap--stackable .admin-table-empty td::before {
+        display: none;
+    }
+
+    .tenant-status-legend {
+        width: 100%;
+    }
+
+    .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+
+    .modal-dialog.modal-lg {
+        max-width: calc(100% - 1rem);
+    }
 }
 
 @media (max-width: 575.98px) {
@@ -73,5 +284,10 @@
 
     .page-wrapper .card .card-header .btn {
         width: 100%;
+    }
+
+    .page-wrapper .general-widget .col-sm-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
     }
 }

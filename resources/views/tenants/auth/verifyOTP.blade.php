@@ -39,7 +39,6 @@
         <form method="POST" action="{{ route('otp.resend') }}" class="tc-inline-form">
             @csrf
             <input type="hidden" name="email" value="{{ $email ?? old('email') }}">
-            @include('partials.cloudflare-turnstile', ['class' => 'cf-turnstile-wrap--inline'])
             <button type="submit" class="tc-btn-link">Resend now</button>
         </form>
     </div>
@@ -48,3 +47,30 @@
     </div>
 </x-tenant-auth-shell>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    var resendForm = document.querySelector('form.tc-inline-form');
+    if (!resendForm) {
+        return;
+    }
+    resendForm.addEventListener('submit', function (e) {
+        var token = document.querySelector('[name="cf-turnstile-response"]');
+        if (!token || !token.value) {
+            e.preventDefault();
+            alert('Please complete the security verification above, then try again.');
+            return;
+        }
+        resendForm.querySelectorAll('[name="cf-turnstile-response"]').forEach(function (el) {
+            el.remove();
+        });
+        var clone = document.createElement('input');
+        clone.type = 'hidden';
+        clone.name = 'cf-turnstile-response';
+        clone.value = token.value;
+        resendForm.appendChild(clone);
+    });
+})();
+</script>
+@endpush

@@ -8,7 +8,7 @@
     <link rel="icon" href="{{ asset('assets/logo/pinnacle-favicon.png') }}" type="image/png">
     <link rel="preload" href="{{ asset('css/pinnacle-theme.css') }}?v=9" as="style">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ asset('css/pinnacle-theme.css') }}?v=15">
+    <link rel="stylesheet" href="{{ asset('css/pinnacle-theme.css') }}?v=17">
     {{-- Powered by {{ config('pinnacle.powered_by', 'apimstec') }} (not shown in UI) --}}
     @stack('head')
 </head>
@@ -23,7 +23,7 @@
         'cookiePolicyUrl' => route('pinnacle.cookies'),
         'cookieVariant' => 'pinnacle',
     ])
-    <script src="{{ asset('js/pinnacle.js') }}?v=6" defer></script>
+    <script src="{{ asset('js/pinnacle.js') }}?v=8" defer></script>
     <script src="{{ asset('js/password-toggle.js') }}?v=1"></script>
     <script src="{{ asset('js/remember-login.js') }}?v=1"></script>
     @include('partials.cloudflare-turnstile-scripts')

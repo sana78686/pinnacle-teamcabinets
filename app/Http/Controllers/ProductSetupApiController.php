@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductCatalog;
 use App\Models\ProductSection;
 use App\Support\MediaUpload;
+use App\Support\ProductFieldFormat;
 use App\Support\PublicUploadedFile;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -160,7 +161,9 @@ class ProductSetupApiController extends Controller
     ]);
     $section = new ProductSection;
     $section->cabinets_name = $request->cabinets_name;
-    $section->assemble_price = $request->filled('assemble_price') ? $request->assemble_price : 0;
+    $section->assemble_price = $request->filled('assemble_price')
+      ? ProductFieldFormat::normalizeDecimal($request->assemble_price)
+      : 0;
     $section->save();
 
     return $section;
@@ -174,7 +177,9 @@ class ProductSetupApiController extends Controller
     ]);
     $section = ProductSection::query()->findOrFail($id);
     $section->cabinets_name = $request->cabinets_name;
-    $section->assemble_price = $request->filled('assemble_price') ? $request->assemble_price : 0;
+    $section->assemble_price = $request->filled('assemble_price')
+      ? ProductFieldFormat::normalizeDecimal($request->assemble_price)
+      : 0;
     $section->save();
 
     return $section;
@@ -231,10 +236,10 @@ class ProductSetupApiController extends Controller
       'door_color_id' => 'required|integer|exists:door_colors,id',
       'label' => 'required|string|max:255',
       'sku' => 'required|string|max:255',
-      'weight' => 'required|string|max:50',
-      'cost' => 'required|string|max:50',
-      'assemble_cost' => 'nullable|string|max:50',
-      'qty' => 'nullable|string|max:50',
+      'weight' => 'required|numeric|min:0',
+      'cost' => 'required|numeric|min:0',
+      'assemble_cost' => 'nullable|numeric|min:0',
+      'qty' => 'nullable|numeric|min:0',
       'description' => 'nullable|string',
     ], MediaUpload::imageFieldRules('image')));
 
@@ -244,10 +249,10 @@ class ProductSetupApiController extends Controller
     $product->door_color_id = $request->door_color_id;
     $product->label = $request->label;
     $product->sku = $request->sku;
-    $product->weight = $request->weight;
-    $product->cost = $request->cost;
-    $product->assemble_cost = $request->assemble_cost;
-    $product->qty = $request->qty;
+    $product->weight = ProductFieldFormat::normalizeDecimal($request->weight);
+    $product->cost = ProductFieldFormat::normalizeDecimal($request->cost);
+    $product->assemble_cost = ProductFieldFormat::normalizeDecimal($request->assemble_cost);
+    $product->qty = $request->filled('qty') ? ProductFieldFormat::normalizeDecimal($request->qty) : null;
     $product->description = $request->description;
     $product->image = PublicUploadedFile::resolve($request, 'image', null, 'uploads/products/images');
     $product->save();
@@ -265,10 +270,10 @@ class ProductSetupApiController extends Controller
       'door_color_id' => 'required|integer|exists:door_colors,id',
       'label' => 'required|string|max:255',
       'sku' => 'required|string|max:255',
-      'weight' => 'required|string|max:50',
-      'cost' => 'required|string|max:50',
-      'assemble_cost' => 'nullable|string|max:50',
-      'qty' => 'nullable|string|max:50',
+      'weight' => 'required|numeric|min:0',
+      'cost' => 'required|numeric|min:0',
+      'assemble_cost' => 'nullable|numeric|min:0',
+      'qty' => 'nullable|numeric|min:0',
       'description' => 'nullable|string',
     ], MediaUpload::imageFieldRules('image')));
 
@@ -277,10 +282,10 @@ class ProductSetupApiController extends Controller
     $product->door_color_id = $request->door_color_id;
     $product->label = $request->label;
     $product->sku = $request->sku;
-    $product->weight = $request->weight;
-    $product->cost = $request->cost;
-    $product->assemble_cost = $request->assemble_cost;
-    $product->qty = $request->qty;
+    $product->weight = ProductFieldFormat::normalizeDecimal($request->weight);
+    $product->cost = ProductFieldFormat::normalizeDecimal($request->cost);
+    $product->assemble_cost = ProductFieldFormat::normalizeDecimal($request->assemble_cost);
+    $product->qty = $request->filled('qty') ? ProductFieldFormat::normalizeDecimal($request->qty) : null;
     $product->description = $request->description;
     $product->image = PublicUploadedFile::resolve($request, 'image', $product->image, 'uploads/products/images');
     $product->save();
@@ -303,9 +308,13 @@ class ProductSetupApiController extends Controller
       'categories' => [
         'id' => $row->id,
         'cabinets_name' => $row->cabinets_name,
-        'assemble_price' => ($row->assemble_price !== null && (string) $row->assemble_price !== '' && (float) $row->assemble_price != 0.0)
-          ? $row->assemble_price
-          : null,
+        'assemble_price' => $detail
+          ? ProductFieldFormat::normalizeDecimal($row->assemble_price)
+          : ProductFieldFormat::formatMoney(
+              ($row->assemble_price !== null && (string) $row->assemble_price !== '' && (float) $row->assemble_price != 0.0)
+                ? $row->assemble_price
+                : null
+            ),
       ],
       'door-styles' => array_merge([
         'id' => $row->id,
@@ -325,9 +334,15 @@ class ProductSetupApiController extends Controller
         'door_style_name' => $row->doorColor?->product_label,
         'label' => $row->label,
         'sku' => $row->sku,
-        'weight' => $row->weight,
-        'cost' => $row->cost,
-        'assemble_cost' => $row->assemble_cost,
+        'weight' => $detail
+          ? ProductFieldFormat::normalizeDecimal($row->weight)
+          : ProductFieldFormat::formatWeight($row->weight),
+        'cost' => $detail
+          ? ProductFieldFormat::normalizeDecimal($row->cost)
+          : ProductFieldFormat::formatMoney($row->cost),
+        'assemble_cost' => $detail
+          ? ProductFieldFormat::normalizeDecimal($row->assemble_cost)
+          : ProductFieldFormat::formatMoney($row->assemble_cost),
         'qty' => $row->qty,
         'description' => $detail ? $row->description : null,
         'image_url' => $row->image_url ?? ProductCatalog::publicAssetUrl($row->image),

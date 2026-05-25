@@ -42,8 +42,9 @@ return [
             'icon' => 'shield',
             'type' => 'dropdown',
             'nav_module' => 'roles',
-            'route_patterns' => ['tenant_role_*', 'tenant_manage_role_*'],
+            'route_patterns' => ['tenant_role_*', 'tenant_manage_role_*', 'tenant_hierarchy_*'],
             'children' => [
+                ['label' => 'User Hierarchy', 'icon' => 'git-branch', 'route' => 'tenant_hierarchy_index', 'permission' => 'manage_role-list'],
                 ['label' => 'Manage User Role', 'icon' => 'sliders', 'route' => 'tenant_manage_role_create', 'permission' => 'manage_role-list'],
                 ['label' => 'Create Role', 'icon' => 'plus-circle', 'route' => 'tenant_role_create', 'permission' => 'role-create'],
                 ['label' => 'Roles List', 'icon' => 'list', 'route' => 'tenant_role_index', 'permission' => 'role-list'],

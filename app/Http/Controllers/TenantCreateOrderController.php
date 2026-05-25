@@ -12,6 +12,7 @@ use App\Models\ProductSection;
 use App\Models\Quote;
 use App\Models\ShippingQuote;
 use App\Models\StockCheckRequest;
+use App\Models\User;
 use App\Services\OrderCartPersistenceService;
 use App\Services\OrderPricingService;
 use App\Services\OrderWorkspaceCheckoutService;
@@ -219,7 +220,9 @@ class TenantCreateOrderController extends Controller
 
         $subTotal = (float) ($payload['totals']['sub_total_cost'] ?? 0);
         $assembleTotal = (float) ($payload['totals']['sub_total_assemble_cost'] ?? 0);
+        $cartWeight = (float) ($payload['totals']['sub_total_weight'] ?? 0);
         $shippingCost = (float) ($payload['shipping_cost'] ?? $cartData['order_shipping_cost'] ?? 0);
+        $shippingCost = $this->checkout->applyWeightShippingSurcharge($cartWeight, $shippingCost);
         $isShippingQuote = (int) ($cartData['is_shipping_quote'] ?? 0) > 0;
         $shippingQuoteId = session('shipping_quote_checkout_id');
         $shippingBreakdown = json_decode((string) ($cartData['shipping_charges_arr'] ?? '[]'), true) ?: [];
@@ -306,7 +309,9 @@ class TenantCreateOrderController extends Controller
             $paymentType,
             $request->input('payment_method')
         );
+        $cartWeight = (float) ($payload['totals']['sub_total_weight'] ?? 0);
         $shippingCost = (float) ($payload['shipping_cost'] ?? $cartData['order_shipping_cost'] ?? 0);
+        $shippingCost = $this->checkout->applyWeightShippingSurcharge($cartWeight, $shippingCost);
 
         $checkoutTotals = $this->checkout->calculateCheckoutTotals(
             $subTotal,
@@ -321,7 +326,12 @@ class TenantCreateOrderController extends Controller
         $orderStatus = 'PENDING';
         $paytraceResponse = '';
         $cartTotal = $subTotal + $assembleTotal;
-        $ciRooms = $this->checkout->buildCiRoomData($payload['rooms'] ?? [], $request, $user);
+        $affiliateId = (int) ($cartData['affiliate_id'] ?? $request->input('affiliate_id', 0));
+        $affiliateId = $affiliateId > 0 ? $affiliateId : null;
+        $roomDataUser = $affiliateId
+            ? (User::query()->find($affiliateId) ?? $user)
+            : $user;
+        $ciRooms = $this->checkout->buildCiRoomData($payload['rooms'] ?? [], $request, $roomDataUser);
 
         if ($paymentType === 'by_credit_card') {
             $result = $this->paytrace->charge('credit_card', $grandTotal, [
@@ -415,21 +425,28 @@ class TenantCreateOrderController extends Controller
         ]);
 
         $commService = app(CommissionCalculationService::class);
-        $comm = $commService->calculate($cartTotal, $user);
+        $comm = $commService->calculate($cartTotal, $user, $affiliateId);
+        $repId = $request->input('representative_id') ?? $request->input('cus_rep_id') ?? $cartData['rep_id'] ?? null;
+        $repId = $repId !== null && $repId !== '' ? (int) $repId : $comm['repId'];
+        $parentId = $request->input('parent_id') ?? $request->input('cus_parent_id') ?? $cartData['parent_id'] ?? $comm['parentId'];
+        $parentId = $parentId !== null && $parentId !== '' ? (int) $parentId : (int) $comm['parentId'];
+
         $order->update([
-            'mfg_comm' => $comm['mfgComm'],
-            'rep_comm' => $comm['repComm'],
-            'aff_comm' => $comm['affComm'],
-            'sub_aff_commission' => $comm['subAffComm'],
-            'rep_id' => $comm['repId'],
-            'parent_id' => $comm['parentId'],
+            'mfg_comm' => $comm['mfgCommission'],
+            'rep_comm' => $comm['repCommission'],
+            'aff_comm' => $comm['affCommission'],
+            'sub_aff_commission' => $comm['sub_aff_commission'],
+            'rep_id' => $repId ?: null,
+            'parent_id' => $parentId ?: null,
+            'commission_parent_id' => $parentId ?: null,
         ]);
 
+        $grossSalesUserId = $affiliateId ?? $user->id;
         ManageCommission::query()->updateOrCreate(
-            ['user_id' => $user->id],
+            ['user_id' => $grossSalesUserId],
             ['gross_sales' => 0]
         );
-        ManageCommission::query()->where('user_id', $user->id)->increment('gross_sales', $cartTotal);
+        ManageCommission::query()->where('user_id', $grossSalesUserId)->increment('gross_sales', $cartTotal);
 
         $cartData = array_merge($cartData, [
             'bill_to_name' => $request->input('bill_to_name'),

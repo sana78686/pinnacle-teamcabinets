@@ -17,22 +17,45 @@ class TenantProvisioningService
 
         TenantRoleService::ensureDefaultRoles();
 
-        if (! $admin->hasRole('Admin')) {
-            $admin->assignRole('Admin');
+        if (! $admin->isAdmin()) {
+            $admin->assignCiRole('admin');
         }
 
-        $tenant->run(function () {
-            app(ManageOtherPageContentService::class)->ensureDefaults();
-            app(ManageEmailsContentService::class)->ensureDefaults();
-            app(TaxValuesService::class)->ensureDefaults();
-            app(PointFactorDefaultsService::class)->syncFromCiConfig();
-            TenantNotificationService::notifyWelcomePanelIfNeeded();
-        });
+        $this->applyScopedDefaults($tenant, withWelcomeNotification: true);
 
         if ($sendEmails) {
             TenantRegistrationMailer::send($tenant);
         }
 
         Log::info('Tenant provisioning completed (§5.1).', ['tenant_id' => $tenant->id]);
+    }
+
+    /**
+     * Tenant-scoped defaults (point factors, taxes, email templates, etc.).
+     * Safe to call from TenantCreated and after admin registration.
+     */
+    public function applyScopedDefaults(Tenant $tenant, bool $withWelcomeNotification = false): void
+    {
+        $tenant->run(function () use ($withWelcomeNotification): void {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'user_type')) {
+                User::query()
+                    ->whereNull('user_type')
+                    ->each(function (User $user): void {
+                        $ci = $user->getCiRole();
+                        if ($ci !== '') {
+                            $user->forceFill(['user_type' => $ci])->saveQuietly();
+                        }
+                    });
+            }
+
+            app(ManageOtherPageContentService::class)->ensureDefaults();
+            app(ManageEmailsContentService::class)->ensureDefaults();
+            app(TaxValuesService::class)->ensureDefaults();
+            app(PointFactorDefaultsService::class)->syncFromCiConfig();
+
+            if ($withWelcomeNotification) {
+                TenantNotificationService::notifyWelcomePanelIfNeeded();
+            }
+        });
     }
 }

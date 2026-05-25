@@ -83,7 +83,7 @@ class TenantRoleDashboardService
 
     protected function usersCardTitle(User $user): string
     {
-        if ($user->hasRole('Representative')) {
+        if ($user->isRepresentative()) {
             return 'My Users';
         }
 
@@ -92,7 +92,7 @@ class TenantRoleDashboardService
 
     protected function addUserLabel(User $user): string
     {
-        return $user->hasRole('Representative') ? 'Add User' : 'Add Affiliate';
+        return $user->isRepresentative() ? 'Add User' : 'Add Affiliate';
     }
 
     protected function showAddUserButton(User $user): bool

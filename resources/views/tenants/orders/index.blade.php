@@ -26,6 +26,9 @@
             <i class="icofont icofont-plus"></i> Create Order
         </a>
         <a href="{{ route('tenant_deleted_order_list') }}" class="btn btn-success btn-sm">Restore Orders</a>
+        @if (! empty($exportCsvUrl))
+            <a href="{{ $exportCsvUrl }}" class="btn btn-primary btn-sm text-white"><i class="icofont icofont-upload-alt"></i> Export CSV</a>
+        @endif
         <a href="{{ url()->current() }}" class="btn btn-light btn-sm"><i class="icofont icofont-refresh"></i> Refresh</a>
     </div>
 
@@ -34,6 +37,9 @@
         'rowLabel' => 'Order',
         'showRoute' => 'tenant_order_show',
         'destroyRoute' => 'tenant_order_destroy',
+        'pickListRoute' => 'tenant_order_warehouse_pick',
+        'perPage' => $perPage,
+        'search' => $search,
     ])
 
     {{-- <div class="p-2 mt-0 card-header no-border d-none">

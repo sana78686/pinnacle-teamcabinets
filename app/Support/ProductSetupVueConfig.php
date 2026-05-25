@@ -288,6 +288,10 @@ class ProductSetupVueConfig
             'destroy' => route('tenant_product_setup_api_destroy', ['type' => $type, 'id' => '__ID__']),
         ];
 
+        if ($type === 'products') {
+            $config['deactivateAllUrl'] = route('tenant_product_setup_deactivate_all');
+        }
+
         return $config;
     }
 }

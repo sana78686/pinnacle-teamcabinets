@@ -15,7 +15,7 @@
                     <label class="form-label" for="user_type">Select user type</label>
                     <select name="user_type" id="user_type" class="form-select" required>
                         <option value="">Select type</option>
-                        @foreach (['representatives' => 'Representatives', 'distributors' => 'Distributors', 'dealers' => 'Dealers', 'showrooms' => 'Showrooms'] as $value => $label)
+                        @foreach ($userTypes as $value => $label)
                             <option value="{{ $value }}" @selected($selectedType === $value)>{{ $label }}</option>
                         @endforeach
                     </select>

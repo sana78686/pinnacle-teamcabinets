@@ -166,7 +166,7 @@ public function postLogin(Request $request)
             'is_verified_by_admin' => false,
         ]);
 
-        $tenant_user->assignRole($role->name);
+        $tenant_user->assignCiRole($role->name);
 
         TenantNotificationService::registrationPendingApproval($tenant_user);
 
@@ -181,7 +181,7 @@ public function postLogin(Request $request)
 
         $adminEmail = SiteSetting::first()?->newuser_email;
         if (! $adminEmail) {
-            $adminEmail = User::role('Admin')->value('email');
+            $adminEmail = User::role(['admin', 'Admin'])->value('email');
         }
         if ($adminEmail) {
             try {

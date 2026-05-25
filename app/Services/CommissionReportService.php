@@ -3,7 +3,8 @@
 namespace App\Services;
 
 use App\Models\Order;
-use Illuminate\Support\Collection;
+use App\Models\User;
+use Carbon\Carbon;
 
 class CommissionReportService
 {
@@ -12,7 +13,23 @@ class CommissionReportService
     ) {}
 
     /**
-     * Build grouped commission report rows (CI commission_report_formatted_data shape).
+     * CI admin_saving_report default: last Thursday → last Wednesday.
+     *
+     * @return array{from: string, to: string}
+     */
+    public function defaultWeeklyRange(): array
+    {
+        $wednesday = Carbon::now()->modify('last Wednesday');
+        $lastThursday = (clone $wednesday)->subDays(6);
+
+        return [
+            'from' => $lastThursday->format('Y-m-d'),
+            'to' => $wednesday->format('Y-m-d'),
+        ];
+    }
+
+    /**
+     * Mirror of CI commission_report_formatted_data().
      *
      * @param  array{rep_id?: int|string, parent_id?: int|string, from?: string, to?: string, state?: int}  $filters
      * @return array<int, array<string, mixed>>
@@ -23,11 +40,15 @@ class CommissionReportService
             ->with('user')
             ->where('state', $filters['state'] ?? 1);
 
-        if (! empty($filters['rep_id'])) {
+        if (! empty($filters['rep_id']) && $filters['rep_id'] !== 'all') {
             $query->where('rep_id', $filters['rep_id']);
         }
         if (! empty($filters['parent_id'])) {
-            $query->where('parent_id', $filters['parent_id']);
+            $parentId = $filters['parent_id'];
+            $query->where(function ($q) use ($parentId) {
+                $q->where('commission_parent_id', $parentId)
+                    ->orWhere('parent_id', $parentId);
+            });
         }
         if (! empty($filters['from'])) {
             $query->whereDate('created_at', '>=', $filters['from']);
@@ -40,26 +61,89 @@ class CommissionReportService
         $result = [];
 
         foreach ($orders as $order) {
+            $rooms = $order->rooms;
+            if (! is_array($rooms) || $rooms === []) {
+                continue;
+            }
+
             $doorLines = $this->doorLinesForOrder($order);
             if ($doorLines === []) {
                 continue;
             }
 
+            $roomNames = $this->roomNamesFromStorage($rooms);
             $customer = $order->user;
+
             $result[] = [
                 'order_id' => $order->id,
                 'invoice_number' => (string) $order->id,
-                'job_name' => $order->job_name,
-                'invoice_date' => $order->created_at?->format('Y-m-d') ?? '',
-                'customer_name' => $customer?->name,
-                'order_by' => $customer?->name,
+                'job_name' => is_array($order->job_name)
+                    ? implode(', ', $order->job_name)
+                    : (string) ($order->job_name ?? ''),
+                'invoice_date' => $order->created_at?->format('m/d/Y') ?? '',
+                'customer_name' => $customer?->name ?? '',
+                'order_by' => $customer?->name ?? '',
+                'room_name' => implode(', ', $roomNames),
                 'rep_id' => $order->rep_id,
-                'parent_id' => $order->parent_id,
+                'parent_id' => $order->commission_parent_id ?? $order->parent_id,
+                'mfg_comm' => (float) ($order->mfg_comm ?? 0),
+                'rep_comm' => (float) ($order->rep_comm ?? 0),
+                'aff_comm' => (float) ($order->aff_comm ?? 0),
+                'sub_aff_commission' => (float) ($order->sub_aff_commission ?? 0),
                 'door_lines' => $doorLines,
             ];
         }
 
         return $result;
+    }
+
+    /**
+     * CI user_commissins_list — gross_sales * point_factor (decimal factor, not /100).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function userTypeList(string $userType): array
+    {
+        $ciType = TenantRoleService::normalizeCiRoleName($userType);
+        if ($ciType === '') {
+            return [];
+        }
+
+        $users = User::query()
+            ->where('status', 'approved')
+            ->where(function ($q) use ($ciType) {
+                $q->where('user_type', $ciType)
+                    ->orWhereHas('roles', fn ($r) => $r->where('name', $ciType));
+            })
+            ->with('manageCommission')
+            ->orderBy('name')
+            ->get();
+
+        return $users->map(fn (User $u) => [
+            'name' => $u->name,
+            'email' => $u->email,
+            'point_factor' => $u->point_factor,
+            'gross_sales' => (float) ($u->manageCommission?->gross_sales ?? 0),
+            'commission_amount' => (float) ($u->manageCommission?->gross_sales ?? 0) * (float) ($u->point_factor ?? 0),
+        ])->values()->all();
+    }
+
+    /**
+     * @param  array<mixed>  $rooms
+     * @return list<string>
+     */
+    protected function roomNamesFromStorage(array $rooms): array
+    {
+        if ($this->isCiRoomMap($rooms)) {
+            return array_map('strval', array_keys($rooms));
+        }
+
+        $names = [];
+        foreach ($this->checkout->normalizeRoomsFromStorage($rooms) as $room) {
+            $names[] = (string) ($room['room_name'] ?? 'Room');
+        }
+
+        return $names;
     }
 
     /**
@@ -87,33 +171,60 @@ class CommissionReportService
             if (! isset($byDoorStyle[$doorStyle])) {
                 $byDoorStyle[$doorStyle] = [
                     'door_style' => $doorStyle,
-                    'quantity' => 0,
+                    'product_quantity' => 0,
+                    'product_cost' => 0.0,
+                    'product_assemble_cost' => 0.0,
+                    'product_actual_price' => 0.0,
                     'list_price' => 0.0,
                     'user_door_price' => 0.0,
                     'parent_door_price' => 0.0,
                     'rep_door_price' => 0.0,
-                    'user_door_factor' => (float) ($product['user_door_factor'] ?? 0),
-                    'parent_door_factor' => (float) ($product['parent_door_factor'] ?? 0),
-                    'rep_door_factor' => (float) ($product['representative_door_factor'] ?? 0),
+                    'user_door_factor' => 0.0,
+                    'parent_door_factor' => 0.0,
+                    'rep_door_factor' => 0.0,
                 ];
             }
 
-            $qty = max(1, (int) ($product['product_quantity'] ?? 1));
+            $qty = max(1, (float) ($product['product_quantity'] ?? 1));
             $actual = (float) ($product['product_actual_price'] ?? 0);
             $userFactor = (float) ($product['user_door_factor'] ?? 0);
             $parentUnit = (float) ($product['parent_door_price'] ?? 0);
             $repUnit = (float) ($product['representative_door_price'] ?? 0);
 
-            $byDoorStyle[$doorStyle]['quantity'] += $qty;
+            $byDoorStyle[$doorStyle]['product_quantity'] += $qty;
+            $byDoorStyle[$doorStyle]['product_cost'] += (float) ($product['product_cost'] ?? 0) * $qty;
+            $byDoorStyle[$doorStyle]['product_assemble_cost'] += (float) ($product['product_assemble_cost'] ?? 0) * $qty;
+            $byDoorStyle[$doorStyle]['product_actual_price'] += $actual * $qty;
             $byDoorStyle[$doorStyle]['list_price'] += $actual * $qty;
-            $byDoorStyle[$doorStyle]['user_door_price'] += $actual * $qty * $userFactor;
             $byDoorStyle[$doorStyle]['parent_door_price'] += $parentUnit * $qty;
             $byDoorStyle[$doorStyle]['rep_door_price'] += $repUnit * $qty;
+            // CI: user_door_price = product_actual_price * qty * user_door_factor (recomputed)
+            $byDoorStyle[$doorStyle]['user_door_price'] += $actual * $qty * $userFactor;
+            // Factors: last seen (not summed)
+            $byDoorStyle[$doorStyle]['parent_door_factor'] = (float) ($product['parent_door_factor'] ?? 0);
+            $byDoorStyle[$doorStyle]['rep_door_factor'] = (float) ($product['representative_door_factor'] ?? 0);
+            $byDoorStyle[$doorStyle]['user_door_factor'] = $userFactor;
         }
 
         foreach ($byDoorStyle as &$line) {
             $line['aff_commission'] = $line['user_door_price'] - $line['parent_door_price'];
             $line['rep_commission'] = $line['parent_door_price'] - $line['rep_door_price'];
+
+            if ($line['parent_door_price'] == 0.0 && $line['parent_door_factor'] == 0.0) {
+                $line['aff_commission_display'] = 'N/A';
+                $line['parent_cost_display'] = 'N/A';
+            } else {
+                $line['aff_commission_display'] = number_format($line['aff_commission'], 2);
+                $line['parent_cost_display'] = number_format($line['parent_door_price'], 2);
+            }
+
+            if ($line['rep_door_price'] == 0.0 && $line['rep_door_factor'] == 0.0) {
+                $line['rep_commission_display'] = 'N/A';
+                $line['rep_cost_display'] = 'N/A';
+            } else {
+                $line['rep_commission_display'] = number_format($line['rep_commission'], 2);
+                $line['rep_cost_display'] = number_format($line['rep_door_price'], 2);
+            }
         }
         unset($line);
 
@@ -121,8 +232,6 @@ class CommissionReportService
     }
 
     /**
-     * Transpose CI room JSON (parallel arrays) into flat product rows.
-     *
      * @param  array<mixed>  $rooms
      * @return array<int, array<string, mixed>>
      */
@@ -141,6 +250,8 @@ class CommissionReportService
                 $products[] = [
                     'product_cabinets_color' => $line['product_color'] ?? '',
                     'product_quantity' => $qty,
+                    'product_cost' => (float) ($line['cost'] ?? $actual),
+                    'product_assemble_cost' => (float) ($line['assemble_cost'] ?? 0),
                     'product_actual_price' => $actual,
                     'user_door_factor' => $line['user_door_factor'] ?? 0,
                     'parent_door_factor' => $line['parent_door_factor'] ?? 0,
@@ -177,6 +288,8 @@ class CommissionReportService
                 $products[] = [
                     'product_cabinets_color' => (string) ($roomData['product_cabinets_color'][$i] ?? ''),
                     'product_quantity' => max(1, (int) ($roomData['product_quantity'][$i] ?? 1)),
+                    'product_cost' => (float) ($roomData['product_cost'][$i] ?? 0),
+                    'product_assemble_cost' => (float) ($roomData['product_assemble_cost'][$i] ?? 0),
                     'product_actual_price' => (float) ($roomData['product_actual_price'][$i] ?? 0),
                     'user_door_factor' => $roomData['user_door_factor'][$i] ?? 0,
                     'parent_door_factor' => $roomData['parent_door_factor'][$i] ?? 0,

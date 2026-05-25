@@ -7,74 +7,92 @@ use App\Models\User;
 class CommissionCalculationService
 {
     /**
-     * Calculate all commission fields for an order at checkout.
+     * Mirror of CI Admin::commCalculation().
      *
-     * @return array{mfgComm: float, repComm: float, affComm: float, subAffComm: float, repId: ?int, parentId: int|string|null}
+     * @return array{
+     *     mfgCommission: float,
+     *     repCommission: float,
+     *     affCommission: float,
+     *     sub_aff_commission: float,
+     *     repId: ?int,
+     *     parentId: int,
+     *     mfgComm: float,
+     *     repComm: float,
+     *     affComm: float,
+     *     subAffComm: float
+     * }
      */
-    public function calculate(float $cartTotal, User $user): array
+    public function calculate(float $cartAmount, User $orderingUser, ?int $affiliateId = null): array
     {
-        $user->loadMissing('roles');
-
-        $admin = User::query()
-            ->whereHas('roles', fn ($q) => $q->whereIn('name', ['Admin', 'admin', 'Super Admin']))
-            ->first();
-        $adminFactor = $admin ? (float) ($admin->point_factor ?? 0) : 0.0;
-        $mfgComm = $cartTotal * $adminFactor;
-
-        $userFactor = (float) ($user->point_factor ?? 0);
-        $repComm = 0.0;
-        $affComm = 0.0;
-        $subAffComm = 0.0;
-        $repId = null;
-        $parentId = $user->parent_id;
-
-        if ($this->isRepresentative($user)) {
-            $repComm = $cartTotal * $userFactor;
-        } elseif (! $user->parent_id || (string) $user->parent_id === '0') {
-            $affComm = $cartTotal * $userFactor;
-            $subAffComm = 0.0;
+        if ($affiliateId && $affiliateId > 0) {
+            $user = User::query()->findOrFail($affiliateId);
+            $userPointFactor = (float) $user->point_factor;
+            $parentId = (int) ($user->parent_id ?? 0);
+            $customerType = $user->getCiRole();
         } else {
-            $parent = User::query()->with('roles')->find($user->parent_id);
-            $parentFactor = $parent ? (float) ($parent->point_factor ?? 0) : 0.0;
+            $user = $orderingUser;
+            $userPointFactor = (float) $orderingUser->point_factor;
+            $parentId = (int) ($orderingUser->parent_id ?? 0);
+            $customerType = $orderingUser->getCiRole();
+        }
 
-            if ($parent && $this->isRepresentative($parent)) {
-                $repComm = $cartTotal * $parentFactor;
-                $affComm = $cartTotal * $userFactor;
-                $repId = (int) $parent->id;
-            } else {
-                $affComm = $cartTotal * $parentFactor;
-                $subAffComm = $cartTotal * $userFactor;
-
-                if ($parent?->parent_id && (string) $parent->parent_id !== '4') {
-                    $rep = User::query()->with('roles')->find($parent->parent_id);
-                    if ($rep && $this->isRepresentative($rep)) {
-                        $repComm = $cartTotal * (float) ($rep->point_factor ?? 0);
-                        $repId = (int) $rep->id;
-                    }
-                }
+        $parentPointFactor = 0.0;
+        $parentUserType = '';
+        if ($parentId > 0) {
+            $parent = User::query()->find($parentId);
+            if ($parent) {
+                $parentPointFactor = (float) $parent->point_factor;
+                $parentUserType = $parent->getCiRole();
             }
         }
 
-        if ($repId === null) {
-            $repId = app(OrderPricingService::class)->resolveRepIdForUser($user);
+        $admin = User::query()
+            ->where(function ($q) {
+                $q->where('user_type', 'admin')
+                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['admin', 'Admin']));
+            })
+            ->first();
+        $adminPointFactor = $admin ? (float) $admin->point_factor : 0.0;
+
+        $mgfCommission = $cartAmount * $adminPointFactor;
+        $repCommission = 0.0;
+        $affCommission = 0.0;
+        $subAffCommission = 0.0;
+
+        if ($customerType === 'representatives') {
+            $repCommission = $cartAmount * $userPointFactor;
+            $affCommission = 0.0;
+        } else {
+            if ($parentUserType === 'representatives' && $parentUserType !== 'admin') {
+                $repCommission = $cartAmount * $parentPointFactor;
+                $affCommission = $cartAmount * $userPointFactor;
+            } else {
+                $affCommission = $cartAmount * $parentPointFactor;
+                $subAffCommission = $cartAmount * $userPointFactor;
+            }
+
+            if ($parentId === 0) {
+                $affCommission = $cartAmount * $userPointFactor;
+                $subAffCommission = 0.0;
+            }
+        }
+
+        $repId = $parentUserType === 'representatives' ? $parentId : null;
+        if ($repId !== null && $repId <= 0) {
+            $repId = null;
         }
 
         return [
-            'mfgComm' => round($mfgComm, 4),
-            'repComm' => round($repComm, 4),
-            'affComm' => round($affComm, 4),
-            'subAffComm' => round($subAffComm, 4),
+            'mgfCommission' => round($mgfCommission, 4),
+            'repCommission' => round($repCommission, 4),
+            'affCommission' => round($affCommission, 4),
+            'sub_aff_commission' => round($subAffCommission, 4),
             'repId' => $repId,
             'parentId' => $parentId,
+            'mfgComm' => round($mgfCommission, 4),
+            'repComm' => round($repCommission, 4),
+            'affComm' => round($affCommission, 4),
+            'subAffComm' => round($subAffCommission, 4),
         ];
-    }
-
-    protected function isRepresentative(User $user): bool
-    {
-        if (! method_exists($user, 'hasRole')) {
-            return false;
-        }
-
-        return $user->hasRole(['Representative', 'Rep', 'representative', 'rep']);
     }
 }

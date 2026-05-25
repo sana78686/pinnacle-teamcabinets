@@ -7,13 +7,8 @@ use Illuminate\Support\Str;
 
 class PointFactorDefaultsService
 {
-    /** CI point_factor.user_type values from legacy add_point_factor form + config. */
-    public const CI_USER_TYPE_MAP = [
-        'Representative' => 'representatives',
-        'Distributor' => 'distributors',
-        'Dealer' => 'dealers',
-        'Showroom' => 'showrooms',
-    ];
+    /** Legacy Spatie/display names => CI point_factor.user_type (see TenantRoleService::LEGACY_TO_CI). */
+    public const CI_USER_TYPE_MAP = TenantRoleService::LEGACY_TO_CI;
 
     /**
      * CI default decimals (from config/team_cabinets_tenant.php + CI admin form).
@@ -31,10 +26,10 @@ class PointFactorDefaultsService
         $legacy = config('team_cabinets_tenant.point_factors', []);
 
         return [
-            'Representative' => (string) ($legacy['representatives'] ?? '0.20'),
-            'Distributor' => (string) ($legacy['distributors'] ?? '0.24'),
-            'Dealer' => (string) ($legacy['dealers'] ?? '0.24'),
-            'Showroom' => (string) ($legacy['showrooms'] ?? '0.24'),
+            'representatives' => (string) ($legacy['representatives'] ?? '0.20'),
+            'distributors' => (string) ($legacy['distributors'] ?? '0.24'),
+            'dealers' => (string) ($legacy['dealers'] ?? '0.24'),
+            'showrooms' => (string) ($legacy['showrooms'] ?? '0.24'),
         ];
     }
 
@@ -74,8 +69,12 @@ class PointFactorDefaultsService
     /** Seed/update point_factor_defaults from CI values for commission roles. */
     public function syncFromCiConfig(): int
     {
-        $count = 0;
         $tenantId = tenant('id');
+        if ($tenantId === null || $tenantId === '') {
+            return 0;
+        }
+
+        $count = 0;
 
         foreach ($this->ciDefaultsByRoleName() as $roleName => $pct) {
             foreach ($this->storageKeysForRole($roleName) as $userType) {

@@ -14,12 +14,14 @@ use App\Services\AdminRecordViewService;
 use App\Services\ClaimWorkspaceService;
 use App\Services\QuoteWorkspaceService;
 use App\Services\TenantNavBadgeService;
+use App\Services\WarehousePickListService;
 use App\Support\TenantListPaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TenantOrderController extends Controller
 {
@@ -50,6 +52,7 @@ class TenantOrderController extends Controller
             'records' => $query->paginate($perPage)->withQueryString(),
             'perPage' => $perPage,
             'search' => $search,
+            'exportCsvUrl' => route('tenant_order_export_csv', $request->only(['search', 'status', 'from', 'to'])),
         ];
 
         if (Auth::user()->hasRole('Admin')) {
@@ -346,6 +349,89 @@ $data['door_id'] = $door_id;
 
 
 
+
+    public function warehousePickList(string $orderId, WarehousePickListService $pickList): View
+    {
+        $order = Order::query()->with('user')->findOrFail($orderId);
+
+        return view('tenants.orders.warehouse_pick_list', [
+            'order' => $order,
+            'pickRooms' => $pickList->roomsForOrder($order),
+        ]);
+    }
+
+    public function warehousePickListPrint(Request $request, string $orderId, WarehousePickListService $pickList): View
+    {
+        $order = Order::query()->with('user')->findOrFail($orderId);
+
+        if ($request->isMethod('post')) {
+            $order->update([
+                'is_picked' => true,
+                'picked_at' => now(),
+            ]);
+        }
+
+        return view('tenants.orders.warehouse_pick_list_print', [
+            'order' => $order->fresh(),
+            'pickRooms' => $pickList->roomsForOrder($order),
+        ]);
+    }
+
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $workspace = app(\App\Services\OrderWorkspaceService::class);
+        $query = $workspace->listQuery(Order::class, Auth::user());
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->input('from'));
+        }
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->input('to'));
+        }
+        $search = TenantListPaginator::search($request);
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('job_name', 'like', '%'.$search.'%')
+                    ->orWhereHas('user', function ($u) use ($search) {
+                        $u->where('name', 'like', '%'.$search.'%')
+                            ->orWhere('email', 'like', '%'.$search.'%');
+                    });
+            });
+        }
+
+        $filename = 'Orders_'.now()->format('Ymd').'.csv';
+
+        return response()->streamDownload(function () use ($query) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, [
+                'Order ID', 'Customer Name', 'Email', 'Invoice #', 'Job Name',
+                'Order Amount', 'Status', 'Date',
+            ]);
+
+            $query->orderByDesc('id')->chunk(200, function ($orders) use ($handle) {
+                foreach ($orders as $order) {
+                    $jobName = is_array($order->job_name)
+                        ? implode(', ', $order->job_name)
+                        : (string) ($order->job_name ?? '');
+                    fputcsv($handle, [
+                        $order->id,
+                        $order->user?->name ?? '',
+                        $order->user?->email ?? $order->user_email ?? '',
+                        (string) $order->id,
+                        $jobName,
+                        number_format((float) ($order->order_amount ?? $order->grand_total_cost ?? 0), 2, '.', ''),
+                        $order->status ?? '',
+                        $order->created_at?->format('Y-m-d') ?? '',
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
 
     public function order_export()
     {

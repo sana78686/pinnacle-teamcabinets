@@ -65,5 +65,5 @@
         window.COMMISSION_REPORT_LIST = @json($vueConfig ?? []);
     </script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <script src="{{ tenant_static_asset('js/commission-report-vue.js') }}?v=1"></script>
+    <script src="{{ tenant_static_asset('js/commission-report-vue.js') }}?v=2"></script>
 @endsection

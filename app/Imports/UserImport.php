@@ -62,8 +62,8 @@ class UserImport implements ToModel, WithHeadingRow
         }
 
         // Assign the role to the user if not already assigned
-        if (!$user->hasRole($role->name)) {
-            $user->assignRole($role);
+        if (! $user->hasRole($role->name)) {
+            $user->assignCiRole($role->name);
             Log::info("Role  Assigned". $user);
         }
 

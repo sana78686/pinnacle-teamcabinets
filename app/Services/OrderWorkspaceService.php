@@ -90,6 +90,11 @@ class OrderWorkspaceService
                 'liftgate' => $request->input('ship_quote_liftgate_req'),
                 'unload_type' => $request->input('ship_quote_unload_type'),
             ]);
+            $weight = (float) ($totals['sub_total_weight'] ?? 0);
+            $surcharge = app(OrderWorkspaceCheckoutService::class)->weightShippingSurcharge($weight);
+            if ($surcharge > 0 && is_array($shippingCosts)) {
+                $shippingCosts['shipping_cost'] = ($shippingCosts['shipping_cost'] ?? 0) + $surcharge;
+            }
         }
 
         $comment = isset($validated['comment']) ? trim((string) $validated['comment']) : '';

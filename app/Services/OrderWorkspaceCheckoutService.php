@@ -179,6 +179,38 @@ class OrderWorkspaceCheckoutService
         ];
     }
 
+    /**
+     * CI checkout weight surcharge: +light or +heavy based on cart weight (lbs).
+     */
+    public function weightShippingSurcharge(float $cartWeight): float
+    {
+        if ($cartWeight <= 0) {
+            return 0.0;
+        }
+
+        $tax = app(TaxValuesService::class);
+        $lightThreshold = $tax->getFloat('shipping_light_threshold', 50.0);
+        $lightSurcharge = $tax->getFloat(
+            'shipping_light_surcharge',
+            $tax->getFloat('commercial_delivery_charge', 75.0)
+        );
+        $heavySurcharge = $tax->getFloat(
+            'shipping_heavy_surcharge',
+            $tax->getFloat('liftgate_charge', 150.0)
+        );
+
+        if ($cartWeight <= $lightThreshold) {
+            return $lightSurcharge;
+        }
+
+        return $heavySurcharge;
+    }
+
+    public function applyWeightShippingSurcharge(float $cartWeight, float $baseShipping): float
+    {
+        return round($baseShipping + $this->weightShippingSurcharge($cartWeight), 2);
+    }
+
     public function resolvePaymentLabel(string $creditOrNot, ?string $cashMethod = null): string
     {
         return match ($creditOrNot) {
@@ -354,6 +386,7 @@ class OrderWorkspaceCheckoutService
             $parentDoorFactors = [];
             $repDoorPrices = [];
             $repDoorFactors = [];
+            $userDoorPrices = [];
             $userDoorFactors = [];
             $catalogNames = [];
 
@@ -373,13 +406,16 @@ class OrderWorkspaceCheckoutService
                     $unitWeight = (float) preg_replace('/[^\d.]/', '', (string) $product->weight);
                 }
                 $color = $product->doorColor?->product_label ?? $doorColor;
+                $doorStyle = (string) ($line['product_cabinets_color'] ?? $line['door_style'] ?? $color);
                 $desc = trim(($product->sku ?? '').' — '.$color.' — '.($product->label ?? ''));
                 $lineCatalogId = $catalogId > 0 ? $catalogId : (int) ($product->product_catalog_id ?? $product->productSection?->product_catalog_id ?? 0);
                 $doorId = (int) ($product->door_color_id ?? $product->doorColor?->id ?? 0);
+                $basePrice = (float) ($line['product_actual_price'] ?? $line['product_cost'] ?? $rawCost);
 
                 $userFactor = 0.0;
                 $parentFactor = 0.0;
                 $repFactor = 0.0;
+                $userUnitPrice = 0.0;
                 $parentUnitPrice = 0.0;
                 $repUnitPrice = 0.0;
                 $lineCatalogName = $catalogName;
@@ -391,14 +427,20 @@ class OrderWorkspaceCheckoutService
                     $repFactor = (float) ($context['representative_door_point'] ?? 0);
                     $lineCatalogName = (string) ($context['catalog_key'] ?? $catalogName);
                 } elseif ($user) {
-                    $userFactor = (float) ($user->point_factor ?? 0);
-                    $parentFactor = $chain['parent'] ? (float) ($chain['parent']->point_factor ?? 0) : 0.0;
-                    $repFactor = $chain['representative'] ? (float) ($chain['representative']->point_factor ?? 0) : 0.0;
+                    $lineCatalogName = $catalogName !== '' ? $catalogName : (string) ($line['catalog_name'] ?? '');
+                    $userFactor = $this->getDoorFactor($user, $lineCatalogName, $doorStyle);
+                    $parentFactor = $chain['parent']
+                        ? $this->getDoorFactor($chain['parent'], $lineCatalogName, $doorStyle)
+                        : 0.0;
+                    $repFactor = $chain['representative']
+                        ? $this->getDoorFactor($chain['representative'], $lineCatalogName, $doorStyle)
+                        : 0.0;
                 }
 
-                if ($rawCost > 0) {
-                    $parentUnitPrice = $parentFactor > 0 ? round($rawCost * $parentFactor, 2) : 0.0;
-                    $repUnitPrice = $repFactor > 0 ? round($rawCost * $repFactor, 2) : 0.0;
+                if ($basePrice > 0) {
+                    $userUnitPrice = $userFactor > 0 ? round($basePrice * $userFactor, 2) : 0.0;
+                    $parentUnitPrice = $parentFactor > 0 ? round($basePrice * $parentFactor, 2) : 0.0;
+                    $repUnitPrice = $repFactor > 0 ? round($basePrice * $repFactor, 2) : 0.0;
                 }
 
                 $skus[] = $product->sku;
@@ -411,11 +453,12 @@ class OrderWorkspaceCheckoutService
                 $colors[] = $color;
                 $descriptions[] = $desc;
                 $totPrices[] = number_format($unitCost * $qty, 2, '.', '');
-                $actualPrices[] = number_format($rawCost, 2, '.', '');
+                $actualPrices[] = number_format($basePrice > 0 ? $basePrice : $rawCost, 2, '.', '');
                 $details[] = $line['product_details'] ?? $product->value_1 ?? $product->description ?? '';
                 $assembleCosts[] = (float) ($line['assemble_cost'] ?? preg_replace('/[^\d.]/', '', (string) $product->assemble_cost));
                 $cb1[] = ! empty($line['checkbox_val1']) ? '1' : '0';
                 $cb2[] = ! empty($line['checkbox_val2']) ? '1' : '0';
+                $userDoorPrices[] = $userUnitPrice > 0 ? (string) $userUnitPrice : '0';
                 $parentDoorPrices[] = $parentUnitPrice > 0 ? (string) $parentUnitPrice : '0';
                 $parentDoorFactors[] = $parentFactor > 0 ? (string) $parentFactor : '';
                 $repDoorPrices[] = $repUnitPrice > 0 ? (string) $repUnitPrice : '';
@@ -448,6 +491,7 @@ class OrderWorkspaceCheckoutService
                 'product_cabinets_description' => $descriptions,
                 'product_assemble_cost' => $assembleCosts,
                 'sel_catalogue_name' => $catalogNames,
+                'user_door_price' => $userDoorPrices,
                 'parent_door_price' => $parentDoorPrices,
                 'parent_door_factor' => $parentDoorFactors,
                 'representative_door_price' => $repDoorPrices,
@@ -458,6 +502,23 @@ class OrderWorkspaceCheckoutService
         }
 
         return $ciRooms;
+    }
+
+    private function getDoorFactor(?User $user, string $catalogName, string $doorStyle): float
+    {
+        if (! $user) {
+            return 0.0;
+        }
+
+        $dpf = is_array($user->door_point_factor)
+            ? $user->door_point_factor
+            : json_decode($user->door_point_factor ?? '{}', true);
+
+        if (! is_array($dpf)) {
+            $dpf = [];
+        }
+
+        return (float) ($dpf[$catalogName][$doorStyle] ?? $user->point_factor ?? 0);
     }
 
     /**

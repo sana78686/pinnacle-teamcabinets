@@ -282,12 +282,11 @@ class TenantSettingController extends Controller
 
     public function store_tax_fees_shipping(Request $request, TaxValuesService $taxValues)
     {
-        $request->validate([
-            'commercial_delivery_charge' => 'required|numeric|min:0|max:99999',
-            'liftgate_charge' => 'required|numeric|min:0|max:99999',
-            'unload_charge' => 'required|numeric|min:0|max:99999',
-            'pallet_cost' => 'required|numeric|min:0|max:99999',
-        ]);
+        $rules = [];
+        foreach (TaxValuesService::shippingFeeKeys() as $key => $meta) {
+            $rules[$key] = 'required|numeric|min:0|max:99999';
+        }
+        $request->validate($rules);
 
         foreach (TaxValuesService::shippingFeeKeys() as $key => $meta) {
             $taxValues->set($key, (string) $request->input($key), $meta['label']);
@@ -404,7 +403,7 @@ class TenantSettingController extends Controller
         }
 
         $roles = Role::query()
-            ->whereNotIn('name', ['admin', 'customer', 'Admin', 'Customer'])
+            ->whereNotIn('name', ['admin', 'customers', 'Admin', 'Customer'])
             ->orderBy('name')
             ->get();
 

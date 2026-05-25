@@ -369,6 +369,20 @@ class ProductSetupApiController extends Controller
     return $out;
   }
 
+  /** CI deactivate_all_products — soft-delete all catalog products. */
+  public function deactivateAll(): JsonResponse
+  {
+    $count = Product::query()->count();
+    Product::query()->delete();
+
+    DoorColors::query()->update(['status' => 0]);
+
+    return response()->json([
+      'success' => true,
+      'message' => "Deactivated {$count} product(s) and hid all door styles.",
+    ]);
+  }
+
   protected function assertType(string $type): void
   {
     if (! isset($this->types[$type])) {

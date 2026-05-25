@@ -15,7 +15,11 @@
                     config,
                     rows: [],
                     representatives: [],
-                    filters: { rep_id: '', from: '', to: '' },
+                    filters: {
+                        rep_id: config.filters?.rep_id ?? '',
+                        from: config.filters?.from ?? '',
+                        to: config.filters?.to ?? '',
+                    },
                     loading: false,
                     flash: null,
                 };

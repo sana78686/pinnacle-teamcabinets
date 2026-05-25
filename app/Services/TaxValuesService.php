@@ -27,6 +27,10 @@ class TaxValuesService
             'liftgate_charge' => ['label' => 'Liftgate charge ($)', 'default' => '150'],
             'unload_charge' => ['label' => 'Unload charge ($) — waived for residential by-hand', 'default' => '150'],
             'pallet_cost' => ['label' => 'Pallet cost ($ per pallet)', 'default' => '30'],
+            'shipping_light_threshold' => ['label' => 'Cart weight light threshold (lbs) — surcharge below/equal', 'default' => '50'],
+            'shipping_heavy_threshold' => ['label' => 'Cart weight heavy threshold (lbs) — reference', 'default' => '150'],
+            'shipping_light_surcharge' => ['label' => 'Weight-based light shipping surcharge ($)', 'default' => '75'],
+            'shipping_heavy_surcharge' => ['label' => 'Weight-based heavy shipping surcharge ($)', 'default' => '150'],
         ];
     }
 

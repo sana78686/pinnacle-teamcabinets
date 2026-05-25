@@ -14,6 +14,9 @@
                 <a href="{{ route('tenant_commission_report_user_types') }}" class="btn btn-info btn-sm text-white">
                     <i class="icofont icofont-users"></i> User Type Commissions
                 </a>
+                <a href="{{ route('tenant_commission_report_saving') }}" class="btn btn-warning btn-sm text-dark">
+                    <i class="icofont icofont-chart-pie"></i> Saving Report
+                </a>
             @endif
             <a href="{{ route('tenant_deleted_commission_report_list') }}" class="btn btn-success btn-sm">
                 <i class="icofont icofont-spinner-alt-3"></i> Restore Report
@@ -93,11 +96,11 @@
                                     <td>@{{ show(line.user_door_factor) }}</td>
                                     <td>@{{ fmt(line.user_door_price) }}</td>
                                     <td>@{{ show(line.parent_door_factor) }}</td>
-                                    <td>@{{ line.parent_door_price ? fmt(line.parent_door_price) : 'N/A' }}</td>
-                                    <td>@{{ line.aff_commission ? fmt(line.aff_commission) : 'N/A' }}</td>
+                                    <td>@{{ line.parent_cost_display || (line.parent_door_price ? fmt(line.parent_door_price) : 'N/A') }}</td>
+                                    <td>@{{ line.aff_commission_display || (line.aff_commission ? fmt(line.aff_commission) : 'N/A') }}</td>
                                     <td>@{{ show(line.rep_door_factor) }}</td>
-                                    <td>@{{ line.rep_door_price ? fmt(line.rep_door_price) : 'N/A' }}</td>
-                                    <td>@{{ line.rep_commission ? fmt(line.rep_commission) : 'N/A' }}</td>
+                                    <td>@{{ line.rep_cost_display || (line.rep_door_price ? fmt(line.rep_door_price) : 'N/A') }}</td>
+                                    <td>@{{ line.rep_commission_display || (line.rep_commission ? fmt(line.rep_commission) : 'N/A') }}</td>
                                     <td v-if="i === 0" class="text-nowrap">
                                         <a :href="orderUrl(order.order_id)" class="tc-admin-datatable__edit">View</a>
                                         <template v-if="!config.deleted">
@@ -123,5 +126,5 @@
         window.COMMISSION_REPORT_LIST = @json($vueConfig ?? []);
     </script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <script src="{{ tenant_static_asset('js/commission-report-vue.js') }}?v=1"></script>
+    <script src="{{ tenant_static_asset('js/commission-report-vue.js') }}?v=2"></script>
 @endsection

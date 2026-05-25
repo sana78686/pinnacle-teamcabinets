@@ -47,7 +47,7 @@
                     </thead>
                     <tbody>
                         @forelse ($roles as $role)
-                            @php $isProtected = in_array($role->name, $protectedRoles ?? [], true); @endphp
+                            @php $isProtected = \App\Services\TenantRoleService::isProtected($role->name); @endphp
                             <tr>
                                 <td>{{ $roles->firstItem() + $loop->index }}</td>
                                 <td>
@@ -61,7 +61,7 @@
                                     @if (tenant_can('role-list'))
                                         <a href="{{ route('tenant_role_show', $role->id) }}" class="tc-admin-datatable__edit">View</a>
                                     @endif
-                                    @if (tenant_can('role-edit'))
+                                    @if (tenant_can('role-edit') && ! $isProtected)
                                         @if (tenant_can('role-list'))<span class="text-muted mx-1">|</span>@endif
                                         <a href="{{ route('tenant_role_edit', $role->id) }}" class="tc-admin-datatable__edit">Edit</a>
                                     @endif

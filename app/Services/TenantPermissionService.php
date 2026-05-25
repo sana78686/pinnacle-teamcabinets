@@ -119,8 +119,14 @@ class TenantPermissionService
 
     public static function userIsAdmin(User $user): bool
     {
+        if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
+            return true;
+        }
+
         try {
-            return $user->hasRole(config('tenant_permissions.admin_role', 'Admin'));
+            $adminRole = config('tenant_permissions.admin_role', 'admin');
+
+            return $user->hasRole([$adminRole, 'Admin', 'admin']);
         } catch (\Throwable) {
             return false;
         }

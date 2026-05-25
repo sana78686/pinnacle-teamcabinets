@@ -3,7 +3,7 @@
         ? \App\Models\User::query()->where('parent_id', auth()->id())->count()
         : 0;
     $isAffiliatePanel = tenant_user_is_affiliate_panel();
-    $childUserLabel = auth()->user()?->hasRole('Representative') ? 'Add User' : 'Create Affiliate';
+    $childUserLabel = auth()->user()?->isRepresentative() ? 'Add User' : 'Create Affiliate';
     $tcNavBadges = $tcNavBadges ?? [];
 @endphp
 <div class="iconsidebar-menu iconbar-mainmenu-close tc-compact-icon-sidebar">

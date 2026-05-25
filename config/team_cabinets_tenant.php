@@ -22,10 +22,10 @@ return [
 
     /** Legacy CI role commission defaults (point factor as decimal). Matches CI add_point_factor form. */
     'commission_defaults_by_role' => [
-        'Representative' => '0.20',
-        'Distributor' => '0.24',
-        'Dealer' => '0.24',
-        'Showroom' => '0.24',
+        'representatives' => '0.20',
+        'distributors' => '0.24',
+        'dealers' => '0.24',
+        'showrooms' => '0.24',
     ],
 
     /** Legacy plural keys (kept for seeders / imports). */

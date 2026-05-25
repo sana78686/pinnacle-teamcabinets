@@ -6,6 +6,8 @@
     $listUrl = $listUrl ?? url()->current();
     $perPage = (int) ($perPage ?? request('per_page', tenant_list_per_page()));
     $search = $search ?? request('search', '');
+    $pickListRoute = $pickListRoute ?? null;
+    $exportCsvUrl = $exportCsvUrl ?? null;
 @endphp
 
 @if ($showListToolbar ?? true)
@@ -45,6 +47,10 @@
                     <td class="text-nowrap">
                         @if ($showRoute)
                             <a href="{{ route($showRoute, $record->id) }}">Show</a>
+                        @endif
+                        @if ($pickListRoute)
+                            @if ($showRoute) | @endif
+                            <a href="{{ route($pickListRoute, $record->id) }}">Pick List</a>
                         @endif
                         @if ($editRoute)
                             @if ($showRoute) | @endif

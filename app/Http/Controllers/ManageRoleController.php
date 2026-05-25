@@ -11,7 +11,7 @@ class ManageRoleController extends Controller
      */
     public function index()
     {
-        return view('tenants.manage_roles.index');
+        return redirect()->route('tenant_hierarchy_index');
     }
 
     /**

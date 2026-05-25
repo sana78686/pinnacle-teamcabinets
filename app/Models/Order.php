@@ -23,6 +23,8 @@ class Order extends Model
         'aff_comm' => 'decimal:4',
         'sub_aff_commission' => 'decimal:4',
         'state' => 'integer',
+        'is_picked' => 'boolean',
+        'picked_at' => 'datetime',
     ];
 
     public function scopeActiveCommission($query)

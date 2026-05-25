@@ -216,6 +216,7 @@ class TenantUserController extends Controller
         $data['door_factor_setup_incomplete'] = ! $data['has_point_factor_defaults']
             || ! $data['has_product_catalogs']
             || ! $data['has_door_styles'];
+        $data['roleOptions'] = \App\Services\TenantRoleService::roleOptionsForUserForms();
 
         return view('tenants.users.create', $data);
     }
@@ -266,7 +267,7 @@ class TenantUserController extends Controller
                 'is_verified' => $request->status === 'approved',
             ])->save();
 
-            $user->syncRoles([$role->name]);
+            $user->assignCiRole($role->name);
 
             $this->doorFactors->persistForUser($user, $request);
             ManageCommission::query()->firstOrCreate(
@@ -425,7 +426,7 @@ class TenantUserController extends Controller
 
         $user->save();
 
-        $user->syncRoles([$role->name]);
+        $user->assignCiRole($role->name);
 
         try {
             $this->doorFactors->persistForUser($user, $request);
@@ -956,11 +957,10 @@ public function updateStatus(Request $request, $id)
 
     {
         $data = [];
-        if(Auth::user()->hasRole('Representative'))
-        {
+        if (Auth::user()->isRepresentative()) {
         $query = $request->get('q', '');
             $data = Role::select('id', 'name')
-                ->whereNotIn('name', ['Admin', 'Representative'])
+                ->whereNotIn('name', ['admin', 'Admin', 'representatives', 'Representative'])
                 ->where('name', 'LIKE', '%' . $query . '%')
                 ->limit(10)
                 ->get();
@@ -1049,7 +1049,7 @@ public function updateStatus(Request $request, $id)
 
             Log::info('User Created');
 
-            $user->assignRole($role->name);
+            $user->assignCiRole($role->name);
 
             ManageCommission::query()->firstOrCreate(
                 ['user_id' => $user->id],
@@ -1137,8 +1137,8 @@ public function updateStatus(Request $request, $id)
                         ]
                     );
                     // Assign Role
-                    $role = Role::firstOrCreate(['name' => $data['user_type']]);
-                    $user->assignRole($role->name);
+                    $role = Role::firstOrCreate(['name' => \App\Services\TenantRoleService::normalizeCiRoleName($data['user_type']), 'guard_name' => 'web']);
+                    $user->assignCiRole($role->name);
                 });
             }
             return back()->with('success', 'CSV file imported successfully.');

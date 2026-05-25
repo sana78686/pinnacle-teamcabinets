@@ -83,6 +83,28 @@
                         /* optional */
                     }
                 },
+                async deactivateAll() {
+                    if (!this.config.deactivateAllUrl) {
+                        return;
+                    }
+                    if (!confirm('Deactivate ALL products? They will be removed from the catalog (soft-deleted) and door styles hidden.')) {
+                        return;
+                    }
+                    try {
+                        const res = await fetch(this.config.deactivateAllUrl, {
+                            method: 'POST',
+                            headers: this.headers(),
+                        });
+                        const json = await res.json();
+                        this.flash = {
+                            ok: json.success,
+                            text: json.message || (json.success ? 'Done.' : 'Failed.'),
+                        };
+                        await this.loadRows(1);
+                    } catch (e) {
+                        this.flash = { ok: false, text: 'Could not deactivate products.' };
+                    }
+                },
                 async loadRows(page) {
                     this.loading = true;
                     const p = page || this.pagination.current_page || 1;
@@ -174,7 +196,34 @@
                         this.flash = { ok: false, text: e.message };
                     }
                 },
+                async restoreRow(id) {
+                    if (!this.config.api.restore || !window.confirm('Restore this record?')) {
+                        return;
+                    }
+                    try {
+                        const res = await fetch(this.apiUrl(this.config.api.restore, id), {
+                            method: 'POST',
+                            headers: this.headers(),
+                        });
+                        const json = await res.json().catch(() => ({}));
+                        if (!res.ok) {
+                            throw new Error(json.message || 'Restore failed.');
+                        }
+                        this.flash = { ok: true, text: json.message || 'Restored.' };
+                        await this.loadRows(this.pagination.current_page);
+                    } catch (e) {
+                        this.flash = { ok: false, text: e.message };
+                    }
+                },
                 async openShow(id) {
+                    if (!this.config.api.show) {
+                        const row = this.rows.find((r) => r.id === id);
+                        if (row) {
+                            this.showRecord = row;
+                            this.showDetailsModal();
+                        }
+                        return;
+                    }
                     try {
                         const res = await fetch(this.apiUrl(this.config.api.show, id), { headers: this.headers() });
                         const json = await res.json();
@@ -199,6 +248,9 @@
                     }
                 },
                 optionsFor(field) {
+                    if (Array.isArray(field.options)) {
+                        return field.options;
+                    }
                     const key = field.options || '';
                     const list = this.meta[key] || [];
                     if (key === 'catalogs') {

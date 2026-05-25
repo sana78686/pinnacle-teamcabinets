@@ -12,16 +12,12 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TenantCommissionReportController extends Controller
 {
-  /** @var array<string, string> */
-  protected array $userTypeRoleMap = [
-    'representatives' => 'Representative',
-    'representative' => 'Representative',
-    'distributors' => 'Distributor',
-    'distributor' => 'Distributor',
-    'dealers' => 'Dealer',
-    'dealer' => 'Dealer',
-    'showrooms' => 'Showroom',
-    'showroom' => 'Showroom',
+  /** @var array<string, string> CI user_type => label */
+  protected array $userTypeOptions = [
+    'representatives' => 'Representatives',
+    'distributors' => 'Distributors',
+    'dealers' => 'Dealers',
+    'showrooms' => 'Showrooms',
   ];
 
   public function __construct(
@@ -121,11 +117,11 @@ class TenantCommissionReportController extends Controller
             $line['user_door_factor'],
             number_format((float) $line['user_door_price'], 2),
             $line['parent_door_factor'] ?: 'N/A',
-            $line['parent_door_price'] ? number_format((float) $line['parent_door_price'], 2) : 'N/A',
-            $line['aff_commission'] ? number_format((float) $line['aff_commission'], 2) : 'N/A',
+            $line['parent_cost_display'] ?? ($line['parent_door_price'] ? number_format((float) $line['parent_door_price'], 2) : 'N/A'),
+            $line['aff_commission_display'] ?? ($line['aff_commission'] ? number_format((float) $line['aff_commission'], 2) : 'N/A'),
             $line['rep_door_factor'] ?: 'N/A',
-            $line['rep_door_price'] ? number_format((float) $line['rep_door_price'], 2) : 'N/A',
-            $line['rep_commission'] ? number_format((float) $line['rep_commission'], 2) : 'N/A',
+            $line['rep_cost_display'] ?? ($line['rep_door_price'] ? number_format((float) $line['rep_door_price'], 2) : 'N/A'),
+            $line['rep_commission_display'] ?? ($line['rep_commission'] ? number_format((float) $line['rep_commission'], 2) : 'N/A'),
           ]);
           $totalCommission += (float) $line['aff_commission'] + (float) $line['rep_commission'];
           $firstLine = false;
@@ -178,33 +174,108 @@ class TenantCommissionReportController extends Controller
   public function userTypeList(Request $request): View|JsonResponse
   {
     $userType = (string) $request->input('user_type', '');
-    $roleName = $this->userTypeRoleMap[strtolower($userType)] ?? null;
-
-    $users = collect();
-    if ($roleName) {
-      $users = User::query()
-        ->where('status', 'approved')
-        ->whereHas('roles', fn ($q) => $q->where('name', $roleName))
-        ->with('manageCommission')
-        ->orderBy('name')
-        ->get()
-        ->map(fn (User $u) => [
-          'name' => $u->name,
-          'point_factor' => $u->point_factor,
-          'gross_sales' => $u->manageCommission?->gross_sales ?? 0,
-          'commission_amount' => ((float) ($u->manageCommission?->gross_sales ?? 0)) * ((float) ($u->point_factor ?? 0)),
-        ]);
-    }
+    $rows = $userType !== ''
+      ? $this->reportService->userTypeList($userType)
+      : [];
 
     if ($request->expectsJson()) {
-      return response()->json(['data' => $users->values()]);
+      return response()->json(['data' => $rows]);
     }
 
     return view('tenants.commission_report.user_type_list', [
-      'userTypes' => array_keys($this->userTypeRoleMap),
+      'userTypes' => $this->userTypeOptions,
       'selectedType' => $userType,
-      'rows' => $users,
+      'rows' => $rows,
     ]);
+  }
+
+  public function savingReport(Request $request): View|JsonResponse
+  {
+    if (! $this->isAdminUser($request->user())) {
+      abort(403);
+    }
+
+    $filters = array_merge(
+      $this->reportService->defaultWeeklyRange(),
+      $request->only(['rep_id', 'from', 'to'])
+    );
+    if (($filters['rep_id'] ?? '') === 'all') {
+      unset($filters['rep_id']);
+    }
+
+    $data = $this->reportService->formattedData($filters);
+    $representatives = $this->representativeOptions();
+
+    if ($request->expectsJson()) {
+      return response()->json([
+        'data' => $data,
+        'representatives' => $representatives,
+        'range' => $filters,
+      ]);
+    }
+
+    return view('tenants.commission_report.saving_report', [
+      'vueConfig' => $this->savingReportVueConfig($request, $filters),
+      'filters' => $filters,
+      'representatives' => $representatives,
+    ]);
+  }
+
+  public function exportSavingReport(Request $request): StreamedResponse
+  {
+    if (! $this->isAdminUser($request->user())) {
+      abort(403);
+    }
+
+    $filters = array_merge(
+      $this->reportService->defaultWeeklyRange(),
+      $request->only(['rep_id', 'from', 'to'])
+    );
+    if (($filters['rep_id'] ?? '') === 'all') {
+      unset($filters['rep_id']);
+    }
+
+    $rows = $this->reportService->formattedData($filters);
+    $filename = 'Admin_Saving_Report_'.now()->format('Ymd').'.csv';
+
+    $headers = [
+      'Content-Type' => 'text/csv',
+      'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+    ];
+
+    $callback = function () use ($rows) {
+      $handle = fopen('php://output', 'w');
+      fputcsv($handle, [
+        'Invoice #', 'Customer', 'Invoice Date', 'Door Style', 'List Price',
+        'Customer Cost', 'Aff Commission', 'Rep Commission',
+        'Mfg Comm', 'Rep Comm', 'Aff Comm', 'Sub-Aff Comm',
+      ]);
+
+      foreach ($rows as $order) {
+        $firstLine = true;
+        foreach ($order['door_lines'] as $line) {
+          fputcsv($handle, [
+            $firstLine ? ($order['invoice_number'] ?? '') : '',
+            $firstLine ? ($order['customer_name'] ?? '') : '',
+            $firstLine ? ($order['invoice_date'] ?? '') : '',
+            $line['door_style'],
+            number_format((float) ($line['product_actual_price'] ?? $line['list_price'] ?? 0), 2),
+            number_format((float) $line['user_door_price'], 2),
+            $line['aff_commission_display'] ?? 'N/A',
+            $line['rep_commission_display'] ?? 'N/A',
+            $firstLine ? number_format((float) $order['mfg_comm'], 2) : '',
+            $firstLine ? number_format((float) $order['rep_comm'], 2) : '',
+            $firstLine ? number_format((float) $order['aff_comm'], 2) : '',
+            $firstLine ? number_format((float) $order['sub_aff_commission'], 2) : '',
+          ]);
+          $firstLine = false;
+        }
+      }
+
+      fclose($handle);
+    };
+
+    return response()->stream($callback, 200, $headers);
   }
 
   /**
@@ -233,12 +304,12 @@ class TenantCommissionReportController extends Controller
       return false;
     }
 
-    return $user->hasRole(['Admin', 'Super Admin', 'admin', 'super-admin']);
+    return $user->isAdmin() || $user->hasRole(['Admin', 'Super Admin', 'super-admin']);
   }
 
   protected function isRepresentative(User $user): bool
   {
-    return $user->hasRole(['Representative', 'Rep', 'representative', 'rep']);
+    return $user->isRepresentative() || $user->hasRole(['Representative', 'Rep', 'representative', 'rep']);
   }
 
   /**
@@ -247,11 +318,31 @@ class TenantCommissionReportController extends Controller
   protected function representativeOptions(): array
   {
     return User::query()
-      ->whereHas('roles', fn ($q) => $q->whereIn('name', ['Representative', 'Rep', 'representative', 'rep']))
+      ->where(function ($q) {
+        $q->where('user_type', 'representatives')
+          ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['representatives', 'Representative', 'Rep', 'representative', 'rep']));
+      })
       ->orderBy('name')
       ->get(['id', 'name'])
       ->map(fn (User $u) => ['id' => $u->id, 'name' => $u->name])
       ->values()
       ->all();
+  }
+
+  /**
+   * @param  array<string, mixed>  $filters
+   * @return array<string, mixed>
+   */
+  protected function savingReportVueConfig(Request $request, array $filters): array
+  {
+    return [
+      'csrf' => csrf_token(),
+      'savingReport' => true,
+      'showRepFilter' => true,
+      'filters' => $filters,
+      'dataUrl' => route('tenant_commission_report_saving'),
+      'exportUrl' => route('tenant_commission_report_saving_export'),
+      'orderShowUrl' => route('tenant_order_show', ['id' => '__ID__']),
+    ];
   }
 }

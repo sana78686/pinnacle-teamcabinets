@@ -122,7 +122,7 @@ class TenantRoleController extends Controller
             'role' => $role,
             'permissions' => TenantPermissionService::groupedForUi(),
             'rolePermissions' => $rolePermissions,
-            'isProtected' => TenantRoleService::isProtectedRole($role->name),
+            'isProtected' => TenantRoleService::isProtected($role->name),
         ]);
     }
 
@@ -144,8 +144,12 @@ public function update(Request $request, $id): RedirectResponse
 
     $role = Role::findOrFail($id);
 
-    if (TenantRoleService::isProtectedRole($role->name)) {
+    if (TenantRoleService::isProtected($role->name)) {
         if ($request->input('name') !== $role->name) {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => 'System roles cannot be deleted or renamed.'], 403);
+            }
+
             return redirect()->route('tenant_role_index')
                 ->with('error', 'System role names cannot be changed.');
         }
@@ -171,7 +175,11 @@ public function update(Request $request, $id): RedirectResponse
     {
         $role = Role::findOrFail($id);
 
-        if (TenantRoleService::isProtectedRole($role->name)) {
+        if (TenantRoleService::isProtected($role->name)) {
+            if (request()->wantsJson()) {
+                return response()->json(['error' => 'System roles cannot be deleted or renamed.'], 403);
+            }
+
             return redirect()->route('tenant_role_index')
                 ->with('error', 'System roles cannot be deleted.');
         }

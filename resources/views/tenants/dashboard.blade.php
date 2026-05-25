@@ -65,6 +65,8 @@
         'fuelChargePercent' => $fuelChargePercent ?? 0,
     ])
 
+    @include('tenants.dashboard.partials.catalog-sales')
+
     <div class="row g-3 align-items-start">
         <div class="col-12 col-lg-8 order-2 order-lg-1">
             <div class="card tc-dash-card h-100">
@@ -135,6 +137,10 @@
 <script src="{{ $panelAsset('assets/main/js/datatable/datatables/jquery.dataTables.min.js') }}"></script>
 <script src="{{ $panelAsset('assets/main/js/select2/select2.full.min.js') }}"></script>
 <script src="{{ $panelAsset('js/tenant-dashboard-tracker.js') }}?v=4"></script>
+<script>
+    window.TC_CATALOG_SALES_URL = @json(route('tenant_dashboard_catalog_sales'));
+</script>
+<script src="{{ $panelAsset('js/dashboard-catalog-sales.js') }}?v=1"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         if (window.feather) {

@@ -14,7 +14,9 @@ use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 use Stancl\Tenancy\Database\Concerns\TenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Services\TenantRoleService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Constraint\Count;
 
 class User extends Authenticatable
@@ -55,6 +57,7 @@ class User extends Authenticatable
         'county_name',
         'city_name',
         'parent_id',
+        'user_type',
         'logo',
         'otp_code',
         'otp_expires_at',
@@ -195,6 +198,11 @@ class User extends Authenticatable
     // {
     //     return $this->tenant_id === null; // Super Admins have tenant_id = NULL
     // }
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'parent_id');
+    }
+
     public function children()
     {
         return $this->hasMany(User::class, 'parent_id');
@@ -202,5 +210,50 @@ class User extends Authenticatable
     public function grandchildren()
     {
         return $this->hasManyThrough(User::class, User::class, 'parent_id', 'parent_id');
+    }
+
+    /**
+     * Assign a role and keep user_type in sync with CI (user_register.user_type).
+     */
+    public function assignCiRole(string $roleName): void
+    {
+        $ci = TenantRoleService::normalizeCiRoleName($roleName);
+        $this->syncRoles([$ci]);
+
+        if (Schema::hasColumn($this->getTable(), 'user_type')) {
+            $this->forceFill(['user_type' => $ci])->save();
+        }
+    }
+
+    /** Commission / session checks — mirrors CI $_SESSION['logged_in']['role']. */
+    public function getCiRole(): string
+    {
+        if (! empty($this->user_type)) {
+            return TenantRoleService::normalizeCiRoleName($this->user_type);
+        }
+
+        $spatie = $this->getRoleNames()->first();
+
+        return TenantRoleService::normalizeCiRoleName($spatie);
+    }
+
+    public function isRepresentative(): bool
+    {
+        return $this->getCiRole() === 'representatives';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->getCiRole() === 'admin';
+    }
+
+    public function isAffiliate(): bool
+    {
+        return in_array($this->getCiRole(), ['affiliate', 'sub-affiliate'], true);
+    }
+
+    public function isMidTier(): bool
+    {
+        return in_array($this->getCiRole(), ['distributors', 'dealers', 'showrooms'], true);
     }
 }

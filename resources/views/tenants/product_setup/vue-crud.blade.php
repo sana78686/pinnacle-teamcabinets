@@ -1,10 +1,13 @@
 <div id="product-setup-app" class="tc-role-list-page tc-product-setup-vue" v-cloak>
     <div class="p-2 mt-0 card-header no-border d-flex flex-wrap align-items-center gap-2">
-        <button type="button" class="text-white btn btn-info btn-sm" @click="openCreate" data-toggle="tooltip" title="Add a new record">
+        <button v-if="!config.trashed" type="button" class="text-white btn btn-info btn-sm" @click="openCreate" data-toggle="tooltip" title="Add a new record">
             <i class="icofont icofont-plus"></i> @{{ config.addLabel }}
         </button>
         <button type="button" class="btn btn-light btn-sm" @click="loadRows" :disabled="loading" data-toggle="tooltip" title="Refresh this list">
             <i class="icofont icofont-refresh"></i> Refresh
+        </button>
+        <button v-if="config.deactivateAllUrl" type="button" class="btn btn-warning btn-sm ms-auto" @click="deactivateAll" :disabled="loading">
+            Deactivate All Products
         </button>
     </div>
 
@@ -50,11 +53,14 @@
                         <span v-else>@{{ row[col.key] ?? '—' }}</span>
                     </td>
                     <td class="text-nowrap tc-admin-datatable__actions">
-                        <button type="button" class="btn btn-link btn-sm p-0 align-baseline tc-admin-datatable__edit" @click="openShow(row.id)">Show</button>
-                        <span class="text-muted"> | </span>
-                        <button type="button" class="btn btn-link btn-sm p-0 align-baseline tc-admin-datatable__edit" @click="openEdit(row.id)">Edit</button>
-                        <span class="text-muted"> | </span>
-                        <button type="button" class="btn btn-link btn-sm p-0 text-danger align-baseline" @click="destroyRow(row.id)">Delete</button>
+                        <template v-if="config.allowShow !== false">
+                            <button type="button" class="btn btn-link btn-sm p-0 align-baseline tc-admin-datatable__edit" @click="openShow(row.id)">Show</button>
+                            <span v-if="config.allowEdit !== false || config.trashed" class="text-muted"> | </span>
+                        </template>
+                        <button v-if="config.allowEdit !== false && !config.trashed" type="button" class="btn btn-link btn-sm p-0 align-baseline tc-admin-datatable__edit" @click="openEdit(row.id)">Edit</button>
+                        <span v-if="config.allowEdit !== false && !config.trashed && config.api.destroy" class="text-muted"> | </span>
+                        <button v-if="config.trashed && config.api.restore" type="button" class="btn btn-link btn-sm p-0 align-baseline text-success" @click="restoreRow(row.id)">Restore</button>
+                        <button v-else-if="config.api.destroy" type="button" class="btn btn-link btn-sm p-0 text-danger align-baseline" @click="destroyRow(row.id)">Delete</button>
                     </td>
                 </tr>
             </tbody>

@@ -21,6 +21,15 @@ class TenantAuthSessionService
         $request->session()->put('point_factor', $payload['point_factor']);
         $request->session()->put('door_point_factor', $payload['door_point_factor']);
         $request->session()->put('catalog_visibility', $payload['catalog_visibility']);
+
+        $request->session()->put('logged_in', [
+            'userid' => $user->id,
+            'role' => $user->getCiRole(),
+            'user_type' => $user->user_type ?? $user->getCiRole(),
+            'point_factor' => $user->point_factor,
+            'parent_id' => $user->parent_id,
+            'door_point_factor' => $user->door_point_factor ?? [],
+        ]);
     }
 
     public function sessionIsValid(User $user, Request $request): bool

@@ -340,8 +340,12 @@ if (! function_exists('tenant_user_has_admin_role')) {
             return true;
         }
 
+        if (method_exists($user, 'isAdmin')) {
+            return $user->isAdmin();
+        }
+
         try {
-            return $user->hasRole('Admin');
+            return $user->hasRole(['admin', 'Admin']);
         } catch (\Throwable) {
             return false;
         }
@@ -468,6 +472,13 @@ if (! function_exists('tenant_panel_role_label')) {
             return 'User';
         }
 
+        if (method_exists($user, 'getCiRole')) {
+            $ci = $user->getCiRole();
+            if ($ci !== '') {
+                return \App\Services\TenantRoleService::ROLE_LABELS[$ci] ?? $ci;
+            }
+        }
+
         try {
             $role = $user->getRoleNames()->first();
         } catch (\Throwable) {
@@ -508,8 +519,11 @@ if (! function_exists('tenant_manage_document_types_for_user')) {
             $types[] = strtolower($role);
             $types[] = tenant_role_factor_key($role);
             $types[] = str_replace('-', '_', tenant_role_factor_key($role));
-            if (strcasecmp($role, 'Representative') === 0) {
+            if (strcasecmp($role, 'Representative') === 0 || strcasecmp($role, 'Representatives') === 0) {
                 $types[] = 'representatives';
+            }
+            if (method_exists($user, 'getCiRole') && $user->getCiRole() !== '') {
+                $types[] = $user->getCiRole();
             }
         }
 

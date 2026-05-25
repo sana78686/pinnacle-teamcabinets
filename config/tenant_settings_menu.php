@@ -112,6 +112,32 @@ return [
             'route' => 'tenant_setting_manage_success_list',
             'active' => ['tenant_setting_manage_success', 'tenant_setting_manage_success_*'],
         ],
+        [
+            'label' => 'Documentation',
+            'route' => 'tenant_setting_manage_documentation_list',
+            'icon' => 'book-open',
+            'panel_admin_only' => true,
+            'active' => [
+                'tenant_setting_manage_document',
+                'tenant_setting_manage_documentation_*',
+                'tenant_deleted_manage_document_list',
+                'tenant_manage_documents_api_*',
+            ],
+        ],
+        [
+            'label' => 'Admin File Uploads',
+            'route' => 'tenant_admin_uploads_index',
+            'icon' => 'upload',
+            'panel_admin_only' => true,
+            'active' => ['tenant_admin_uploads_*'],
+        ],
+        [
+            'label' => 'Inventory Admin',
+            'route' => 'tenant_inventory_admin_index',
+            'icon' => 'package',
+            'panel_admin_only' => true,
+            'active' => ['tenant_inventory_admin_*'],
+        ],
     ],
 
     'settings_chrome_routes' => [
@@ -167,5 +193,12 @@ return [
         'tenant_role_*',
         'role.export',
         'role.import',
+        'tenant_setting_manage_document',
+        'tenant_setting_manage_documentation_*',
+        'tenant_deleted_manage_document_list',
+        'tenant_manage_documents_api_*',
+        'tenant_admin_uploads_*',
+        'tenant_inventory_admin_*',
+        'tenant_dashboard_catalog_sales',
     ],
 ];

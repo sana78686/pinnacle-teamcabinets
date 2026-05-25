@@ -8,6 +8,7 @@ use App\Http\Controllers\TenantAuthController;
 use App\Http\Controllers\TenantBulletinController;
 use App\Http\Controllers\TenantClaimController;
 use App\Http\Controllers\TenantCommissionReportController;
+use App\Http\Controllers\TenantHierarchyController;
 use App\Http\Controllers\HomeSettingsController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TenantCreateOrderController;
@@ -29,6 +30,13 @@ use App\Http\Controllers\TenantShippingQuoteController;
 use App\Http\Controllers\TenantStockCheckController;
 use App\Http\Controllers\TenantNotificationController;
 use App\Http\Controllers\UserColumnPreferenceController;
+use App\Http\Controllers\TenantDashboardAnalyticsController;
+use App\Http\Controllers\TenantAdminUploadController;
+use App\Http\Controllers\AdminUploadApiController;
+use App\Http\Controllers\TenantManageDocumentController;
+use App\Http\Controllers\ManageDocumentApiController;
+use App\Http\Controllers\TenantInventoryAdminController;
+use App\Http\Controllers\InventoryAdminApiController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -132,6 +140,8 @@ Route::prefix('storefront-chat')->group(function () {
 
 
          Route::get('/dashboard', [TenantController::class, 'tenant_dashboard'])->name('tenant_dashboard');
+         Route::get('/dashboard/catalog-sales', [TenantDashboardAnalyticsController::class, 'catalogSales'])
+             ->name('tenant_dashboard_catalog_sales');
          Route::post('/dashboard/order-tracker', [\App\Http\Controllers\TenantDashboardTrackerController::class, 'update'])
              ->name('tenant_dashboard_tracker_update');
          Route::post('/dashboard/order-tracker/viewed', [\App\Http\Controllers\TenantDashboardTrackerController::class, 'markViewed'])
@@ -281,6 +291,7 @@ Route::prefix('storefront-chat')->group(function () {
 
           /** Vue modal CRUD API (catalogs, categories, door-styles, products) */
           Route::prefix('product-setup/api')->group(function () {
+              Route::post('products/deactivate-all', [ProductSetupApiController::class, 'deactivateAll'])->name('tenant_product_setup_deactivate_all');
               Route::get('{type}/meta', [ProductSetupApiController::class, 'meta'])->name('tenant_product_setup_api_meta');
               Route::get('{type}/{id}', [ProductSetupApiController::class, 'show'])->whereNumber('id')->name('tenant_product_setup_api_show');
               Route::get('{type}', [ProductSetupApiController::class, 'index'])->name('tenant_product_setup_api_index');
@@ -319,6 +330,9 @@ Route::prefix('storefront-chat')->group(function () {
           Route::get('orders/create/search', [TenantOrderController::class, 'search'])->name('tenant_order_create_search');
           Route::get('orders/create/{id}/step-2', [TenantOrderController::class, 'step_2'])->name('tenant_order_step_2');
           Route::post('orders', [TenantOrderController::class, 'store'])->name('tenant_order_store');
+          Route::get('orders/export-csv', [TenantOrderController::class, 'exportCsv'])->name('tenant_order_export_csv');
+          Route::get('orders/{id}/warehouse-pick', [TenantOrderController::class, 'warehousePickList'])->name('tenant_order_warehouse_pick');
+          Route::match(['get', 'post'], 'orders/{id}/warehouse-pick/print', [TenantOrderController::class, 'warehousePickListPrint'])->name('tenant_order_warehouse_pick_print');
           Route::get('orders/{id}/edit', [TenantOrderController::class, 'edit'])->name('tenant_order_edit');
           Route::get('orders/{id}/show', [TenantOrderController::class, 'show'])->name('tenant_order_show');
           Route::put('orders/{id}', [TenantOrderController::class, 'update'])->name('tenant_order_update');
@@ -379,6 +393,15 @@ Route::prefix('storefront-chat')->group(function () {
          Route::get('manage_role/{id}/show', [ManageRoleController::class, 'show'])->name('tenant_manage_role_show');
          Route::put('manage_role/{id}', [ManageRoleController::class, 'update'])->name('tenant_manage_role_update');
          Route::delete('manage_role/{id}', [ManageRoleController::class, 'destroy'])->name('tenant_manage_role_destroy');
+
+         /*** User hierarchy (CI set_admin_under_role) */
+         Route::get('hierarchy', [TenantHierarchyController::class, 'index'])->name('tenant_hierarchy_index');
+         Route::post('hierarchy/connect-rep-to-admin', [TenantHierarchyController::class, 'connectRepToAdmin'])->name('tenant_hierarchy_connect_rep');
+         Route::post('hierarchy/connect-to-rep', [TenantHierarchyController::class, 'connectToRep'])->name('tenant_hierarchy_connect_to_rep');
+         Route::post('hierarchy/disconnect', [TenantHierarchyController::class, 'disconnect'])->name('tenant_hierarchy_disconnect');
+         Route::get('hierarchy/export/showrooms', [TenantHierarchyController::class, 'exportShowroomConnections'])->name('tenant_hierarchy_export_showrooms');
+         Route::get('hierarchy/export/dealers', [TenantHierarchyController::class, 'exportDealerConnections'])->name('tenant_hierarchy_export_dealers');
+         Route::get('hierarchy/export/distributors', [TenantHierarchyController::class, 'exportDistributorConnections'])->name('tenant_hierarchy_export_distributors');
 
          /*** Products section  Routes */
 
@@ -443,7 +466,28 @@ Route::prefix('storefront-chat')->group(function () {
           Route::post('setting/manage_home_store', [TenantSettingController::class, 'store_site_settings'])->name('tenant_site_settings_store');
           Route::get('setting/frontend-theme', [TenantSettingController::class, 'manage_frontend_theme'])->name('tenant_frontend_theme');
           Route::post('setting/frontend-theme', [TenantSettingController::class, 'store_frontend_theme'])->name('tenant_frontend_theme_store');
-          Route::get('setting/manage_document', [TenantSettingController::class, 'manage_document'])->name('tenant_setting_manage_document');
+          Route::get('setting/manage_document', [TenantManageDocumentController::class, 'create'])->name('tenant_setting_manage_document');
+          Route::get('setting/admin-uploads', [TenantAdminUploadController::class, 'index'])->name('tenant_admin_uploads_index');
+          Route::prefix('setting/admin-uploads/api')->name('tenant_admin_uploads_api_')->group(function () {
+              Route::get('/', [AdminUploadApiController::class, 'index'])->name('index');
+              Route::post('/', [AdminUploadApiController::class, 'store'])->name('store');
+              Route::delete('{id}', [AdminUploadApiController::class, 'destroy'])->whereNumber('id')->name('destroy');
+          });
+          Route::get('setting/inventory-admin', [TenantInventoryAdminController::class, 'index'])->name('tenant_inventory_admin_index');
+          Route::prefix('setting/inventory-admin/api')->name('tenant_inventory_admin_api_')->group(function () {
+              Route::get('/', [InventoryAdminApiController::class, 'index'])->name('index');
+              Route::post('/', [InventoryAdminApiController::class, 'store'])->name('store');
+              Route::post('{id}', [InventoryAdminApiController::class, 'update'])->whereNumber('id')->name('update');
+              Route::delete('{id}', [InventoryAdminApiController::class, 'destroy'])->whereNumber('id')->name('destroy');
+          });
+          Route::prefix('setting/manage-documents/api')->name('tenant_manage_documents_api_')->group(function () {
+              Route::get('/', [ManageDocumentApiController::class, 'index'])->name('index');
+              Route::post('/', [ManageDocumentApiController::class, 'store'])->name('store');
+              Route::get('{id}', [ManageDocumentApiController::class, 'show'])->whereNumber('id')->name('show');
+              Route::post('{id}', [ManageDocumentApiController::class, 'update'])->whereNumber('id')->name('update');
+              Route::delete('{id}', [ManageDocumentApiController::class, 'destroy'])->whereNumber('id')->name('destroy');
+              Route::post('{id}/restore', [ManageDocumentApiController::class, 'restore'])->whereNumber('id')->name('restore');
+          });
           Route::get('setting/email-settings', [TenantSettingController::class, 'email_settings'])->name('tenant_setting_email_settings');
           Route::prefix('setting/email-settings/api')->name('tenant_email_settings_api_')->group(function () {
               Route::get('meta', [EmailSettingsApiController::class, 'meta'])->name('meta');
@@ -496,11 +540,11 @@ Route::prefix('storefront-chat')->group(function () {
           Route::get('setting/deleted/manage_home_list', [TenantSettingController::class, 'deletedmanagehomelist'])->name('tenant_deleted_manage_home_list');
           Route::get('setting/{id}/restore', [TenantSettingController::class, 'restoredeletedmanagelist'])->name('tenant_manage_home_restore');
 
-          Route::get('setting/manage_documentation_list', [TenantSettingController::class, 'manage_documentation_list'])->name('tenant_setting_manage_documentation_list');
-          Route::get('setting/{id}/manage_documentation_edit', [TenantSettingController::class, 'manage_documentation_edit'])->name('tenant_setting_manage_documentation_edit');
-          Route::get('setting/{id}/manage_documentation_show', [TenantSettingController::class, 'manage_documentation_show'])->name('tenant_setting_manage_documentation_show');
-          Route::get('setting/deleted/manage_documentation_list', [TenantSettingController::class, 'deletedmanagedocumentlist'])->name('tenant_deleted_manage_document_list');
-          Route::get('setting/{id}/restore', [TenantSettingController::class, 'restoredeletedmanagedocumentlist'])->name('tenant_manage_document_restore');
+          Route::get('setting/manage_documentation_list', [TenantManageDocumentController::class, 'index'])->name('tenant_setting_manage_documentation_list');
+          Route::get('setting/{id}/manage_documentation_edit', fn (string $id) => redirect()->route('tenant_setting_manage_documentation_list'))->name('tenant_setting_manage_documentation_edit');
+          Route::get('setting/{id}/manage_documentation_show', fn (string $id) => redirect()->route('tenant_setting_manage_documentation_list'))->name('tenant_setting_manage_documentation_show');
+          Route::get('setting/deleted/manage_documentation_list', [TenantManageDocumentController::class, 'deleted'])->name('tenant_deleted_manage_document_list');
+          Route::get('setting/manage-document/{id}/restore', fn (string $id) => redirect()->route('tenant_deleted_manage_document_list'))->name('tenant_manage_document_restore');
 
           Route::get('setting/manage_stmp_list', [TenantSettingController::class, 'manage_stmp_list'])->name('tenant_setting_manage_stmp_list');
           Route::get('setting/{id}/manage_stmp_edit', [TenantSettingController::class, 'manage_stmp_edit'])->name('tenant_setting_manage_stmp_edit');
@@ -594,6 +638,8 @@ Route::prefix('storefront-chat')->group(function () {
         Route::get('commission_report/deleted/list', [TenantCommissionReportController::class, 'deleted_commission_report_list'])->name('tenant_deleted_commission_report_list');
         Route::delete('commission_report/{id}', [TenantCommissionReportController::class, 'destroy'])->name('tenant_commission_report_destroy');
         Route::post('commission_report/{id}/restore', [TenantCommissionReportController::class, 'restore'])->name('tenant_commission_report_restore');
+        Route::get('commission_report/saving-report', [TenantCommissionReportController::class, 'savingReport'])->name('tenant_commission_report_saving');
+        Route::get('commission_report/saving-report/export', [TenantCommissionReportController::class, 'exportSavingReport'])->name('tenant_commission_report_saving_export');
 
 
     });

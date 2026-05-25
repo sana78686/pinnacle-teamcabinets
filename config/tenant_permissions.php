@@ -8,7 +8,7 @@ return [
     'guard' => 'web',
 
     /** Admin role bypasses checks (receives all permissions via seeder). */
-    'admin_role' => 'Admin',
+    'admin_role' => 'admin',
 
     /**
      * Legacy permission names kept in DB — treated as equivalent when checking access.
@@ -84,7 +84,7 @@ return [
      * @var array<string, list<string>>
      */
     'default_role_permissions' => [
-        'Representative' => [
+        'representatives' => [
             'dashboard-view',
             'order-*',
             'quote-*',
@@ -96,7 +96,7 @@ return [
             'commission-*',
             'support_chat-list',
         ],
-        'Distributor' => [
+        'distributors' => [
             'dashboard-view',
             'order-*',
             'quote-*',
@@ -107,7 +107,7 @@ return [
             'upload-*',
             'commission-*',
         ],
-        'Dealer' => [
+        'dealers' => [
             'dashboard-view',
             'order-*',
             'quote-*',
@@ -117,7 +117,7 @@ return [
             'download-list',
             'upload-*',
         ],
-        'Showroom' => [
+        'showrooms' => [
             'dashboard-view',
             'order-*',
             'quote-*',
@@ -127,7 +127,23 @@ return [
             'download-list',
             'upload-list',
         ],
-        'Customer' => [
+        'customers' => [
+            'dashboard-view',
+            'order-list',
+            'order-create',
+            'claim-list',
+            'claim-create',
+            'download-list',
+        ],
+        'affiliate' => [
+            'dashboard-view',
+            'order-list',
+            'order-create',
+            'claim-list',
+            'claim-create',
+            'download-list',
+        ],
+        'sub-affiliate' => [
             'dashboard-view',
             'order-list',
             'order-create',

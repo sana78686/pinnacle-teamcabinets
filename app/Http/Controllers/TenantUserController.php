@@ -511,9 +511,9 @@ public function updateVerification(Request $request, $id)
     ]);
 }
 
-public function approvalSetupForm(int $id): JsonResponse
+public function approvalSetupForm($id): JsonResponse
 {
-    $user = User::findOrFail($id);
+    $user = User::findOrFail((int) $id);
 
     if (tenant_user_has_admin_role($user)) {
         return response()->json([
@@ -559,9 +559,9 @@ public function approvalSetupForm(int $id): JsonResponse
     ]);
 }
 
-public function saveApprovalSetup(Request $request, int $id): JsonResponse
+public function saveApprovalSetup(Request $request, $id): JsonResponse
 {
-    $user = User::findOrFail($id);
+    $user = User::findOrFail((int) $id);
 
     if (tenant_user_has_admin_role($user)) {
         return response()->json([

@@ -227,8 +227,8 @@ Route::prefix('storefront-chat')->group(function () {
          Route::put('users/{id}', [TenantUserController::class, 'update'])->name('tenant_user_update');
          Route::delete('users/{id}', [TenantUserController::class, 'destroy'])->name('tenant_user_destroy');
          Route::post('/users/{id}/status', [TenantUserController::class, 'updateStatus'])->name('tenant_users_update_status');
-         Route::get('users/{id}/approval-setup', [TenantUserController::class, 'approvalSetupForm'])->name('tenant_user_approval_setup_form');
-         Route::post('users/{id}/approval-setup', [TenantUserController::class, 'saveApprovalSetup'])->name('tenant_user_approval_setup_store');
+         Route::get('users/{id}/approval-setup', [TenantUserController::class, 'approvalSetupForm'])->whereNumber('id')->name('tenant_user_approval_setup_form');
+         Route::post('users/{id}/approval-setup', [TenantUserController::class, 'saveApprovalSetup'])->whereNumber('id')->name('tenant_user_approval_setup_store');
          Route::get('users/deleted/list', [TenantUserController::class, 'deletedUsersList'])->name('tenant_deleted_users_list');
          Route::get('users/child/deleted/list', [TenantUserController::class, 'deletedChildUsersList'])->name('tenant_deleted_users_child_list');
          Route::get('users/{id}/restore', [TenantUserController::class, 'restoreDeletedUser'])->name('tenant_user_restore');

@@ -222,5 +222,5 @@
 @endsection
 
 @section('script')
-<script src="{{ tenant_static_asset('js/order-page.js') }}?v=22"></script>
+<script src="{{ tenant_static_asset('js/order-page.js') }}?v=23"></script>
 @endsection

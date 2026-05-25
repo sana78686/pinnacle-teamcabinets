@@ -88,15 +88,19 @@ class TenantCreateOrderController extends Controller
                 ->with('error', 'No door styles are configured for this catalog.');
         }
 
-        $door = $doorColors->firstWhere('id', (int) $request->query('door'))
-            ?? $doorColors->first();
-
-        $pricingContext = $this->pricing->contextFor($user, $catalog->id, $door->id);
-
         $savedCart = $this->enrichSavedCartForEditing(
             $this->cartPersistence->load($user->id, $catalog->id),
             $user
         );
+
+        $door = $this->resolveWorkspaceDoor(
+            $request,
+            $catalog,
+            $doorColors,
+            $savedCart
+        );
+
+        $pricingContext = $this->pricing->contextFor($user, $catalog->id, $door->id);
 
         return view('tenants.orders.workspace.build', [
             'catalog' => $catalog,
@@ -121,7 +125,10 @@ class TenantCreateOrderController extends Controller
         }
 
         $catalog = ProductCatalog::query()->where('status', 1)->findOrFail($catalogId);
-        $door = DoorColors::query()->findOrFail($doorId);
+        $door = DoorColors::query()
+            ->where('product_catalog_id', $catalog->id)
+            ->where('status', 1)
+            ->findOrFail($doorId);
         $sections = $this->productSectionsFor($catalog, $door, $user);
 
         if ($request->filled('sku')) {
@@ -497,6 +504,57 @@ class TenantCreateOrderController extends Controller
     /**
      * @return Collection<int, ProductSection>
      */
+    protected function resolveWorkspaceDoor(
+        Request $request,
+        ProductCatalog $catalog,
+        Collection $doorColors,
+        ?array $savedCart
+    ): DoorColors {
+        $requestedId = (int) $request->query('door');
+        if ($requestedId > 0) {
+            $match = $doorColors->firstWhere('id', $requestedId);
+            if ($match) {
+                return $match;
+            }
+        }
+
+        $savedLabel = trim((string) ($savedCart['door_label'] ?? $savedCart['product_img_name'] ?? ''));
+        if ($savedLabel !== '') {
+            $fromCart = $doorColors->first(
+                fn (DoorColors $d) => strcasecmp(trim((string) $d->product_label), $savedLabel) === 0
+            );
+            if ($fromCart) {
+                return $fromCart;
+            }
+        }
+
+        $withProducts = $this->firstDoorWithProducts($catalog, $doorColors);
+        if ($withProducts) {
+            return $withProducts;
+        }
+
+        return $doorColors->first();
+    }
+
+    protected function firstDoorWithProducts(ProductCatalog $catalog, Collection $doorColors): ?DoorColors
+    {
+        foreach ($doorColors as $door) {
+            $hasProducts = Product::query()
+                ->where('product_catalog_id', $catalog->id)
+                ->where(function ($q) use ($door) {
+                    $q->where('door_color_id', $door->id)
+                        ->orWhereNull('door_color_id');
+                })
+                ->exists();
+
+            if ($hasProducts) {
+                return $door;
+            }
+        }
+
+        return null;
+    }
+
     protected function productSectionsFor(ProductCatalog $catalog, DoorColors $door, $user): Collection
     {
         $context = $this->pricing->contextFor($user, $catalog->id, $door->id);
@@ -510,7 +568,10 @@ class TenantCreateOrderController extends Controller
                     Product::query()
                         ->where('product_section_id', $section->id)
                         ->where('product_catalog_id', $catalog->id)
-                        ->where('door_color_id', $door->id)
+                        ->where(function ($q) use ($door) {
+                            $q->where('door_color_id', $door->id)
+                                ->orWhereNull('door_color_id');
+                        })
                         ->orderBy('label')
                         ->get()
                 );
@@ -531,7 +592,10 @@ class TenantCreateOrderController extends Controller
         $query = Product::query()
             ->with('doorColor')
             ->where('product_catalog_id', $catalogId)
-            ->where('door_color_id', $doorId);
+            ->where(function ($q) use ($doorId) {
+                $q->where('door_color_id', $doorId)
+                    ->orWhereNull('door_color_id');
+            });
 
         if ($request->filled('search')) {
             $term = $request->search;

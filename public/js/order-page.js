@@ -326,12 +326,14 @@
     }
 
     function restoreDoorSelection(saved) {
-        if (!saved.door_label && !saved.door_image) {
-            return;
+        const label = saved.door_label || saved.product_img_name || '';
+        if (!label && !saved.door_image) {
+            return false;
         }
-        if (saved.door_label) {
-            $('.product_img_name').val(saved.door_label);
-            $('#door-heading').text(saved.door_label);
+        if (label) {
+            $('.product_img_name').val(label);
+            cfg.doorLabel = label;
+            $('#door-heading').text(label);
         }
         if (saved.door_image) {
             $('.product_img_src').val(saved.door_image);
@@ -339,15 +341,19 @@
             $('#door-preview-empty').hide();
         }
         const $tile = $('.door-image-tile, .ow-door-pill').filter(function () {
-            return $(this).data('label') === saved.door_label;
+            const tileLabel = $(this).attr('data-label') || $(this).data('label') || '';
+            return label && String(tileLabel).toLowerCase() === String(label).toLowerCase();
         }).first();
         if ($tile.length) {
             $('.door-image-tile, .ow-door-pill').removeClass('is-selected selected');
             $tile.addClass('is-selected selected');
-            if ($tile.data('door-id')) {
-                cfg.doorId = $tile.data('door-id');
+            const doorId = parseInt($tile.attr('data-door-id'), 10);
+            if (doorId > 0) {
+                cfg.doorId = doorId;
             }
         }
+
+        return label !== '' || saved.door_image;
     }
 
     function collectRoomsPayload() {
@@ -776,7 +782,7 @@
         $tile.addClass('is-selected selected');
         const name = $tile.data('label');
         const src = $tile.data('src') || $tile.find('img').attr('src') || '';
-        cfg.doorId = $tile.data('door-id');
+        cfg.doorId = parseInt($tile.attr('data-door-id'), 10) || parseInt($tile.data('doorId'), 10) || cfg.doorId;
         cfg.doorLabel = name;
         $('.product_img_name').val(name);
         $('.product_img_src').val(src);
@@ -805,13 +811,31 @@
 
     function runSkuSearch(forceFull) {
         const sku = forceFull ? '' : $('#ow-sku-search').val().trim();
+        if (!cfg.doorId) {
+            $('#product-list-container').html('<p class="p-3 text-muted">Select a door style to load products.</p>');
+            return;
+        }
         $.post(accordionSearchUrl(), {
             _token: cfg.csrf,
             sku: sku || '',
             color: $('.product_img_name').val(),
-        }).done(function (html) {
-            $('#product-list-container').html(html || '<p class="p-3 text-muted">No Product Found</p>');
-        });
+        })
+            .done(function (html) {
+                $('#product-list-container').html(
+                    html && String(html).trim() !== ''
+                        ? html
+                        : '<p class="p-3 text-muted">No products for this door style. Choose another door or add products in admin.</p>'
+                );
+            })
+            .fail(function (xhr) {
+                let msg = 'Could not load products.';
+                if (xhr.status === 403) {
+                    msg = 'You do not have access to this catalog.';
+                } else if (xhr.status === 419) {
+                    msg = 'Session expired — refresh the page.';
+                }
+                $('#product-list-container').html('<p class="p-3 text-danger">' + msg + '</p>');
+            });
     }
 
     $('#btn-print').on('click', function () {
@@ -958,13 +982,23 @@
     // Restore saved cart_data (Laravel room_data[] or legacy CI keyed room_data)
     const saved = pageJson('saved-cart');
     const savedRooms = saved ? roomsFromSaved(saved) : [];
+    const initialDoorId = cfg.doorId;
     if (saved) {
         if (saved.order_comment != null && String(saved.order_comment).length) {
             $('#ow-comment').val(saved.order_comment);
         }
     }
-    if (saved && savedRooms.length) {
+    if (saved) {
         restoring = true;
+        const doorRestored = restoreDoorSelection(saved);
+        if (doorRestored && cfg.doorId && cfg.doorId !== initialDoorId) {
+            runSkuSearch(true);
+        }
+        if (!savedRooms.length) {
+            restoring = false;
+        }
+    }
+    if (saved && savedRooms.length) {
         if (saved.job_name) $('#ow-job-name').val(saved.job_name);
         syncJobNameGate();
         if (saved.order_comment != null && String(saved.order_comment).length) {
@@ -974,7 +1008,6 @@
             const assembleVal = saved.is_assemble === 1 || saved.is_assemble === '1' ? 'yes' : saved.is_assemble;
             $('input[name="assemble_cabinets_check"][value="' + assembleVal + '"]').prop('checked', true);
         }
-        restoreDoorSelection(saved);
 
         savedRooms.forEach(function (room, idx) {
             const roomIndex = room.room_index || idx + 1;

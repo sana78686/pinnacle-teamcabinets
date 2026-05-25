@@ -97,14 +97,27 @@ class TenantUserController extends Controller
             ]);
         }
 
-        return view('tenants.users.index', array_merge($data, $this->doorFactorBootstrapData()));
+        $data['point_factor_defaults'] = PointFactorDefault::query()
+            ->pluck('point_factor_percentage', 'user_type')
+            ->map(fn ($v) => (string) $v)
+            ->all();
+
+        return view('tenants.users.index', $data);
     }
 
     /** @return array<string, mixed> */
     protected function doorFactorBootstrapData(): array
     {
-        $product_catalogs = ProductCatalog::query()->where('status', 1)->get();
-        $door_colors = DoorColors::with('productCatalog')->get();
+        $product_catalogs = ProductCatalog::query()->where('status', 1)->orderBy('name')->get(['id', 'name', 'status']);
+        $catalogIds = $product_catalogs->pluck('id');
+
+        $door_colors = $catalogIds->isEmpty()
+            ? collect()
+            : DoorColors::query()
+                ->whereIn('product_catalog_id', $catalogIds)
+                ->orderBy('product_label')
+                ->get(['id', 'product_catalog_id', 'product_label', 'status']);
+
         $point_factor_defaults = PointFactorDefault::query()
             ->pluck('point_factor_percentage', 'user_type')
             ->map(fn ($v) => (string) $v)
@@ -116,6 +129,7 @@ class TenantUserController extends Controller
         return [
             'product_catalogs' => $product_catalogs,
             'door_colors' => $door_colors,
+            'doors_by_catalog' => $door_colors->groupBy('product_catalog_id'),
             'point_factor_defaults' => $point_factor_defaults,
             'has_point_factor_defaults' => $has_point_factor_defaults,
             'has_product_catalogs' => $has_product_catalogs,
@@ -201,26 +215,10 @@ class TenantUserController extends Controller
      */
     public function create(): View
     {
-        $data = [];
-        $data['product_catalogs'] = ProductCatalog::where('status', 1)->get();
-        $data['door_colors'] = DoorColors::with('productCatalog')->get();
-        $data['countries'] = Country::where('id', '233')->pluck('name', 'name')->all();
-        $data['states'] = State::where('country_id', '233')->pluck('name', 'name')->all();
-        $data['cities'] = City::forCountry(233)->orderBy('name')->pluck('name', 'name')->all();
-        $data['counties'] = County::pluck('name', 'name')->all();
-        $data['point_factor_defaults'] = PointFactorDefault::query()
-            ->pluck('point_factor_percentage', 'user_type')
-            ->map(fn ($v) => (string) $v)
-            ->all();
-        $data['has_point_factor_defaults'] = count($data['point_factor_defaults']) > 0;
-        $data['has_product_catalogs'] = $data['product_catalogs']->isNotEmpty();
-        $data['has_door_styles'] = $data['door_colors']->isNotEmpty();
-        $data['door_factor_setup_incomplete'] = ! $data['has_point_factor_defaults']
-            || ! $data['has_product_catalogs']
-            || ! $data['has_door_styles'];
-        $data['roleOptions'] = \App\Services\TenantRoleService::roleOptionsForUserForms();
-
-        return view('tenants.users.create', $data);
+        return view('tenants.users.create', array_merge(
+            $this->doorFactorBootstrapData(),
+            ['roleOptions' => \App\Services\TenantRoleService::roleOptionsForUserForms()]
+        ));
     }
 
     /**
@@ -530,11 +528,11 @@ public function approvalSetupForm($id): JsonResponse
 
     $existing = UsersCatalogDoorPointFactor::query()
         ->where('user_id', $user->id)
-        ->get()
+        ->get(['catalog_id', 'door_style', 'factor'])
         ->groupBy('catalog_id');
 
     $doorFactorValue = function ($catalogId, $doorColorId) use ($existing) {
-        $row = $existing->get($catalogId)?->firstWhere('door_style', $doorColorId);
+        $row = $existing->get($catalogId)?->firstWhere('door_style', (int) $doorColorId);
 
         return $row ? (string) $row->factor : '';
     };
@@ -585,11 +583,14 @@ public function saveApprovalSetup(Request $request, $id): JsonResponse
         Log::error('Approval catalog setup failed', [
             'user_id' => $user->id,
             'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
         ]);
 
         return response()->json([
             'success' => false,
-            'message' => 'Could not save catalog settings. Please try again.',
+            'message' => config('app.debug')
+                ? 'Could not save catalog settings: '.$e->getMessage()
+                : 'Could not save catalog settings. Please try again.',
         ], 500);
     }
 

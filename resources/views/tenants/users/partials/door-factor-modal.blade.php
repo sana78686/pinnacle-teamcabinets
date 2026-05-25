@@ -55,7 +55,7 @@
                                                 Apply role default
                                             </button>
                                         </div>
-                                        @foreach ($door_colors->where('product_catalog_id', $product_catalog->id) as $door_color)
+                                        @foreach (($doors_by_catalog[$product_catalog->id] ?? collect()) as $door_color)
                                             <div class="mb-2">
                                                 <label class="form-label small mb-1">{{ $door_color->product_label }}</label>
                                                 <input type="number" step="any" min="0"

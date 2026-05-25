@@ -144,16 +144,18 @@ class UserDoorFactorService
 
     public function persistForUser(User $user, Request $request): void
     {
-        DB::transaction(function () use ($user, $request) {
-            $selectedIds = $this->selectedCatalogIds($request);
+        $selectedIds = $this->selectedCatalogIds($request);
+
+        DB::transaction(function () use ($user, $request, $selectedIds) {
+            $userId = (int) $user->id;
 
             UsersCatalogDoorPointFactor::withTrashed()
-                ->where('user_id', $user->id)
+                ->where('user_id', $userId)
                 ->when($selectedIds !== [], fn ($q) => $q->whereNotIn('catalog_id', $selectedIds))
                 ->forceDelete();
 
             UsersCatalogVisibility::withTrashed()
-                ->where('user_id', $user->id)
+                ->where('user_id', $userId)
                 ->when($selectedIds !== [], fn ($q) => $q->whereNotIn('catalog_id', $selectedIds))
                 ->forceDelete();
 
@@ -164,7 +166,7 @@ class UserDoorFactorService
             }
 
             UsersCatalogDoorPointFactor::withTrashed()
-                ->where('user_id', $user->id)
+                ->where('user_id', $userId)
                 ->whereIn('catalog_id', $selectedIds)
                 ->forceDelete();
 
@@ -173,14 +175,19 @@ class UserDoorFactorService
 
             foreach ($selectedIds as $catalogId) {
                 $visibility = UsersCatalogVisibility::withTrashed()->firstOrNew([
-                    'user_id' => $user->id,
+                    'user_id' => $userId,
                     'catalog_id' => $catalogId,
                 ]);
 
                 if ($visibility->trashed()) {
                     $visibility->restore();
-                } elseif (! $visibility->exists) {
+                } elseif (! $visibility->exists || ! $visibility->getKey()) {
                     $visibility->save();
+                }
+
+                $visibilityId = (int) $visibility->getKey();
+                if ($visibilityId <= 0) {
+                    throw new \RuntimeException("Could not save catalog visibility for catalog #{$catalogId}.");
                 }
 
                 $factors = $request->input("door_factors.{$catalogId}", []);
@@ -195,10 +202,10 @@ class UserDoorFactorService
                     }
 
                     $factorRows[] = [
-                        'user_catalog_visibility_id' => $visibility->id,
-                        'user_id' => $user->id,
-                        'catalog_id' => $catalogId,
-                        'door_style' => $doorColorId,
+                        'user_catalog_visibility_id' => $visibilityId,
+                        'user_id' => $userId,
+                        'catalog_id' => (int) $catalogId,
+                        'door_style' => (int) $doorColorId,
                         'factor' => $factor,
                         'created_at' => $now,
                         'updated_at' => $now,
@@ -206,7 +213,7 @@ class UserDoorFactorService
                 }
             }
 
-            foreach (array_chunk($factorRows, 250) as $chunk) {
+            foreach (array_chunk($factorRows, 500) as $chunk) {
                 UsersCatalogDoorPointFactor::query()->insert($chunk);
             }
 
@@ -214,18 +221,54 @@ class UserDoorFactorService
         });
     }
 
+    /**
+     * CI door_point_factor JSON shape without N+1 eager loads.
+     *
+     * @return array<string, array<string, string>>
+     */
+    protected function buildDoorFactorTreeFromDatabase(int $userId): array
+    {
+        $tree = [];
+
+        $rows = DB::table('users_catalog_door_point_factors')
+            ->where('users_catalog_door_point_factors.user_id', $userId)
+            ->whereNull('users_catalog_door_point_factors.deleted_at')
+            ->join('product_catalogs', 'product_catalogs.id', '=', 'users_catalog_door_point_factors.catalog_id')
+            ->join('door_colors', 'door_colors.id', '=', 'users_catalog_door_point_factors.door_style')
+            ->select([
+                'product_catalogs.name as catalog_name',
+                'door_colors.product_label',
+                'users_catalog_door_point_factors.factor',
+            ])
+            ->get();
+
+        foreach ($rows as $row) {
+            $catKey = str_replace(' ', '_', trim((string) $row->catalog_name));
+            $doorKey = str_replace(' ', '_', trim((string) $row->product_label));
+            if ($catKey === '' || $doorKey === '') {
+                continue;
+            }
+            $tree[$catKey][$doorKey] = (string) $row->factor;
+        }
+
+        return $tree;
+    }
+
     public function syncCiJsonColumns(User $user): void
     {
         $columns = $this->userJsonColumnFlags();
+        $userId = (int) $user->id;
 
-        $visibilityNames = UsersCatalogVisibility::query()
-            ->where('user_id', $user->id)
-            ->with('productCatalog:id,name')
-            ->get()
-            ->map(function (UsersCatalogVisibility $row) {
-                $name = trim((string) ($row->productCatalog?->name ?? ''));
+        $visibilityNames = DB::table('users_catalog_visibilities')
+            ->where('users_catalog_visibilities.user_id', $userId)
+            ->whereNull('users_catalog_visibilities.deleted_at')
+            ->join('product_catalogs', 'product_catalogs.id', '=', 'users_catalog_visibilities.catalog_id')
+            ->orderBy('product_catalogs.name')
+            ->pluck('product_catalogs.name')
+            ->map(function ($name) {
+                $name = trim((string) $name);
 
-                return $name !== '' ? str_replace(' ', '_', $name) : (string) $row->catalog_id;
+                return $name !== '' ? str_replace(' ', '_', $name) : '';
             })
             ->filter()
             ->values()
@@ -234,7 +277,7 @@ class UserDoorFactorService
         $updates = [];
 
         if ($columns['door_point_factor']) {
-            $updates['door_point_factor'] = $this->pricing->doorFactorTree($user);
+            $updates['door_point_factor'] = $this->buildDoorFactorTreeFromDatabase($userId);
         }
         if ($columns['catalog_visibility']) {
             $updates['catalog_visibility'] = $visibilityNames;

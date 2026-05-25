@@ -108,13 +108,14 @@ class OrderPricingService
             'raw_cost' => $raw,
             'cart_unit_cost' => $cartUnit,
             'adjusted_cost' => $cartUnit,
+            'door_factor' => $this->doorFactorForCatalogDoor($context),
             'weight' => (float) preg_replace('/[^\d.]/', '', (string) $product->weight),
             'assemble_cost' => (float) preg_replace('/[^\d.]/', '', (string) $product->assemble_cost),
             'details' => $product->value_1 ?: ($product->description ?: ''),
             'product_img' => $product->image ? asset($product->image) : '',
-            'parent_door_point' => json_encode($context['door_trees']['parent_full'] ?? $context['door_trees']['parent'] ?? []),
-            'representative_door_point' => json_encode($context['door_trees']['representative_full'] ?? $context['door_trees']['representative'] ?? []),
-            'user_door_point' => json_encode($context['door_trees']['user_full'] ?? $context['door_trees']['user'] ?? []),
+            'user_door_point_tree' => $context['door_trees']['user'] ?? [],
+            'parent_door_point_tree' => $context['door_trees']['parent'] ?? [],
+            'representative_door_point_tree' => $context['door_trees']['representative'] ?? [],
         ];
     }
 

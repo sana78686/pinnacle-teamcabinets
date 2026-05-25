@@ -28,6 +28,8 @@
         doorId: parseInt(pageAttr('door-id'), 10) || pageAttr('door-id'),
         catalogName: pageAttr('catalog-name') || '',
         doorLabel: pageAttr('door-label') || '',
+        userDoorTree: pageJson('user-door-tree') || {},
+        doorFactor: num(pageAttr('door-factor'), 0),
         csrf: pageAttr('csrf'),
         accordionSearchPrefix: pageAttr('accordion-search-prefix'),
         autosaveUrl: pageAttr('autosave-url'),
@@ -131,7 +133,7 @@
     }
 
     function ciDoorFactorFromTree(tree, catalogName, doorLabel) {
-        if (!tree) {
+        if (!tree || typeof tree !== 'object') {
             return '';
         }
         const catKey = ciFactorKey(catalogName);
@@ -147,10 +149,22 @@
         return val;
     }
 
+    function resolveDoorFactor(doorTreeRaw, catalogName, doorLabel) {
+        let factor = ciDoorFactorFromTree(parseDoorTree(doorTreeRaw), catalogName, doorLabel);
+        if (factor === '' && cfg.userDoorTree) {
+            factor = ciDoorFactorFromTree(cfg.userDoorTree, catalogName, doorLabel);
+        }
+        if (factor === '' && cfg.doorFactor > 0) {
+            factor = String(cfg.doorFactor);
+        }
+        return factor;
+    }
+
     /** CI cart unit: base cost × door factor (direct multiply). */
-    function ciCartUnitCost(rawCost, doorTreeRaw, catalogName, doorLabel) {
+    function ciCartUnitCost(rawCost, doorTreeRaw, catalogName, doorLabel, rowDoorFactor) {
         const raw = num(rawCost, 0);
-        const factor = ciDoorFactorFromTree(parseDoorTree(doorTreeRaw), catalogName, doorLabel);
+        const rowFactor = rowDoorFactor != null && rowDoorFactor !== '' ? String(rowDoorFactor) : '';
+        const factor = rowFactor !== '' ? rowFactor : resolveDoorFactor(doorTreeRaw, catalogName, doorLabel);
         if (factor === '') {
             return raw;
         }
@@ -194,9 +208,12 @@
 
     function lineFromPicker($src) {
         const doorColor = $('.product_img_name').val() || cfg.doorLabel || '';
-        const catalogName = cfg.catalogName || '';
+        const catalogName = cfg.catalogName || $('input[name="catalogue_name"]').val() || '';
         const raw = num(rowAttr($src, 'cost1') ?? rowAttr($src, 'cost'), 0);
-        const cartCost = ciCartUnitCost(raw, rowAttr($src, 'door-point'), catalogName, doorColor);
+        const serverCart = num(rowAttr($src, 'cart-unit'), NaN);
+        const cartCost = Number.isFinite(serverCart) && serverCart > 0
+            ? serverCart
+            : ciCartUnitCost(raw, rowAttr($src, 'door-point'), catalogName, doorColor, rowAttr($src, 'door-factor'));
         return normalizeSavedLine({
             product_id: rowAttr($src, 'cabinetid') || $src.data('cabinetid') || $src.data('productId'),
             sku: rowAttr($src, 'sku') || $src.data('sku'),
@@ -255,13 +272,14 @@
             return line;
         }
         const fresh = lineFromPicker($pick);
+        const useFreshPricing = fresh.cost1 > 0 && fresh.cost !== fresh.cost1;
         return normalizeSavedLine({
-            ...fresh,
             ...line,
-            cost: line.cost || fresh.cost,
-            cost1: line.cost1 || fresh.cost1,
+            ...fresh,
+            cost: useFreshPricing ? fresh.cost : line.cost || fresh.cost,
+            cost1: fresh.cost1 || line.cost1,
             weight: line.weight || fresh.weight,
-            line_total: line.line_total || fresh.line_total,
+            line_total: (useFreshPricing ? fresh.cost : line.cost || fresh.cost) * (line.quantity || 1),
         });
     }
 

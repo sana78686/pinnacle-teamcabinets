@@ -18,6 +18,7 @@
                         @php
                             $pricing = $product->pricing ?? [];
                             $rawCost = $pricing['raw_cost'] ?? (float) preg_replace('/[^\d.]/', '', (string) $product->cost);
+                            $cartUnit = $pricing['cart_unit_cost'] ?? $rawCost;
                             $rawWeight = $pricing['weight'] ?? (float) preg_replace('/[^\d.]/', '', (string) $product->weight);
                             $listDesc = $door->product_label.' - '.$product->sku.' - '.$product->label;
                             $details = $pricing['details'] ?? ($product->value_1 ?: ($product->description ?: ''));
@@ -32,13 +33,15 @@
                             data-weight="{{ $rawWeight }}"
                             data-cost="{{ $rawCost }}"
                             data-cost1="{{ $rawCost }}"
+                            data-cart-unit="{{ $cartUnit }}"
+                            data-door-factor="{{ $pricing['door_factor'] ?? '' }}"
                             data-cabinet="{{ $section->id }}"
                             data-cabinetid="{{ $product->id }}"
                             data-qty="{{ $product->qty }}"
                             data-ass-cost="{{ $pricing['assemble_cost'] ?? preg_replace('/[^\d.]/', '', (string) $product->assemble_cost) }}"
-                            data-door-point="{{ is_string($pricing['user_door_point'] ?? '') ? $pricing['user_door_point'] : json_encode($pricing['user_door_point'] ?? []) }}"
-                            data-parent-point="{{ is_string($pricing['parent_door_point'] ?? '') ? $pricing['parent_door_point'] : json_encode($pricing['parent_door_point'] ?? []) }}"
-                            data-representative-point="{{ is_string($pricing['representative_door_point'] ?? '') ? $pricing['representative_door_point'] : json_encode($pricing['representative_door_point'] ?? []) }}"
+                            data-door-point='@json($pricing['user_door_point_tree'] ?? [])'
+                            data-parent-point='@json($pricing['parent_door_point_tree'] ?? [])'
+                            data-representative-point='@json($pricing['representative_door_point_tree'] ?? [])'
                             data-product-img="{{ $diagram }}">
                             <td class="cabinet-label-cell ow-product-label">{{ $product->label }}</td>
                             <td>{{ $product->sku }}</td>

@@ -604,15 +604,24 @@ class OrderWorkspaceCheckoutService
                 $totPrice = (float) preg_replace('/[^\d.]/', '', (string) ($val['product_tot_price'][$i] ?? ''));
                 $productId = (int) ($val['product_ids'][$i] ?? $val['add_pro_ids_room_wise'][$i] ?? 0);
 
+                $actual = (float) preg_replace('/[^\d.]/', '', (string) ($val['product_actual_price'][$i] ?? $val['product_count_cost'][$i] ?? ''));
+                $lineTotal = $totPrice > 0 ? $totPrice : round($unit * $qty, 2);
+                if ($lineTotal <= 0 || abs($lineTotal - $qty) < 0.001) {
+                    $lineTotal = round($unit * $qty, 2);
+                }
+
                 $products[] = [
                     'product_id' => $productId > 0 ? $productId : null,
                     'sku' => (string) ($skus[$i] ?? ''),
+                    'label' => (string) ($val['product_name'][$i] ?? ''),
                     'quantity' => $qty,
                     'weight' => (float) ($val['product_weight'][$i] ?? 0),
                     'cost' => $unit,
-                    'line_total' => $totPrice > 0 ? $totPrice : round($unit * $qty, 2),
+                    'cost1' => $actual > 0 ? $actual : $unit,
+                    'line_total' => $lineTotal,
                     'description' => (string) ($val['product_cabinets_description'][$i] ?? $val['product_name'][$i] ?? $skus[$i] ?? ''),
                     'assemble_cost' => (float) ($val['product_assemble_cost'][$i] ?? 0),
+                    'note' => (string) ($val['product_note'][$i] ?? ''),
                     'checkbox_val1' => ($val['checkbox_val1'][$i] ?? '0') === '1' || ($val['checkbox_val1'][$i] ?? 0) == 1,
                     'checkbox_val2' => ($val['checkbox_val2'][$i] ?? '0') === '1' || ($val['checkbox_val2'][$i] ?? 0) == 1,
                 ];

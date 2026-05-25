@@ -486,11 +486,14 @@
             const products = [];
             $tb.find('.product-row').each(function () {
                 const line = lineFromCartRow($(this));
+                const qty = line.quantity || 1;
+                const unit = line.cost || 0;
                 products.push({
                     product_id: parseInt(line.product_id, 10),
-                    quantity: line.quantity,
-                    cost: line.cost,
+                    quantity: qty,
+                    cost: unit,
                     cost1: line.cost1,
+                    line_total: line.line_total > 0 ? line.line_total : unit * qty,
                     weight: line.weight,
                     sku: line.sku,
                     label: line.label,

@@ -96,57 +96,50 @@
                                                             '',
                                                             (string) ($productData?->weight ?? ($each['weight'] ?? 0)),
                                                         );
-                                                        $productPrice = (float) preg_replace(
+                                                        $unitCost = (float) preg_replace(
                                                             '/[^\d.]/',
                                                             '',
-                                                            (string) ($productData?->cost ?? ($each['cost'] ?? 0)),
+                                                            (string) ($each['cost'] ?? $productData?->cost ?? 0),
                                                         );
                                                         $productAssembleCost = (float) preg_replace(
                                                             '/[^\d.]/',
                                                             '',
-                                                            (string) ($productData?->assemble_cost ?? ($each['assemble_cost'] ?? 0)),
+                                                            (string) ($each['assemble_cost'] ?? $productData?->assemble_cost ?? 0),
                                                         );
-                                                        $totalProductWeight = $productWeight * $qty;
-                                                        $totalProductPrice = $productPrice * $qty;
-                                                        $totalProductAssembleCost = $productAssembleCost * $qty;
+                                                        $lineTotal = (float) ($each['line_total'] ?? 0);
+                                                        if ($lineTotal <= 0 || abs($lineTotal - $qty) < 0.001) {
+                                                            $lineTotal = round($unitCost * $qty, 2);
+                                                        }
+                                                        $assembleLineTotal = round($productAssembleCost * $qty, 2);
+                                                        $checkYellow = ! empty($each['checkbox_val1']);
+                                                        $checkGreen = ! empty($each['checkbox_val2']);
+                                                        $lineNote = (string) ($each['note'] ?? $each['product_note'] ?? '');
+                                                        $cabinetName = (string) ($each['label'] ?? $productData?->label ?? '');
+                                                        $cabinetDesc = (string) ($each['description'] ?? '');
+                                                        if ($cabinetDesc === '' && $productData) {
+                                                            $cabinetDesc = trim($productData->sku.' + '.($productData->doorColor?->product_label ?? ''));
+                                                        }
                                                     @endphp
-                                                    @if ($productData)
+                                                    @if ($productData || ! empty($each['sku']))
                                                     <tr>
                                                         <td>
-                                                            @if ($productData->checkbox_status == 1)
-                                                                <label class='container_chk_lbl'><input type='checkbox'
-                                                                        checked disabled><span
-                                                                        class='checkmark'></span></label>
-                                                                &nbsp;&nbsp;<label class='container_chk_lbl_01'><input
-                                                                        type='checkbox' disabled><span
-                                                                        class='checkmark'></span>
-                                                                @elseif($productData->checkbox_status == 2)
-                                                                    <label class='container_chk_lbl'><input type='checkbox'
-                                                                            checked disabled><span
-                                                                            class='checkmark'></span></label>
-                                                                    &nbsp;&nbsp;<label class='container_chk_lbl_01'><input
-                                                                            checked type='checkbox' disabled><span
-                                                                            class='checkmark'></span>
-                                                                    @else
-                                                                        <label class='container_chk_lbl'><input
-                                                                                type='checkbox'  disabled><span
-                                                                                class='checkmark'></span></label>
-                                                                        &nbsp;&nbsp;<label
-                                                                            class='container_chk_lbl_01'><input
-                                                                                type='checkbox' disabled><span
-                                                                                class='checkmark'></span>
+                                                            <span class="tc-sq-check tc-sq-check--yellow{{ $checkYellow ? ' is-on' : '' }}"></span>
+                                                            <span class="tc-sq-check tc-sq-check--green{{ $checkGreen ? ' is-on' : '' }}"></span>
+                                                        </td>
+                                                        <td>{{ $cabinetName }}</td>
+                                                        <td>{{ $cabinetDesc }}</td>
+                                                        <td>{{ number_format($productWeight, 2) }} lbs</td>
+                                                        <td>${{ number_format($unitCost, 2) }}</td>
+                                                        <td>${{ number_format($lineTotal, 2) }}</td>
+                                                        <td>{{ $qty }}</td>
+                                                        <td>
+                                                            @if ($assembleLineTotal > 0)
+                                                                ${{ number_format($assembleLineTotal, 2) }}
+                                                            @else
+                                                                N/A
                                                             @endif
                                                         </td>
-                                                        <td>{{ $productData->label }}</td>
-                                                        <td>{{ $productData->sku }} +
-                                                            {{ $productData->doorColor?->product_label ?? '' }}</td>
-                                                        <td>{{ $productData->weight }} lbs</td>
-                                                        <td>${{ number_format($productPrice * $qty, 2) }}</td>
-                                                        <td>{{ $qty }}</td>
-                                                        <td>${{ number_format($productAssembleCost * $qty, 2) }}</td>
-                                                        <td>
-                                                            <textarea style="width:100%; min-width:100%;" class="product_note" name="product_note1[]"></textarea>
-                                                        </td>
+                                                        <td>{{ $lineNote }}</td>
                                                     </tr>
                                                     @endif
                                                 @endforeach

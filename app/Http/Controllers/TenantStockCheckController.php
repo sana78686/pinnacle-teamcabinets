@@ -77,14 +77,9 @@ class TenantStockCheckController extends Controller
 
         if (Auth::user()->isAdmin()) {
             $adminView->markViewed($stockCheck, Auth::user());
-
-            return view('tenants.stock_check.show', $this->stockAdminView->viewData($stockCheck, $rooms, $viewingOrgData));
         }
 
-        return view('tenants.representative_modals.stock_check.show', [
-            'stock_check_request' => $stockCheck,
-            'rooms' => $rooms,
-        ]);
+        return view('tenants.stock_check.show', $this->stockAdminView->viewData($stockCheck, $rooms, $viewingOrgData));
     }
 
     public function edit(string $id, AdminRecordViewService $adminView): RedirectResponse

@@ -337,10 +337,11 @@ class StockCheckAdminViewService
                 $product = $products->get((int) ($line['product_id'] ?? 0));
                 $qty = max(1, (int) ($line['quantity'] ?? 1));
                 $unitCost = (float) preg_replace('/[^\d.]/', '', (string) ($line['cost'] ?? $product?->cost ?? 0));
+                $listPrice = (float) preg_replace('/[^\d.]/', '', (string) ($line['cost1'] ?? $line['product_actual_price'] ?? $product?->cost ?? $unitCost));
                 $unitWeight = (float) preg_replace('/[^\d.]/', '', (string) ($line['weight'] ?? $product?->weight ?? 0));
                 $assembleUnit = (float) preg_replace('/[^\d.]/', '', (string) ($line['assemble_cost'] ?? $product?->assemble_cost ?? 0));
                 $lineTotal = (float) ($line['line_total'] ?? 0);
-                if ($lineTotal <= 0) {
+                if ($lineTotal <= 0 || $lineTotal < $unitCost - 0.001 || abs($lineTotal - $qty) < 0.001) {
                     $lineTotal = round($unitCost * $qty, 2);
                 }
 
@@ -359,11 +360,12 @@ class StockCheckAdminViewService
                     'weight' => $unitWeight,
                     'total_weight' => round($unitWeight * $qty, 2),
                     'unit_price' => $unitCost,
+                    'list_price' => $listPrice,
                     'line_total' => $lineTotal,
                     'assemble_cost' => round($assembleUnit * $qty, 2),
                     'check_yellow' => ! empty($line['checkbox_val1']),
                     'check_green' => ! empty($line['checkbox_val2']),
-                    'note' => $line['note'] ?? '',
+                    'note' => (string) ($line['note'] ?? $line['product_note'] ?? ''),
                 ];
             }
         }

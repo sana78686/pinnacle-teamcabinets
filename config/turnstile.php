@@ -19,7 +19,7 @@ return [
      * so the widget renders and siteverify passes on any hostname (including staging).
      * Set false in production once real keys are configured in .env.
      */
-    'use_test_keys' => env('TURNSTILE_USE_TEST_KEYS', true),
+    'use_test_keys' => env('TURNSTILE_USE_TEST_KEYS', false),
 
     'test_site_key' => '1x00000000000000000000AA',
 

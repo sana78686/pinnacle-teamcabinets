@@ -6,6 +6,8 @@
 
 This document maps each tenant panel module, settings screen, and **calculation / flow** from the legacy CI app to the Laravel multi-tenant implementation.
 
+**Step-by-step testing (setup → calculations → tracker):** see [CI-Laravel-E2E-Testing-Guide.md](./CI-Laravel-E2E-Testing-Guide.md).
+
 ---
 
 ## Table of contents

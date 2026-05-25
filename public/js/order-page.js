@@ -77,14 +77,25 @@
         $(`tbody.cart-room[data-room-index="${n}"]`).addClass('active');
     }
 
+    function rowUnitCost($row) {
+        const $input = $row.find('.product-qty-input');
+        let cost = num($input.attr('data-unit-cost') ?? $input.data('unitCost') ?? $input.data('unit-cost'), 0);
+        const raw = num($row.attr('data-unit-cost-raw') ?? $row.data('unitCostRaw') ?? $row.data('unit-cost-raw'), 0);
+        if (cost <= 0 && raw > 0) {
+            cost = raw;
+        }
+
+        return cost;
+    }
+
     function recalcTotals() {
         let totalCost = 0;
         let totalWeight = 0;
         $('tbody.cart-room .product-row').each(function () {
             const $row = $(this);
             const qty = parseInt($row.find('.product-qty-input').val(), 10) || 0;
-            const cost = parseFloat($row.find('.product-qty-input').data('unit-cost')) || 0;
-            const weight = parseFloat($row.find('.product-qty-input').data('unit-weight')) || 0;
+            const cost = rowUnitCost($row);
+            const weight = parseFloat($row.find('.product-qty-input').attr('data-unit-weight') ?? $row.find('.product-qty-input').data('unitWeight')) || 0;
             totalCost += cost * qty;
             totalWeight += weight * qty;
         });
@@ -132,6 +143,23 @@
         }
     }
 
+    /** CI: only positive door factors apply; 0 / empty / null → use full list price. */
+    function normalizedDoorFactor(factor) {
+        if (factor == null || factor === '') {
+            return '';
+        }
+        const val = String(factor).replace(/,/g, '').trim();
+        if (val === '' || val.toLowerCase() === 'null') {
+            return '';
+        }
+        const n = parseFloat(val);
+        if (!Number.isFinite(n) || n <= 0) {
+            return '';
+        }
+
+        return String(n);
+    }
+
     function ciDoorFactorFromTree(tree, catalogName, doorLabel) {
         if (!tree || typeof tree !== 'object') {
             return '';
@@ -142,11 +170,8 @@
         if (!byCat || byCat[doorKey] === undefined || byCat[doorKey] === null) {
             return '';
         }
-        const val = String(byCat[doorKey]).replace(/,/g, '');
-        if (val === '' || val.toLowerCase() === 'null') {
-            return '';
-        }
-        return val;
+
+        return normalizedDoorFactor(byCat[doorKey]);
     }
 
     function resolveDoorFactor(doorTreeRaw, catalogName, doorLabel) {
@@ -155,19 +180,21 @@
             factor = ciDoorFactorFromTree(cfg.userDoorTree, catalogName, doorLabel);
         }
         if (factor === '' && cfg.doorFactor > 0) {
-            factor = String(cfg.doorFactor);
+            factor = normalizedDoorFactor(cfg.doorFactor);
         }
+
         return factor;
     }
 
-    /** CI cart unit: base cost × door factor (direct multiply). */
+    /** CI cart unit: base cost × door factor (direct multiply). No factor → full list price. */
     function ciCartUnitCost(rawCost, doorTreeRaw, catalogName, doorLabel, rowDoorFactor) {
         const raw = num(rawCost, 0);
-        const rowFactor = rowDoorFactor != null && rowDoorFactor !== '' ? String(rowDoorFactor) : '';
+        const rowFactor = normalizedDoorFactor(rowDoorFactor);
         const factor = rowFactor !== '' ? rowFactor : resolveDoorFactor(doorTreeRaw, catalogName, doorLabel);
-        if (factor === '') {
+        if (factor === '' || raw <= 0) {
             return raw;
         }
+
         return parseFloat((raw * parseFloat(factor)).toFixed(2));
     }
 
@@ -556,7 +583,11 @@
     function buildProductRow(line) {
         line = enrichLineFromPicker(normalizeSavedLine(line));
         const qty = line.quantity || 1;
-        const cost = line.cost;
+        let cost = num(line.cost, 0);
+        const raw = num(line.cost1, 0);
+        if (cost <= 0 && raw > 0) {
+            cost = raw;
+        }
         const weight = line.weight;
         const lineTotal = line.line_total > 0 ? line.line_total : cost * qty;
         const $tr = $('<tr class="product-row"></tr>');
@@ -828,7 +859,7 @@
         if (existing.length) {
             const $input = existing.find('.product-qty-input');
             const v = setRowQty(existing, parseInt($input.val(), 10) + 1);
-            updateRowTotal(existing, parseFloat($input.data('unit-cost')), v);
+            updateRowTotal(existing, rowUnitCost(existing), v);
             recalcTotals();
             scheduleAutosave();
             return;
@@ -1103,7 +1134,7 @@
                 if (existing.length) {
                     const $input = existing.find('.product-qty-input');
                     const v = setRowQty(existing, parseInt($input.val(), 10) + (line.quantity || 1));
-                    updateRowTotal(existing, parseFloat($input.data('unit-cost')), v);
+                    updateRowTotal(existing, rowUnitCost(existing), v);
                 } else {
                     $tb.append(buildProductRow(line));
                 }

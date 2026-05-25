@@ -512,6 +512,7 @@ class TenantCreateOrderController extends Controller
             'billUser' => $user,
             'shipUser' => $user,
             'formattedAddress' => $formattedAddress,
+            'letterhead' => $this->workspace->printLetterhead(),
         ]);
     }
 

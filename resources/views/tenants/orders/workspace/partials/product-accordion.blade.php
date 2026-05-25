@@ -34,7 +34,7 @@
                             data-cost="{{ $rawCost }}"
                             data-cost1="{{ $rawCost }}"
                             data-cart-unit="{{ $cartUnit }}"
-                            data-door-factor="{{ $pricing['door_factor'] ?? '' }}"
+                            data-door-factor="{{ ! empty($pricing['door_factor']) && (float) $pricing['door_factor'] > 0 ? $pricing['door_factor'] : '' }}"
                             data-cabinet="{{ $section->id }}"
                             data-cabinetid="{{ $product->id }}"
                             data-qty="{{ $product->qty }}"

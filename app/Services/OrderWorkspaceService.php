@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\SiteSetting;
 use App\Models\TaxValues;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -158,6 +159,57 @@ class OrderWorkspaceService
         }
 
         return '';
+    }
+
+    /**
+     * Print / quote letterhead from Site Settings + tenant record (CI-style company block).
+     *
+     * @return array{
+     *     company_name: string,
+     *     logo_url: string,
+     *     address_line: string,
+     *     phone: string,
+     *     email: string,
+     *     website_url: string,
+     *     website_label: string
+     * }
+     */
+    public function printLetterhead(): array
+    {
+        $settings = SiteSetting::forCurrentTenant();
+        $tenant = tenant();
+
+        $companyName = trim((string) (tenant('company_name') ?? tenant('name') ?? ''));
+        if ($companyName === '') {
+            $companyName = (string) config('app.name', 'Company');
+        }
+
+        $addressLine = trim((string) ($settings->address ?? ''));
+        if ($addressLine === '' && $tenant) {
+            $addressLine = implode(', ', array_values(array_filter([
+                trim((string) ($tenant->address ?? '')),
+                trim((string) ($tenant->city ?? '')),
+                trim((string) ($tenant->state ?? '')),
+                trim((string) ($tenant->zip_code ?? '')),
+                trim((string) ($tenant->country ?? '')),
+            ], fn (string $p) => $p !== '')));
+        }
+
+        $phone = trim((string) ($settings->phone ?? ($tenant->phone ?? '')));
+        $email = trim((string) ($settings->email ?? ($tenant->email ?? '')));
+
+        $websiteUrl = route('cms.page');
+        $websiteLabel = (string) (parse_url($websiteUrl, PHP_URL_HOST) ?: $websiteUrl);
+
+        return [
+            'company_name' => $companyName,
+            'logo_url' => tenant_brand_logo_url(),
+            'address_line' => $addressLine,
+            'phone' => $phone,
+            'email' => $email,
+            'website_url' => $websiteUrl,
+            'website_label' => $websiteLabel,
+        ];
     }
 
     /**

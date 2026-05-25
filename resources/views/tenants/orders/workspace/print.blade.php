@@ -13,19 +13,34 @@
     $allWeight = 0.0;
 @endphp
 <div class="container-fluid ow-print-page py-3" id="ow-print-page">
+    @php
+        $lh = $letterhead ?? [];
+        $lhName = $lh['company_name'] ?? (tenant('company_name') ?? tenant('name') ?? '');
+        $lhLogo = $lh['logo_url'] ?? tenant_brand_logo_url();
+        $lhAddress = $lh['address_line'] ?? '';
+        $lhPhone = $lh['phone'] ?? '';
+        $lhEmail = $lh['email'] ?? '';
+        $lhWebUrl = $lh['website_url'] ?? route('cms.page');
+        $lhWebLabel = $lh['website_label'] ?? parse_url($lhWebUrl, PHP_URL_HOST);
+    @endphp
     <div class="row mb-3">
         <div class="col-md-4">
-            <h3 class="h5 font-weight-bold mb-1">TEAM DISTRIBUTORS</h3>
-            <p class="mb-0 small">152 Baywood Ave</p>
-            <p class="mb-0 small">Longwood, FL 32750</p>
-            <p class="mb-0 small">+1 8337822697</p>
+            <h3 class="h5 font-weight-bold mb-1">{{ $lhName }}</h3>
+            @if ($lhAddress !== '')
+                <p class="mb-0 small">{{ $lhAddress }}</p>
+            @endif
+            @if ($lhPhone !== '')
+                <p class="mb-0 small">{{ $lhPhone }}</p>
+            @endif
         </div>
         <div class="col-md-4 text-center">
-            <img src="{{ asset('assets/front_site_assets/images/logo_email.jpg') }}" alt="Team Cabinets" style="max-height:100px;">
+            <img src="{{ $lhLogo }}" alt="{{ $lhName }}" style="max-height:100px; max-width:100%;">
         </div>
         <div class="col-md-4 text-md-right">
-            <p class="mb-0 small">team@teamcabinets.com</p>
-            <p class="mb-0 small">www.teamcabinets.com</p>
+            @if ($lhEmail !== '')
+                <p class="mb-0 small"><a href="mailto:{{ $lhEmail }}">{{ $lhEmail }}</a></p>
+            @endif
+            <p class="mb-0 small"><a href="{{ $lhWebUrl }}" target="_blank" rel="noopener">{{ $lhWebLabel }}</a></p>
         </div>
     </div>
 

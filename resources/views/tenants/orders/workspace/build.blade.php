@@ -11,7 +11,7 @@
     data-door-image="{{ $door->image ? asset($door->image) : '' }}"
     data-catalog-name="{{ $catalog->name }}"
     data-user-door-tree='@json($pricingContext['door_trees']['user'] ?? [])'
-    data-door-factor="{{ $pricingContext['door_factor'] ?? $pricingContext['user_door_point'] ?? 0 }}"
+    data-door-factor="{{ (($f = (float) ($pricingContext['door_factor'] ?? $pricingContext['user_door_point'] ?? 0)) > 0) ? $f : '' }}"
     data-accordion-search-prefix="{{ url('/orders/workspace/catalog/'.$catalog->id.'/door') }}"
     data-autosave-url="{{ route('tenant_order_workspace_cart_autosave', $catalog->id) }}"
     data-clear-cart-url="{{ route('tenant_order_workspace_clear_cart', $catalog->id) }}"
@@ -31,7 +31,7 @@
             <button type="button"
                 class="ow-door-pill door-image-tile {{ $doorOption->id === $door->id ? 'is-selected selected' : '' }}"
                 data-door-id="{{ $doorOption->id }}"
-                data-door-factor="{{ $doorFactorsByDoorId[$doorOption->id] ?? 0 }}"
+                data-door-factor="{{ (($df = (float) ($doorFactorsByDoorId[$doorOption->id] ?? 0)) > 0) ? $df : '' }}"
                 data-label="{{ $doorOption->product_label }}"
                 data-src="{{ $doorOption->image ? asset($doorOption->image) : '' }}"
                 title="{{ $doorOption->product_label }}">
@@ -225,5 +225,5 @@
 @endsection
 
 @section('script')
-<script src="{{ tenant_static_asset('js/order-page.js') }}?v=25"></script>
+<script src="{{ tenant_static_asset('js/order-page.js') }}?v=26"></script>
 @endsection

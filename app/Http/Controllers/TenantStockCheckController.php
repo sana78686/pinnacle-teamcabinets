@@ -160,12 +160,15 @@ class TenantStockCheckController extends Controller
         );
 
         if ($request->expectsJson()) {
-            return response()->json(['status' => true]);
+            return response()->json([
+                'status' => true,
+                'redirect' => route('tenant_stock_check_index'),
+            ]);
         }
 
         return redirect()
-            ->route('tenant_stock_check_show', $stockCheck->id)
-            ->with('success', 'Stock check request updated successfully.');
+            ->route('tenant_stock_check_index')
+            ->with('success', 'Stock check request approved successfully.');
     }
 
     public function print(string $id): View

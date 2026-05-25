@@ -91,10 +91,45 @@ class TenantNavBadgeService
                 continue;
             }
 
-            if ($url !== '' && (str_contains($url, '/'.$recordId) || str_ends_with($url, '/'.$recordId))) {
+            if ($url !== '' && $this->notificationUrlMatchesRecord($url, $recordId, $record)) {
                 $notification->markAsRead();
             }
         }
+    }
+
+    protected function notificationUrlMatchesRecord(string $url, string $recordId, Model $record): bool
+    {
+        if ($recordId === '') {
+            return false;
+        }
+
+        if (str_contains($url, '/'.$recordId) || str_ends_with($url, '/'.$recordId)) {
+            return true;
+        }
+
+        $patterns = match ($record::class) {
+            StockCheckRequest::class => [
+                '#stock_check[/\-]'.preg_quote($recordId, '#').'(/|$|\?|#)#i',
+            ],
+            Quote::class => [
+                '#quotes?[/\-]'.preg_quote($recordId, '#').'(/|$|\?|#)#i',
+            ],
+            ShippingQuote::class => [
+                '#shipping[_\-]?quotes?[/\-]'.preg_quote($recordId, '#').'(/|$|\?|#)#i',
+            ],
+            Order::class => [
+                '#orders?[/\-]'.preg_quote($recordId, '#').'(/|$|\?|#)#i',
+            ],
+            default => [],
+        };
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $url)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected function unviewedRecordCounts(): array

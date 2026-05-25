@@ -43,11 +43,9 @@ class AdminRecordViewService
             return;
         }
 
-        if (! empty($record->admin_viewed_at)) {
-            return;
+        if (empty($record->admin_viewed_at)) {
+            $record->forceFill(['admin_viewed_at' => now()])->save();
         }
-
-        $record->forceFill(['admin_viewed_at' => now()])->save();
 
         app(TenantNavBadgeService::class)->markRecordSeen($user, $record);
     }

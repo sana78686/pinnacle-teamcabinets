@@ -68,9 +68,12 @@
                     </td>
                 </tr>
             @empty
-                <tr>
-                    <td colspan="9" class="text-center text-muted">No {{ strtolower($rowLabel) }}s yet. Use Create Order workspace to add one.</td>
-                </tr>
+                @include('partials.tc-admin-datatable-empty', [
+                    'colspan' => 9,
+                    'icon' => 'icofont-file-document',
+                    'message' => 'No ' . strtolower($rowLabel) . 's yet.',
+                    'hint' => 'Use the order workspace to create one.',
+                ])
             @endforelse
         </tbody>
     </table>

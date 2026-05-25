@@ -103,13 +103,18 @@
         </td>
     </tr>
 @empty
-    <tr>
-        <td colspan="9" class="text-center text-muted py-4">
-            @if (($search ?? '') !== '')
-                No users match your search.
-            @else
-                No users found.
-            @endif
-        </td>
-    </tr>
+    @if (($search ?? '') !== '')
+        @include('partials.tc-admin-datatable-empty', [
+            'colspan' => 9,
+            'icon' => 'icofont-search-1',
+            'message' => 'No users match your search.',
+        ])
+    @else
+        @include('partials.tc-admin-datatable-empty', [
+            'colspan' => 9,
+            'icon' => 'icofont-users',
+            'message' => 'No users found.',
+            'hint' => 'Add a user to get started.',
+        ])
+    @endif
 @endforelse

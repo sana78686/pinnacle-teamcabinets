@@ -24,6 +24,7 @@ class UpdateUserRequest extends FormRequest
             'role_id' => 'required',
             'catalog_visibility' => 'nullable|array',
             'door_factors' => 'nullable|array',
+            'gross_sale' => 'nullable|numeric|min:0',
         ];
     }
 

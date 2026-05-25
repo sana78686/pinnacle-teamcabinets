@@ -125,9 +125,12 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="8" class="text-center text-muted py-4">No bulletins yet. Use <strong>Add New Bulletin</strong> to create one.</td>
-                            </tr>
+                            @include('partials.tc-admin-datatable-empty', [
+                                'colspan' => 8,
+                                'icon' => 'icofont-megaphone',
+                                'message' => 'No bulletins yet.',
+                                'hint' => 'Use Add New Bulletin to publish an announcement.',
+                            ])
                         @endforelse
                     </tbody>
                 </table>

@@ -9,6 +9,31 @@
 
     const fmt = (n) => '$' + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+    const escapeHtml = (value) => {
+        const div = document.createElement('div');
+        div.textContent = value == null ? '' : String(value);
+        return div.innerHTML;
+    };
+
+    const emptyRow = (icon, message, hint) => `
+        <tr>
+            <td colspan="5" class="p-0 border-0">
+                <div class="tc-admin-datatable__empty">
+                    <i class="icofont ${icon}" aria-hidden="true"></i>
+                    <p class="mb-0">${escapeHtml(message)}</p>
+                    ${hint ? `<p class="small text-muted mb-0 mt-1">${escapeHtml(hint)}</p>` : ''}
+                </div>
+            </td>
+        </tr>`;
+
+    const setStatus = (text, visible) => {
+        if (!statusEl) {
+            return;
+        }
+        statusEl.textContent = text || '';
+        statusEl.classList.toggle('d-none', !visible);
+    };
+
     fetch(url, {
         headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         credentials: 'same-origin',
@@ -28,16 +53,21 @@
             });
 
             if (!sorted.length) {
-                bodyEl.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No completed order catalog data yet.</td></tr>';
-                if (statusEl) statusEl.textContent = 'No data';
+                bodyEl.innerHTML = emptyRow(
+                    'icofont-chart-bar-graph',
+                    'No catalog sales data yet.',
+                    'Totals appear after orders with product lines are recorded.'
+                );
+                setStatus('', false);
                 return;
             }
 
             bodyEl.innerHTML = sorted
                 .map((catalog) => {
                     const row = (period) => fmt((data[period] && data[period][catalog]) || 0);
+                    const name = escapeHtml(catalog);
                     return `<tr>
-                        <td>${catalog}</td>
+                        <td>${name}</td>
                         <td class="text-end">${row('total')}</td>
                         <td class="text-end">${row('quarter')}</td>
                         <td class="text-end">${row('month')}</td>
@@ -46,10 +76,14 @@
                 })
                 .join('');
 
-            if (statusEl) statusEl.textContent = sorted.length + ' catalog(s)';
+            setStatus(sorted.length + ' catalog' + (sorted.length === 1 ? '' : 's'), true);
         })
         .catch(() => {
-            bodyEl.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Could not load catalog sales.</td></tr>';
-            if (statusEl) statusEl.textContent = 'Error';
+            bodyEl.innerHTML = emptyRow(
+                'icofont-warning',
+                'Could not load catalog sales.',
+                'Refresh the page or try again in a moment.'
+            );
+            setStatus('', false);
         });
 })();

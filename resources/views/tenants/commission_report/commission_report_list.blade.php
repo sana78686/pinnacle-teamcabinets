@@ -112,7 +112,13 @@
                                 </tr>
                             </template>
                             <tr v-if="!loading && !rows.length">
-                                <td colspan="16" class="text-center py-4 text-muted">No records found.</td>
+                                <td colspan="16" class="p-0 border-0">
+                                    <div class="tc-admin-datatable__empty">
+                                        <i class="icofont icofont-chart-histogram" aria-hidden="true"></i>
+                                        <p class="mb-0">No commission records found.</p>
+                                        <p class="small text-muted mb-0 mt-1">Run a commission period or adjust filters to see rows.</p>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>

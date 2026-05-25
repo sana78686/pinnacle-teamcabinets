@@ -5,6 +5,7 @@ use App\Models\Country;
 use Spatie\Permission\Models\Role;
 use App\Models\State;
 use App\Models\User;
+use App\Services\ManageCommissionService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -66,6 +67,11 @@ class UserImport implements ToModel, WithHeadingRow
             $user->assignCiRole($role->name);
             Log::info("Role  Assigned". $user);
         }
+
+        app(ManageCommissionService::class)->ensureForUser(
+            $user,
+            $row['gross_sales'] ?? $row['gross_sale'] ?? 0
+        );
 
     }
 }

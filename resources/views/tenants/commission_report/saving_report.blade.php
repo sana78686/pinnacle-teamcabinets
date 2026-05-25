@@ -92,7 +92,13 @@
                                 </tr>
                             </template>
                             <tr v-if="!loading && !rows.length">
-                                <td colspan="13" class="text-center py-4 text-muted">No records found.</td>
+                                <td colspan="13" class="p-0 border-0">
+                                    <div class="tc-admin-datatable__empty">
+                                        <i class="icofont icofont-chart-pie" aria-hidden="true"></i>
+                                        <p class="mb-0">No saving report data yet.</p>
+                                        <p class="small text-muted mb-0 mt-1">Records appear when commission savings are calculated.</p>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>

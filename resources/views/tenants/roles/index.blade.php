@@ -77,15 +77,19 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-4">
-                                    @if ($search !== '')
-                                        No roles match your search.
-                                    @else
-                                        No roles found.
-                                    @endif
-                                </td>
-                            </tr>
+                            @if ($search !== '')
+                                @include('partials.tc-admin-datatable-empty', [
+                                    'colspan' => 4,
+                                    'icon' => 'icofont-search-1',
+                                    'message' => 'No roles match your search.',
+                                ])
+                            @else
+                                @include('partials.tc-admin-datatable-empty', [
+                                    'colspan' => 4,
+                                    'icon' => 'icofont-lock',
+                                    'message' => 'No roles found.',
+                                ])
+                            @endif
                         @endforelse
                     </tbody>
                 </table>

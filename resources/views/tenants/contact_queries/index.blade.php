@@ -51,7 +51,11 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="6" class="text-center text-muted py-4">No contact messages yet.</td></tr>
+                @include('partials.tc-admin-datatable-empty', [
+                    'colspan' => 6,
+                    'icon' => 'icofont-email',
+                    'message' => 'No contact messages yet.',
+                ])
             @endforelse
         </tbody>
     </table>

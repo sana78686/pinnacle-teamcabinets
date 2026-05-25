@@ -328,7 +328,7 @@
                             Gross Sales
                         </strong>
                         <input type="text" name="gross_sale" placeholder="Gross Sales" class="form-control"
-                            value="{{ old('gross_sale', $user->gross_sale) }}">
+                            value="{{ old('gross_sale', $gross_sales ?? 0) }}">
                     </div>
                 </div>
                 <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">

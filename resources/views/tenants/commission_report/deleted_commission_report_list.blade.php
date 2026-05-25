@@ -51,7 +51,13 @@
                                 </tr>
                             </template>
                             <tr v-if="!loading && !rows.length">
-                                <td colspan="6" class="text-center py-4 text-muted">No removed orders.</td>
+                                <td colspan="6" class="p-0 border-0">
+                                    <div class="tc-admin-datatable__empty">
+                                        <i class="icofont icofont-spinner-alt-3" aria-hidden="true"></i>
+                                        <p class="mb-0">No removed orders.</p>
+                                        <p class="small text-muted mb-0 mt-1">Deleted commission rows can be restored from here.</p>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>

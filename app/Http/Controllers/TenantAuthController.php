@@ -168,6 +168,8 @@ public function postLogin(Request $request)
 
         $tenant_user->assignCiRole($role->name);
 
+        app(\App\Services\ManageCommissionService::class)->ensureForUser($tenant_user, 0);
+
         TenantNotificationService::registrationPendingApproval($tenant_user);
 
         try {

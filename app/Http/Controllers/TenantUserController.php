@@ -20,7 +20,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
-use App\Models\ManageCommission;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Routing\Controller;
@@ -44,6 +43,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 use Maatwebsite\Excel\Facades\Excel as FacadesExcel;
 use App\Services\AdminRecordViewService;
+use App\Services\ManageCommissionService;
 use App\Services\TenantNavBadgeService;
 use App\Services\TenantNotificationService;
 use App\Services\UserDoorFactorService;
@@ -54,7 +54,8 @@ use App\Support\TenantListPaginator;
 class TenantUserController extends Controller
 {
     public function __construct(
-        protected UserDoorFactorService $doorFactors
+        protected UserDoorFactorService $doorFactors,
+        protected ManageCommissionService $commissions
     ) {}
 
     /**
@@ -271,10 +272,7 @@ class TenantUserController extends Controller
             $user->assignCiRole($role->name);
 
             $this->doorFactors->persistForUser($user, $request);
-            ManageCommission::query()->firstOrCreate(
-                ['user_id' => $user->id],
-                ['gross_sales' => 0]
-            );
+            $this->commissions->syncFromRequest($user, $request);
             $this->sendUserRegisteredByAdminEmail($user, $plainPassword);
 
             $message = 'User created successfully. Welcome email will be sent to '.$user->email.'.';
@@ -331,7 +329,8 @@ class TenantUserController extends Controller
         }
 
         $adminView->markViewed($edit_user, Auth::user());
-        $data['user'] = User::with(['catalogVisibilities'])->find($id); // Eager load the catalogVisibilities relationship
+        $data['user'] = User::with(['catalogVisibilities', 'manageCommission'])->find($id);
+        $data['gross_sales'] = $this->commissions->grossSalesForUser($data['user']);
         $data['product_catalogs'] = ProductCatalog::where('status', 1)->get();
             $data['countries'] = Country::where('id', 233)->pluck('name', 'id');
         $data['states'] = State::where('country_id', 233)->pluck('name', 'id');
@@ -416,7 +415,6 @@ class TenantUserController extends Controller
             'address' => $request->address,
             'note' => $request->note,
             'company_name' => $request->business_name,
-            'gross_sale' => $request->gross_sale,
             'status' => $request->status,
             'is_taxable_user' => ($request->is_taxable_user || $request->is_taxable_user === 'on') ? 1 : 0,
         ]);
@@ -431,6 +429,7 @@ class TenantUserController extends Controller
 
         try {
             $this->doorFactors->persistForUser($user, $request);
+            $this->commissions->syncFromRequest($user, $request);
 
             return $this->userFormSuccessResponse($request, 'User updated successfully.');
         } catch (\Throwable $e) {
@@ -1062,10 +1061,7 @@ public function updateStatus(Request $request, $id)
 
             $user->assignCiRole($role->name);
 
-            ManageCommission::query()->firstOrCreate(
-                ['user_id' => $user->id],
-                ['gross_sales' => 0]
-            );
+            $this->commissions->syncFromRequest($user, $request);
 
             Log::info('Role Assigned');
 

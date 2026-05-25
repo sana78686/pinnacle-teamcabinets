@@ -112,12 +112,12 @@
                                     </tr>
                                     @endforeach
                                 @else
-                                    <tr>
-                                        <td colspan="10" class="text-center text-muted py-5">
-                                            <p class="mb-2">No orders yet.</p>
-                                            <a href="{{ route('tenant_order_workspace') }}" class="btn btn-sm tc-pn-btn tc-pn-btn--navy">Create an order</a>
-                                        </td>
-                                    </tr>
+                                    @include('partials.tc-admin-datatable-empty', [
+                                        'colspan' => 10,
+                                        'icon' => 'icofont-shopping-cart',
+                                        'message' => 'No orders yet.',
+                                        'hint' => 'Create an order from the workspace to see it here.',
+                                    ])
                                 @endif
                             </tbody>
                         </table>

@@ -2738,6 +2738,30 @@
     max-width: 100%;
 }
 
+.tc-admin-datatable__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 140px;
+    padding: 2rem 1rem;
+    color: #64748b;
+}
+
+.tc-admin-datatable__empty i {
+    font-size: 2rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    color: #94a3b8;
+}
+
+.tc-admin-datatable__empty p {
+    font-size: 0.875rem;
+    color: #64748b;
+    max-width: 28rem;
+}
+
 .tc-admin-datatable .table {
     margin-bottom: 0;
 }

@@ -27,6 +27,7 @@ class StoreUserRequest extends FormRequest
             'password' => 'nullable|string|min:8',
             'catalog_visibility' => 'nullable|array',
             'door_factors' => 'nullable|array',
+            'gross_sale' => 'nullable|numeric|min:0',
         ];
     }
 

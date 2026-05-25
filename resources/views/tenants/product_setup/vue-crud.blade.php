@@ -29,9 +29,10 @@
                 </tr>
                 <tr v-else-if="!rows.length">
                     <td :colspan="config.columns.length + 1" class="p-0 border-0">
-                        <div class="tc-role-list-page__empty">
+                        <div class="tc-admin-datatable__empty">
                             <i class="icofont icofont-file-document" aria-hidden="true"></i>
                             <p class="mb-0">No records found.</p>
+                            <p class="small text-muted mb-0 mt-1">Use Add to create the first entry.</p>
                         </div>
                     </td>
                 </tr>

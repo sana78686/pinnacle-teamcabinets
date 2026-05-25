@@ -19,7 +19,7 @@
     @endif
 
     <div class="card-body p-0">
-        <div class="table-responsive tc-dash-tracker-wrap">
+        <div class="table-responsive table-sm tc-admin-datatable tc-dash-tracker-wrap">
             <table class="table table-striped table-bordered table-sm mb-0 tc-dash-tracker__table">
                 <thead>
                     <tr>
@@ -169,15 +169,21 @@
                         </tr>
                         @endforeach
                     @else
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
-                                @if (($trackerSearch ?? '') !== '')
-                                    No tracker rows match your search.
-                                @else
-                                    No tracker rows yet. Place orders or add stock checks / quotes.
-                                @endif
-                            </td>
-                        </tr>
+                        @if (($trackerSearch ?? '') !== '')
+                            @include('partials.tc-admin-datatable-empty', [
+                                'colspan' => 7,
+                                'icon' => 'icofont-search-1',
+                                'message' => 'No tracker rows match your search.',
+                                'hint' => 'Try a different order number, customer, or job name.',
+                            ])
+                        @else
+                            @include('partials.tc-admin-datatable-empty', [
+                                'colspan' => 7,
+                                'icon' => 'icofont-truck',
+                                'message' => 'No tracker rows yet.',
+                                'hint' => 'Rows appear when you place orders or add stock checks and quotes.',
+                            ])
+                        @endif
                     @endif
                 </tbody>
             </table>

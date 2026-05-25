@@ -41,7 +41,11 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="text-center text-muted">No deleted claims.</td></tr>
+                    @include('partials.tc-admin-datatable-empty', [
+                        'colspan' => 5,
+                        'icon' => 'icofont-trash',
+                        'message' => 'No deleted claims.',
+                    ])
                 @endforelse
                 </tbody>
             </table>

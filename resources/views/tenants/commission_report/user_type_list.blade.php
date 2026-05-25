@@ -47,9 +47,11 @@
                                     <td>${{ number_format((float) $row['commission_amount'], 2) }}</td>
                                 </tr>
                             @empty
-                                <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">No approved users found for this type.</td>
-                                </tr>
+                                @include('partials.tc-admin-datatable-empty', [
+                                    'colspan' => 4,
+                                    'icon' => 'icofont-users',
+                                    'message' => 'No approved users found for this type.',
+                                ])
                             @endforelse
                         </tbody>
                     </table>

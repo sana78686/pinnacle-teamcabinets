@@ -52,6 +52,7 @@ class TenantProvisioningService
             app(ManageEmailsContentService::class)->ensureDefaults();
             app(TaxValuesService::class)->ensureDefaults();
             app(PointFactorDefaultsService::class)->syncFromCiConfig();
+            app(ManageCommissionService::class)->backfillMissingRows();
 
             if ($withWelcomeNotification) {
                 TenantNotificationService::notifyWelcomePanelIfNeeded();

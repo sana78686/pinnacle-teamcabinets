@@ -76,9 +76,11 @@
                         </td>
                     </tr>
                 @empty
-                    <tr>
-                        <td colspan="8" class="text-center text-muted">No stock check requests yet.</td>
-                    </tr>
+                    @include('partials.tc-admin-datatable-empty', [
+                        'colspan' => 8,
+                        'icon' => 'icofont-search',
+                        'message' => 'No stock check requests yet.',
+                    ])
                 @endforelse
             </tbody>
         </table>

@@ -68,7 +68,12 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="{{ ($isAdmin ?? false) ? 7 : 6 }}" class="text-center text-muted">No claims yet.</td></tr>
+                    @include('partials.tc-admin-datatable-empty', [
+                        'colspan' => ($isAdmin ?? false) ? 7 : 6,
+                        'icon' => 'icofont-warning',
+                        'message' => 'No claims yet.',
+                        'hint' => 'Claims appear after eligible orders are placed and paid.',
+                    ])
                 @endforelse
             </tbody>
         </table>

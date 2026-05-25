@@ -81,7 +81,13 @@
                     <td :colspan="config.columns.length + 1" class="text-center py-4 text-muted">Loading…</td>
                 </tr>
                 <tr v-else-if="!rows.length">
-                    <td :colspan="config.columns.length + 1" class="text-center py-4 text-muted">No records found.</td>
+                    <td :colspan="config.columns.length + 1" class="p-0 border-0">
+                        <div class="tc-admin-datatable__empty">
+                            <i class="icofont icofont-email" aria-hidden="true"></i>
+                            <p class="mb-0">No SMTP accounts configured.</p>
+                            <p class="small text-muted mb-0 mt-1">Add a row to send mail from this tenant.</p>
+                        </div>
+                    </td>
                 </tr>
                 <tr v-for="row in rows" :key="row.id">
                     <td v-for="col in config.columns" :key="col.key">@{{ row[col.key] ?? '—' }}</td>

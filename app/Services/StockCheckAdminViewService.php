@@ -26,9 +26,24 @@ class StockCheckAdminViewService
         $record->loadMissing(['user.country', 'user.state']);
         $user = $record->user;
         $addresses = $user ? $this->checkout->billShipAddresses($user) : $this->emptyAddresses();
-        $assembleYes = in_array($record->assemble_cabinets_check, ['yes', '1', 1], true);
+        $lines = $this->buildLineItems($rooms);
+        $assembleYes = $this->resolveAssembleYes($record, $lines);
         $totals = $this->totalsFromRecord($record, $assembleYes);
         $isShippingRequired = $this->isShippingRequired($record);
+
+        if ($assembleYes && (float) ($totals['sub_total_assemble'] ?? 0) <= 0) {
+            $totals['sub_total_assemble'] = round(array_sum(array_map(
+                static fn (array $line): float => (float) ($line['assemble_cost'] ?? 0),
+                $lines
+            )), 2);
+            $totals['grand_total'] = round(
+                (float) $totals['sub_total_price']
+                + (float) $totals['sub_total_assemble']
+                + (float) $totals['fuel_charges']
+                + (float) $totals['shipping_cost'],
+                2
+            );
+        }
 
         $isApproved = $record->isApproved();
         $displayGrandTotal = $isApproved
@@ -46,7 +61,7 @@ class StockCheckAdminViewService
             'record' => $record,
             'rooms' => $rooms,
             'viewingOrgData' => $viewingOrgData,
-            'lines' => $this->buildLineItems($rooms),
+            'lines' => $lines,
             'companyName' => $user?->company_name ?: 'N/A',
             'billName' => $record->billToName(),
             'assembleYes' => $assembleYes,
@@ -342,14 +357,76 @@ class StockCheckAdminViewService
         ];
     }
 
+    /**
+     * @param  array<string, mixed>  $line
+     */
+    protected function resolveAssembleLineTotal(array $line, ?Product $product, int $qty): float
+    {
+        $stored = (float) preg_replace('/[^\d.]/', '', (string) ($line['assemble_cost'] ?? $line['product_assemble_cost'] ?? 0));
+        $catalogUnit = (float) preg_replace('/[^\d.]/', '', (string) ($product?->assemble_cost ?? 0));
+
+        if ($stored <= 0) {
+            return round($catalogUnit * $qty, 2);
+        }
+
+        if ($catalogUnit <= 0) {
+            return round($stored * $qty, 2);
+        }
+
+        if (abs($stored - $catalogUnit) < 0.02) {
+            return round($stored * $qty, 2);
+        }
+
+        if (abs($stored - ($catalogUnit * $qty)) < 0.02) {
+            return round($stored, 2);
+        }
+
+        return $qty > 1 ? round($stored * $qty, 2) : round($stored, 2);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $lines
+     */
+    protected function resolveAssembleYes(StockCheckRequest $record, array $lines): bool
+    {
+        if (in_array($record->assemble_cabinets_check, ['yes', '1', 1, true], true)) {
+            return true;
+        }
+
+        if (Schema::hasColumn($record->getTable(), 'is_assemble')
+            && in_array($record->is_assemble, [1, '1', true], true)) {
+            return true;
+        }
+
+        if ((float) ($record->sub_total_assemble_cost ?? 0) > 0) {
+            return true;
+        }
+
+        foreach ($lines as $line) {
+            if ((float) ($line['assemble_cost'] ?? 0) > 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     protected function deliveryLabel(StockCheckRequest $record): string
     {
+        if (Schema::hasColumn($record->getTable(), 'delivery_type')) {
+            return (int) $record->delivery_type === 1 ? 'Commercial' : 'Residential';
+        }
+
         return (float) ($record->delivery_cost ?? 0) > 0 ? 'Commercial' : 'Residential';
     }
 
     protected function unloadLabel(StockCheckRequest $record): string
     {
-        return (float) ($record->unload_cost ?? 0) > 0 ? 'By Forklift' : 'By Hand';
+        if (Schema::hasColumn($record->getTable(), 'unload_type')) {
+            return (int) $record->unload_type === 1 ? 'By Hand' : 'By Forklift';
+        }
+
+        return (float) ($record->unload_cost ?? 0) > 0 ? 'By Hand' : 'By Forklift';
     }
 
     /**
@@ -383,7 +460,7 @@ class StockCheckAdminViewService
                 $unitCost = (float) preg_replace('/[^\d.]/', '', (string) ($line['cost'] ?? $product?->cost ?? 0));
                 $listPrice = (float) preg_replace('/[^\d.]/', '', (string) ($line['cost1'] ?? $line['product_actual_price'] ?? $product?->cost ?? $unitCost));
                 $unitWeight = (float) preg_replace('/[^\d.]/', '', (string) ($line['weight'] ?? $product?->weight ?? 0));
-                $assembleUnit = (float) preg_replace('/[^\d.]/', '', (string) ($line['assemble_cost'] ?? $product?->assemble_cost ?? 0));
+                $assembleLine = $this->resolveAssembleLineTotal($line, $product, $qty);
                 $lineTotal = (float) ($line['line_total'] ?? 0);
                 if ($lineTotal <= 0 || $lineTotal < $unitCost - 0.001 || abs($lineTotal - $qty) < 0.001) {
                     $lineTotal = round($unitCost * $qty, 2);
@@ -406,7 +483,7 @@ class StockCheckAdminViewService
                     'unit_price' => $unitCost,
                     'list_price' => $listPrice,
                     'line_total' => $lineTotal,
-                    'assemble_cost' => round($assembleUnit * $qty, 2),
+                    'assemble_cost' => $assembleLine,
                     'check_yellow' => ! empty($line['checkbox_val1']),
                     'check_green' => ! empty($line['checkbox_val2']),
                     'note' => (string) ($line['note'] ?? $line['product_note'] ?? ''),

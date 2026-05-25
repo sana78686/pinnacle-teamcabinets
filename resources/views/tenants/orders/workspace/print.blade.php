@@ -6,20 +6,8 @@
 @php
     $bill = $billUser ?? $order->user;
     $ship = $shipUser ?? $order->user;
-    $formatAddress = function ($user) {
-        if (! $user) {
-            return '';
-        }
-        $parts = array_filter([
-            $user->address,
-            $user->city_name ?? $user->city?->name,
-            $user->state?->name ?? $user->state_name,
-            $user->zip_code,
-            $user->country_name ?? $user->country,
-        ]);
-
-        return implode(', ', $parts);
-    };
+    $billAddress = $formattedAddress ?? ($bill ? app(\App\Services\OrderWorkspaceService::class)->formatUserAddress($bill) : '');
+    $shipAddress = $billAddress;
     $allTotal = 0.0;
     $allActual = 0.0;
     $allWeight = 0.0;
@@ -47,14 +35,14 @@
         <div class="col-md-4">
             <h4 class="h6 font-weight-bold">Bill To</h4>
             <p class="mb-0 small"><strong>Name:</strong> {{ $bill?->name ?? '—' }}</p>
-            <p class="mb-0 small"><strong>Address:</strong> {{ $formatAddress($bill) ?: '—' }}</p>
+            <p class="mb-0 small"><strong>Address:</strong> {{ $billAddress ?: '—' }}</p>
             <p class="mb-0 small"><strong>Email:</strong> {{ $bill?->email ?? '—' }}</p>
             <p class="mb-0 small"><strong>Phone:</strong> {{ $bill?->phone ?? $bill?->cell_phone ?? '—' }}</p>
         </div>
         <div class="col-md-4">
             <h4 class="h6 font-weight-bold">Ship To</h4>
             <p class="mb-0 small"><strong>Name:</strong> {{ $ship?->name ?? '—' }}</p>
-            <p class="mb-0 small"><strong>Address:</strong> {{ $formatAddress($ship) ?: '—' }}</p>
+            <p class="mb-0 small"><strong>Address:</strong> {{ $shipAddress ?: '—' }}</p>
             <p class="mb-0 small"><strong>Email:</strong> {{ $ship?->email ?? '—' }}</p>
             <p class="mb-0 small"><strong>Phone:</strong> {{ $ship?->phone ?? $ship?->cell_phone ?? '—' }}</p>
         </div>

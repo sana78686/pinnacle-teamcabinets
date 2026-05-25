@@ -503,12 +503,15 @@ class TenantCreateOrderController extends Controller
 
     public function printOrder(int $id): View
     {
-        $order = Order::query()->with(['user.state', 'user.city'])->findOrFail($id);
+        $order = Order::query()->with(['user.country', 'user.state', 'user.city', 'user.county'])->findOrFail($id);
+        $user = $order->user;
+        $formattedAddress = $user ? $this->workspace->formatUserAddress($user) : '';
 
         return view('tenants.orders.workspace.print', [
             'order' => $order,
-            'billUser' => $order->user,
-            'shipUser' => $order->user,
+            'billUser' => $user,
+            'shipUser' => $user,
+            'formattedAddress' => $formattedAddress,
         ]);
     }
 

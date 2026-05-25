@@ -128,16 +128,36 @@ class OrderWorkspaceService
 
     public function formatUserAddress(User $user): string
     {
-        $countryName = $user->country_id ? $user->country?->name : '';
-        $stateName = $user->state_id ? $user->state?->name : '';
+        $parts = [
+            trim((string) ($user->address ?? '')),
+            trim((string) ($user->city_name ?? $user->city?->name ?? '')),
+            trim((string) ($user->county_name ?? $user->county?->name ?? '')),
+            $user->state_id ? trim((string) ($user->state?->name ?? '')) : '',
+            trim((string) ($user->zip_code ?? '')),
+            $this->resolveUserCountryName($user),
+        ];
 
-        return implode(', ', array_filter([
-            $user->address,
-            $user->city_name,
-            $user->county_name,
-            $stateName,
-            $countryName,
-        ]));
+        return implode(', ', array_values(array_filter($parts, fn (string $p) => $p !== '')));
+    }
+
+    protected function resolveUserCountryName(User $user): string
+    {
+        $name = trim((string) ($user->country_name ?? ''));
+        if ($name !== '') {
+            return $name;
+        }
+
+        if ($user->relationLoaded('country') && $user->country) {
+            return trim((string) ($user->country->name ?? ''));
+        }
+
+        if ($user->country_id) {
+            $user->loadMissing('country');
+
+            return trim((string) ($user->country?->name ?? ''));
+        }
+
+        return '';
     }
 
     /**

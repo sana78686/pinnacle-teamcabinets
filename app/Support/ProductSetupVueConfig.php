@@ -193,8 +193,9 @@ class ProductSetupVueConfig
                         'label' => 'Door style',
                         'type' => 'select',
                         'options' => 'door_styles',
+                        'optionsFilter' => 'catalog_id',
                         'required' => true,
-                        'tip' => 'Door style / color variant for this product.',
+                        'tip' => 'Door styles for the selected catalog only. Choose a catalog first.',
                     ],
                     [
                         'name' => 'label',

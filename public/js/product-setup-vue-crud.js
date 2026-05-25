@@ -44,6 +44,13 @@
                 this.loadMeta();
                 this.loadRows();
             },
+            watch: {
+                'form.catalog_id'(catalogId) {
+                    if (this.config.type === 'products') {
+                        this.syncDoorStyleForCatalog(catalogId);
+                    }
+                },
+            },
             methods: {
                 apiUrl(template, id) {
                     return String(template).replace('__ID__', String(id));
@@ -247,12 +254,44 @@
                         }
                     }
                 },
+                catalogIdForDoorStyles() {
+                    if (this.config.type === 'products') {
+                        return this.form.catalog_id ? String(this.form.catalog_id) : '';
+                    }
+                    if (this.config.type === 'door-styles') {
+                        return this.form.product_catalog_id ? String(this.form.product_catalog_id) : '';
+                    }
+
+                    return '';
+                },
+                syncDoorStyleForCatalog(catalogId) {
+                    if (this.config.type !== 'products') {
+                        return;
+                    }
+
+                    const catalogKey = catalogId ? String(catalogId) : '';
+                    const current = this.form.door_color_id ? String(this.form.door_color_id) : '';
+
+                    if (!current) {
+                        return;
+                    }
+
+                    const stillValid = (this.meta.door_styles || []).some(
+                        (row) =>
+                            String(row.id) === current &&
+                            String(row.product_catalog_id) === catalogKey
+                    );
+
+                    if (!stillValid) {
+                        this.form.door_color_id = '';
+                    }
+                },
                 optionsFor(field) {
                     if (Array.isArray(field.options)) {
                         return field.options;
                     }
                     const key = field.options || '';
-                    const list = this.meta[key] || [];
+                    let list = this.meta[key] || [];
                     if (key === 'catalogs') {
                         return list.map((x) => ({ value: String(x.id), label: x.name }));
                     }
@@ -260,6 +299,15 @@
                         return list.map((x) => ({ value: String(x.id), label: x.cabinets_name }));
                     }
                     if (key === 'door_styles') {
+                        const catalogId = this.catalogIdForDoorStyles();
+                        if (catalogId) {
+                            list = list.filter(
+                                (x) => String(x.product_catalog_id) === catalogId
+                            );
+                        } else {
+                            list = [];
+                        }
+
                         return list.map((x) => ({ value: String(x.id), label: x.product_label }));
                     }
                     return [];

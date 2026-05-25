@@ -31,8 +31,17 @@ class StockCheckAdminViewService
         $isShippingRequired = $this->isShippingRequired($record);
 
         $isApproved = $record->isApproved();
+        $displayGrandTotal = $isApproved
+            ? (float) $totals['grand_total']
+            : round(
+                (float) $totals['sub_total_price']
+                + (float) $totals['sub_total_assemble']
+                + (float) $totals['fuel_charges'],
+                2
+            );
 
         return array_merge($addresses, $totals, [
+            'displayGrandTotal' => $displayGrandTotal,
             'stock_check_request' => $record,
             'record' => $record,
             'rooms' => $rooms,

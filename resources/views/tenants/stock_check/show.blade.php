@@ -2,11 +2,7 @@
 @section('title', 'Stock Check Request')
 
 @section('content')
-    @if ($isAdminView ?? false)
-        @include('tenants.stock_check.partials.admin-show')
-    @else
-        @include('tenants.stock_check.partials.user-show')
-    @endif
+    @include('tenants.stock_check.partials.admin-show')
 @endsection
 
 @section('script')

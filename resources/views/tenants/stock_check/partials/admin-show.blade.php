@@ -1,5 +1,6 @@
 @php
     $record = $stock_check_request ?? $record;
+    $isAdmin = $isAdminView ?? false;
     $hasAssemble = $assembleYes ?? false;
     $colSpan = $hasAssemble ? 9 : 8;
     $billAddress = implode(', ', array_filter([
@@ -18,24 +19,34 @@
         $ship_to_zipcode ?? '',
         $ship_to_country ?? '',
     ])) ?: ($record->user_address ?? '—');
+    $footerShippingBreakdown = $isAdmin
+        ? ($isShippingRequired ?? false)
+        : ($showUserShipping ?? false);
+    $footerSimpleShipping = $isAdmin
+        ? (! ($isShippingRequired ?? false) && ($isApproved ?? false) && (float) ($shipping_cost ?? 0) > 0)
+        : ($showSimpleShipping ?? false);
 @endphp
 
-<div class="container-fluid tc-quote-show" id="tc-stock-check-admin"
-    data-pallet-unit="{{ $palletUnitCost ?? 30 }}"
-    data-subtotal="{{ $sub_total_price ?? 0 }}"
-    data-assemble="{{ $sub_total_assemble ?? 0 }}"
-    data-fuel="{{ $fuel_charges ?? 0 }}">
+<div class="container-fluid tc-quote-show" id="{{ $isAdmin ? 'tc-stock-check-admin' : 'tc-stock-check-user' }}"
+    @if ($isAdmin)
+        data-pallet-unit="{{ $palletUnitCost ?? 30 }}"
+        data-subtotal="{{ $sub_total_price ?? 0 }}"
+        data-assemble="{{ $sub_total_assemble ?? 0 }}"
+        data-fuel="{{ $fuel_charges ?? 0 }}"
+    @endif>
 
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
-            <h4 class="mb-1">{{ $pageTitle ?? 'View Stock Check Request' }}</h4>
-            @if ($viewingOrgData ?? false)
+            <h4 class="mb-1">{{ $pageTitle ?? 'Stock Check Request' }}</h4>
+            @if ($isAdmin && ($viewingOrgData ?? false))
                 <span class="badge bg-warning text-dark">Viewing original submitted data</span>
             @endif
-            <div class="text-muted small">Request #{{ $record->id }} · {{ ($isApproved ?? false) ? 'Approved' : 'Pending approval' }}</div>
+            @if ($isAdmin)
+                <div class="text-muted small">Request #{{ $record->id }} · {{ ($isApproved ?? false) ? 'Approved' : 'Pending approval' }}</div>
+            @endif
         </div>
         <div class="d-flex gap-2">
-            @if ($showAdminForm ?? false)
+            @if ($isAdmin && ($showAdminForm ?? false))
                 <a href="{{ $editRoute ?? route('tenant_stock_check_edit', $record->id) }}" class="btn btn-outline-primary btn-sm">Edit</a>
             @endif
             <a href="{{ $listRoute ?? route('tenant_stock_check_index') }}" class="btn btn-primary btn-sm"><i class="fa fa-arrow-left"></i> Back</a>
@@ -43,15 +54,17 @@
     </div>
 
     @include('partial.message')
-    <div id="sc-status-msg" class="alert py-2 mb-3" style="display:none;" role="status"></div>
+    <div id="{{ $isAdmin ? 'sc-status-msg' : 'sc-user-status-msg' }}" class="alert py-2 mb-3" style="display:none;" role="status"></div>
 
     <div class="table-responsive mb-3 tc-quote-show__header-wrap">
         <table class="table table-bordered table-sm mb-0">
             <thead class="table-light">
                 <tr>
-                    <th style="width:33%">Bill To</th>
-                    <th style="width:33%">Ship To</th>
-                    <th style="width:34%">Stock Check Information</th>
+                    <th style="width:{{ $isAdmin ? '33%' : '50%' }}">Bill To</th>
+                    <th style="width:{{ $isAdmin ? '33%' : '50%' }}">Ship To</th>
+                    @if ($isAdmin)
+                        <th style="width:34%">Stock Check Information</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -68,21 +81,30 @@
                         <div><strong>Email:</strong> {{ $ship_to_email ?? ($record->user_email ?? '—') }}</div>
                         <div><strong>Phone:</strong> {{ $ship_to_phone ?? ($record->user_phone ?? '—') }}</div>
                     </td>
-                    <td class="align-top">
-                        <div><strong>STOCK CHECK DATE #:</strong> {{ $record->created_at?->format('Y-m-d') ?? '—' }}</div>
-                        <div><strong>STOCK CHECK REQUEST #:</strong> {{ $record->id }}</div>
-                        <div><strong>Order #:</strong> N/A</div>
-                        <div><strong>Company Name:</strong> {{ $companyName ?? 'N/A' }}</div>
-                    </td>
+                    @if ($isAdmin)
+                        <td class="align-top">
+                            <div><strong>STOCK CHECK DATE #:</strong> {{ $record->created_at?->format('Y-m-d') ?? '—' }}</div>
+                            <div><strong>STOCK CHECK REQUEST #:</strong> {{ $record->id }}</div>
+                            <div><strong>Order #:</strong> N/A</div>
+                            <div><strong>Company Name:</strong> {{ $companyName ?? 'N/A' }}</div>
+                        </td>
+                    @endif
                 </tr>
             </tbody>
         </table>
     </div>
 
     <div class="tc-quote-show__meta-above-table mb-2">
-        <div><strong>Company Name</strong> : {{ $companyName ?? 'N/A' }}</div>
+        @if ($isAdmin)
+            <div><strong>Company Name</strong> : {{ $companyName ?? 'N/A' }}</div>
+        @endif
         <div><strong>Job Name</strong> : {{ $record->job_name ?? '—' }}</div>
     </div>
+
+    @if (! $isAdmin)
+        <form action="{{ $itemNotesRoute ?? '#' }}" id="sc-item-notes-form" method="post">
+            @csrf
+    @endif
 
     <div class="table-responsive mb-0">
         <table class="table table-bordered table-sm mb-0 tc-quote-show__lines">
@@ -96,12 +118,12 @@
                     <th class="text-end">Total Price</th>
                     <th class="text-end">Quantity</th>
                     @if ($hasAssemble)<th class="text-end">Assemble Cost</th>@endif
-                    <th>Item Note</th>
+                    <th>Item {{ $isAdmin ? 'Note' : 'Notes' }}</th>
                 </tr>
             </thead>
             <tbody>
                 @php $lastRoom = null; @endphp
-                @forelse ($lines as $line)
+                @forelse ($lines as $lineIndex => $line)
                     @if ($lastRoom !== ($line['room_name'] ?? ''))
                         @php $lastRoom = $line['room_name'] ?? ''; @endphp
                         <tr class="table-light">
@@ -113,7 +135,7 @@
                             <span class="tc-sq-check tc-sq-check--yellow{{ ! empty($line['check_yellow']) ? ' is-on' : '' }}"></span>
                             <span class="tc-sq-check tc-sq-check--green{{ ! empty($line['check_green']) ? ' is-on' : '' }}"></span>
                         </td>
-                        <td>{{ $line['cabinet_name'] }}</td>
+                        <td>{{ $line['sku'] ?: $line['cabinet_name'] }}</td>
                         <td>{{ $line['description'] }}</td>
                         <td class="text-end">{{ number_format($line['weight'], 2) }} lbs</td>
                         <td class="text-end">${{ number_format($line['unit_price'], 2) }}</td>
@@ -128,7 +150,14 @@
                                 @endif
                             </td>
                         @endif
-                        <td>{{ $line['note'] ?? '' }}</td>
+                        <td>
+                            @if ($isAdmin || ($notesLocked ?? false))
+                                {{ $line['note'] ?? '' }}
+                            @else
+                                <textarea class="form-control form-control-sm product_note" style="width:100%; min-width:100%;"
+                                    name="line_notes[{{ $lineIndex }}]" rows="2">{{ $line['note'] ?? '' }}</textarea>
+                            @endif
+                        </td>
                     </tr>
                 @empty
                     <tr><td colspan="{{ $colSpan }}" class="text-center text-muted">No line items found.</td></tr>
@@ -137,13 +166,18 @@
             <tfoot>
                 @include('tenants.stock_check.partials.summary-footer', [
                     'assembleYes' => $hasAssemble,
-                    'showShippingBreakdown' => $isShippingRequired ?? false,
-                    'showSimpleShipping' => ! ($isShippingRequired ?? false) && ($isApproved ?? false) && (float) ($shipping_cost ?? 0) > 0,
-                    'totalLabel' => 'Order Total',
+                    'showShippingBreakdown' => $footerShippingBreakdown,
+                    'showSimpleShipping' => $footerSimpleShipping,
+                    'totalLabel' => $isAdmin ? 'Order Total' : 'Total',
+                    'grandTotalDisplay' => $displayGrandTotal ?? $grand_total ?? 0,
                 ])
             </tfoot>
         </table>
     </div>
+
+    @if (! $isAdmin)
+        </form>
+    @endif
 
     <div class="tc-quote-show__footer mt-3">
         @if (filled($record->comment))
@@ -155,7 +189,7 @@
 
         @if ($isApproved ?? false)
             <p class="text-success mb-0">This stock check request has been approved.</p>
-        @else
+        @elseif ($isAdmin)
             @if ($isShippingRequired ?? false)
                 <form method="POST" action="{{ $updateRoute }}" id="sc-admin-shipping-form" class="tc-sq-admin__form tc-stock-check-admin-panel border rounded p-3 mb-3">
                     @csrf
@@ -224,6 +258,11 @@
                     </div>
                 </div>
             </form>
+        @else
+            <div class="d-flex justify-content-end flex-wrap gap-2">
+                <a href="{{ $editRoute ?? route('tenant_stock_check_edit', $record->id) }}" class="btn btn-primary">Edit Stock Check</a>
+                <button type="button" class="btn btn-primary" id="sc-btn-update-notes">Update Item Notes</button>
+            </div>
         @endif
     </div>
 </div>

@@ -1,9 +1,9 @@
 @php
     $hasAssemble = $assembleYes ?? false;
-    $colSpan = $hasAssemble ? 9 : 8;
     $totalLabel = $totalLabel ?? 'Total';
     $showShippingBreakdown = $showShippingBreakdown ?? false;
     $showSimpleShipping = $showSimpleShipping ?? false;
+    $grandDisplay = $grandTotalDisplay ?? $grand_total ?? 0;
 @endphp
 <tr>
     <th colspan="3">Sub Total</th>
@@ -89,7 +89,7 @@
     <td></td>
     <td>{{ number_format($sub_total_weight ?? 0, 0) }} lbs</td>
     <td></td>
-    <td>$<span id="sc-display-order-total">{{ number_format($grand_total ?? 0, 2) }}</span></td>
+    <td>$<span id="sc-display-order-total">{{ number_format($grandDisplay, 2) }}</span></td>
     <td></td>
     @if ($hasAssemble)<td></td>@endif
     <td></td>

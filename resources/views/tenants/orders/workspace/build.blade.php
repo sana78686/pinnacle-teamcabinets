@@ -31,6 +31,7 @@
             <button type="button"
                 class="ow-door-pill door-image-tile {{ $doorOption->id === $door->id ? 'is-selected selected' : '' }}"
                 data-door-id="{{ $doorOption->id }}"
+                data-door-factor="{{ $doorFactorsByDoorId[$doorOption->id] ?? 0 }}"
                 data-label="{{ $doorOption->product_label }}"
                 data-src="{{ $doorOption->image ? asset($doorOption->image) : '' }}"
                 title="{{ $doorOption->product_label }}">
@@ -224,5 +225,5 @@
 @endsection
 
 @section('script')
-<script src="{{ tenant_static_asset('js/order-page.js') }}?v=24"></script>
+<script src="{{ tenant_static_asset('js/order-page.js') }}?v=25"></script>
 @endsection

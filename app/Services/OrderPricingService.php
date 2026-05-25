@@ -80,6 +80,11 @@ class OrderPricingService
 
     protected function doorFactorForCatalogDoor(array $context): float
     {
+        $scalar = (float) ($context['user_door_point'] ?? $context['door_factor'] ?? 0);
+        if ($scalar > 0) {
+            return $scalar;
+        }
+
         $catalogKey = (string) ($context['catalog_key'] ?? '');
         $doorKey = (string) ($context['door_key'] ?? '');
         $tree = $context['door_trees']['user'] ?? [];
@@ -91,9 +96,20 @@ class OrderPricingService
             }
         }
 
-        $scalar = (float) ($context['user_door_point'] ?? $context['door_factor'] ?? 0);
+        $full = $context['door_trees']['user_full'] ?? [];
+        if ($doorKey !== '' && is_array($full)) {
+            foreach ($full as $doors) {
+                if (! is_array($doors)) {
+                    continue;
+                }
+                $val = $doors[$doorKey] ?? null;
+                if ($val !== null && $val !== '' && strtolower((string) $val) !== 'null') {
+                    return (float) $val;
+                }
+            }
+        }
 
-        return $scalar > 0 ? $scalar : 0.0;
+        return 0.0;
     }
 
     /**

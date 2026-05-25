@@ -102,10 +102,17 @@ class TenantCreateOrderController extends Controller
 
         $pricingContext = $this->pricing->contextFor($user, $catalog->id, $door->id);
 
+        $doorFactorsByDoorId = $doorColors->mapWithKeys(function (DoorColors $doorOption) use ($user, $catalog) {
+            $ctx = $this->pricing->contextFor($user, $catalog->id, $doorOption->id);
+
+            return [$doorOption->id => (float) ($ctx['door_factor'] ?: $ctx['user_door_point'] ?: 0)];
+        })->all();
+
         return view('tenants.orders.workspace.build', [
             'catalog' => $catalog,
             'door' => $door,
             'doorColors' => $doorColors,
+            'doorFactorsByDoorId' => $doorFactorsByDoorId,
             'sections' => $this->productSectionsFor($catalog, $door, $user),
             'savedCart' => $savedCart,
             'editingQuoteId' => session('editing_quote_id'),
@@ -496,9 +503,13 @@ class TenantCreateOrderController extends Controller
 
     public function printOrder(int $id): View
     {
-        $order = Order::query()->with('user')->findOrFail($id);
+        $order = Order::query()->with(['user.state', 'user.city'])->findOrFail($id);
 
-        return view('tenants.orders.workspace.print', ['order' => $order]);
+        return view('tenants.orders.workspace.print', [
+            'order' => $order,
+            'billUser' => $order->user,
+            'shipUser' => $order->user,
+        ]);
     }
 
     /**

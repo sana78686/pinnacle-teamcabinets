@@ -171,6 +171,33 @@
         return parseFloat((raw * parseFloat(factor)).toFixed(2));
     }
 
+    /** Prefer factored price; never use server list price when a door factor applies. */
+    function effectiveCartUnit(raw, $src) {
+        const rowFactor = rowAttr($src, 'door-factor');
+        const serverCart = num(rowAttr($src, 'cart-unit'), NaN);
+        const computed = ciCartUnitCost(
+            raw,
+            rowAttr($src, 'door-point'),
+            cfg.catalogName || $('input[name="catalogue_name"]').val() || '',
+            $('.product_img_name').val() || cfg.doorLabel || '',
+            rowFactor
+        );
+        if (Number.isFinite(serverCart) && serverCart > 0 && serverCart < raw - 0.001) {
+            return serverCart;
+        }
+        return computed;
+    }
+
+    function lineNeedsPricingRefresh(line) {
+        if (!line.cost1 || line.cost1 <= 0) {
+            return false;
+        }
+        if (line.cost < line.cost1 - 0.001) {
+            return false;
+        }
+        return cfg.doorFactor > 0 || !!(line.user_door_factor && String(line.user_door_factor) !== '');
+    }
+
     function normalizeSavedLine(p) {
         const qty = parseInt(p.quantity ?? p.product_quantity ?? p.cabinet_quantity, 10) || 1;
         const cost = num(p.cost ?? p.product_cost, 0);
@@ -210,10 +237,7 @@
         const doorColor = $('.product_img_name').val() || cfg.doorLabel || '';
         const catalogName = cfg.catalogName || $('input[name="catalogue_name"]').val() || '';
         const raw = num(rowAttr($src, 'cost1') ?? rowAttr($src, 'cost'), 0);
-        const serverCart = num(rowAttr($src, 'cart-unit'), NaN);
-        const cartCost = Number.isFinite(serverCart) && serverCart > 0
-            ? serverCart
-            : ciCartUnitCost(raw, rowAttr($src, 'door-point'), catalogName, doorColor, rowAttr($src, 'door-factor'));
+        const cartCost = effectiveCartUnit(raw, $src);
         return normalizeSavedLine({
             product_id: rowAttr($src, 'cabinetid') || $src.data('cabinetid') || $src.data('productId'),
             sku: rowAttr($src, 'sku') || $src.data('sku'),
@@ -272,15 +296,43 @@
             return line;
         }
         const fresh = lineFromPicker($pick);
-        const useFreshPricing = fresh.cost1 > 0 && fresh.cost !== fresh.cost1;
+        const useFreshPricing = fresh.cost1 > 0 && (fresh.cost < fresh.cost1 - 0.001 || lineNeedsPricingRefresh(line));
+        const unitCost = useFreshPricing ? fresh.cost : line.cost || fresh.cost;
         return normalizeSavedLine({
             ...line,
             ...fresh,
-            cost: useFreshPricing ? fresh.cost : line.cost || fresh.cost,
+            cost: unitCost,
             cost1: fresh.cost1 || line.cost1,
             weight: line.weight || fresh.weight,
-            line_total: (useFreshPricing ? fresh.cost : line.cost || fresh.cost) * (line.quantity || 1),
+            line_total: unitCost * (line.quantity || 1),
         });
+    }
+
+    function recalcCartPricingFromInventory() {
+        if (restoring) {
+            return;
+        }
+        $('tbody.cart-room .product-row').each(function () {
+            const $row = $(this);
+            const sku = $row.data('sku');
+            if (!sku) {
+                return;
+            }
+            const $pick = $('#product-list-container tr.cabinet-row').filter(function () {
+                return String($(this).data('sku')) === String(sku);
+            }).first();
+            if (!$pick.length) {
+                return;
+            }
+            const line = enrichLineFromPicker(lineFromCartRow($row));
+            const $input = $row.find('.product-qty-input');
+            const qty = parseInt($input.val(), 10) || 1;
+            $input.data('unit-cost', line.cost);
+            $row.attr('data-unit-cost', line.cost);
+            $row.attr('data-unit-cost-raw', line.cost1);
+            updateRowTotal($row, line.cost, qty);
+        });
+        recalcTotals();
     }
 
     function applyLineCheckboxes($row, line) {
@@ -369,6 +421,7 @@
             if (doorId > 0) {
                 cfg.doorId = doorId;
             }
+            cfg.doorFactor = num($tile.attr('data-door-factor'), cfg.doorFactor);
         }
 
         return label !== '' || saved.door_image;
@@ -802,6 +855,7 @@
         const src = $tile.data('src') || $tile.find('img').attr('src') || '';
         cfg.doorId = parseInt($tile.attr('data-door-id'), 10) || parseInt($tile.data('doorId'), 10) || cfg.doorId;
         cfg.doorLabel = name;
+        cfg.doorFactor = num($tile.attr('data-door-factor'), cfg.doorFactor);
         $('.product_img_name').val(name);
         $('.product_img_src').val(src);
         $('#door-heading').text(name);
@@ -844,6 +898,7 @@
                         ? html
                         : '<p class="p-3 text-muted">No products for this door style. Choose another door or add products in admin.</p>'
                 );
+                recalcCartPricingFromInventory();
             })
             .fail(function (xhr) {
                 let msg = 'Could not load products.';
@@ -861,7 +916,11 @@
         const $btn = $(this).prop('disabled', true);
         postActionBusy(cfg.urls.print, { shipping_status: 'pending' }, 'Preparing your order…')
             .done(function (data) {
-                handleSaveResponse(data, { newTab: true });
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+                handleSaveResponse(data);
             })
             .fail(showError)
             .always(function () {
@@ -1052,6 +1111,7 @@
         });
         restoring = false;
         syncJobNameGate();
+        recalcCartPricingFromInventory();
         recalcTotals();
     }
 })(window.jQuery);

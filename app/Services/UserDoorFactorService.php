@@ -145,10 +145,9 @@ class UserDoorFactorService
     public function persistForUser(User $user, Request $request): void
     {
         $selectedIds = $this->selectedCatalogIds($request);
+        $userId = (int) $user->id;
 
-        DB::transaction(function () use ($user, $request, $selectedIds) {
-            $userId = (int) $user->id;
-
+        DB::transaction(function () use ($request, $selectedIds, $userId) {
             UsersCatalogDoorPointFactor::withTrashed()
                 ->where('user_id', $userId)
                 ->when($selectedIds !== [], fn ($q) => $q->whereNotIn('catalog_id', $selectedIds))
@@ -160,8 +159,6 @@ class UserDoorFactorService
                 ->forceDelete();
 
             if ($selectedIds === []) {
-                $this->syncCiJsonColumns($user);
-
                 return;
             }
 
@@ -216,9 +213,10 @@ class UserDoorFactorService
             foreach (array_chunk($factorRows, 500) as $chunk) {
                 UsersCatalogDoorPointFactor::query()->insert($chunk);
             }
-
-            $this->syncCiJsonColumns($user);
         });
+
+        // Update users JSON after factor rows commit — avoids lock wait on users row inside the transaction.
+        $this->syncCiJsonColumns($user);
     }
 
     /**
@@ -294,8 +292,41 @@ class UserDoorFactorService
             }
         }
 
-        if ($updates !== []) {
-            $user->forceFill($updates)->save();
+        if ($updates === []) {
+            return;
+        }
+
+        $this->updateUserColumnsWithRetry($userId, $updates);
+
+        $user->setRawAttributes(array_merge($user->getAttributes(), $updates, [
+            'updated_at' => now(),
+        ]));
+    }
+
+    /** @param  array<string, mixed>  $updates */
+    protected function updateUserColumnsWithRetry(int $userId, array $updates): void
+    {
+        $attempts = 0;
+        $maxAttempts = 3;
+
+        while (true) {
+            try {
+                $record = User::query()->findOrFail($userId);
+                $record->forceFill($updates);
+                $record->saveQuietly();
+
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $attempts++;
+                $isLockTimeout = str_contains($e->getMessage(), '1205')
+                    || str_contains($e->getMessage(), 'Lock wait timeout');
+
+                if (! $isLockTimeout || $attempts >= $maxAttempts) {
+                    throw $e;
+                }
+
+                usleep(150000 * $attempts);
+            }
         }
     }
 

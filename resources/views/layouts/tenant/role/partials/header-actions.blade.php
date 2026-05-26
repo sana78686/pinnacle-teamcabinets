@@ -16,6 +16,7 @@
         <li class="d-none d-md-flex align-items-center txt-muted f-12 px-1" aria-hidden="true">|</li>
     @endif
 
+    @include('layouts.tenant.partials.header-alert-dot')
     @include('layouts.tenant.partials.header-create-order')
 
     <li>

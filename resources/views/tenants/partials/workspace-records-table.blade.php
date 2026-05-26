@@ -8,6 +8,8 @@
     $search = $search ?? request('search', '');
     $pickListRoute = $pickListRoute ?? null;
     $exportCsvUrl = $exportCsvUrl ?? null;
+    $nameColumnLabel = $nameColumnLabel ?? null;
+    $colspan = $nameColumnLabel ? 10 : 9;
 @endphp
 
 @if ($showListToolbar ?? true)
@@ -23,8 +25,10 @@
         <thead>
             <tr>
                 <th scope="col">#</th>
+                @if ($nameColumnLabel)
+                    <th scope="col">{{ $nameColumnLabel }}</th>
+                @endif
                 <th scope="col">Job name</th>
-                <th scope="col">Quote name</th>
                 <th scope="col">Customer</th>
                 <th scope="col">Total</th>
                 <th scope="col">Weight</th>
@@ -71,7 +75,7 @@
                 </tr>
             @empty
                 @include('partials.tc-admin-datatable-empty', [
-                    'colspan' => 10,
+                    'colspan' => $colspan,
                     'icon' => 'icofont-file-document',
                     'message' => 'No ' . strtolower($rowLabel) . 's yet.',
                     'hint' => 'Use the order workspace to create one.',

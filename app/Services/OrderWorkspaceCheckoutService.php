@@ -306,7 +306,9 @@ class OrderWorkspaceCheckoutService
     }
 
     /**
-     * CI order_data_insert total breakdown.
+     * CI cart.php checkout totals:
+     * credit fee base = subtotal + sales tax + shipping + assembly + fuel (see $g_total in cart.php).
+     * grand total = same base + payment fee (credit / debit / ACH).
      *
      * @return array<string, float>
      */
@@ -321,7 +323,7 @@ class OrderWorkspaceCheckoutService
         $fuelAmount = round($subTotal * ($fees['fuel_percent'] / 100), 2);
         $salesTaxAmount = round($subTotal * ($salesTaxPercent / 100), 2);
 
-        $prePayment = $subTotal + $assembleTotal + $fuelAmount + $salesTaxAmount + $shippingCost;
+        $prePayment = round($subTotal + $assembleTotal + $fuelAmount + $salesTaxAmount + $shippingCost, 2);
 
         $cardChargeAmount = 0.0;
         $debitChargeAmount = 0.0;

@@ -243,7 +243,6 @@ class TenantCreateOrderController extends Controller
         }
         $cartWeight = (float) ($payload['totals']['sub_total_weight'] ?? 0);
         $shippingCost = (float) ($payload['shipping_cost'] ?? $cartData['order_shipping_cost'] ?? 0);
-        $shippingCost = $this->checkout->applyWeightShippingSurcharge($cartWeight, $shippingCost);
         $isShippingQuote = (int) ($cartData['is_shipping_quote'] ?? 0) === 1;
         $isStockCheckCheckout = (int) ($cartData['is_shipping_quote'] ?? 0) === 2;
         $shippingQuoteId = session('shipping_quote_checkout_id');
@@ -251,6 +250,11 @@ class TenantCreateOrderController extends Controller
         $shippingBreakdown = json_decode((string) ($cartData['shipping_charges_arr'] ?? '[]'), true) ?: [];
         $hasPresetShipping = in_array((int) ($cartData['is_shipping_quote'] ?? 0), [1, 2], true)
             && (! empty($shippingBreakdown) || $shippingCost > 0);
+
+        // CI cart_checkout: preset shipping quote / stock-check shipping is final — no weight surcharge on top.
+        if (! $hasPresetShipping) {
+            $shippingCost = $this->checkout->applyWeightShippingSurcharge($cartWeight, $shippingCost);
+        }
 
         $checkoutTotals = $this->checkout->calculateCheckoutTotals(
             $subTotal,
@@ -339,7 +343,12 @@ class TenantCreateOrderController extends Controller
         );
         $cartWeight = (float) ($payload['totals']['sub_total_weight'] ?? 0);
         $shippingCost = (float) ($payload['shipping_cost'] ?? $cartData['order_shipping_cost'] ?? 0);
-        $shippingCost = $this->checkout->applyWeightShippingSurcharge($cartWeight, $shippingCost);
+        $shippingBreakdownSubmit = json_decode((string) ($cartData['shipping_charges_arr'] ?? '[]'), true) ?: [];
+        $hasPresetShippingSubmit = in_array((int) ($cartData['is_shipping_quote'] ?? 0), [1, 2], true)
+            && (! empty($shippingBreakdownSubmit) || $shippingCost > 0);
+        if (! $hasPresetShippingSubmit) {
+            $shippingCost = $this->checkout->applyWeightShippingSurcharge($cartWeight, $shippingCost);
+        }
 
         $checkoutTotals = $this->checkout->calculateCheckoutTotals(
             $subTotal,

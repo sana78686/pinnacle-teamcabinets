@@ -139,14 +139,18 @@
                                         @endif
                                     </tr>
                                     <tr>
-                                        <th colspan="5">Fuel Charges (<span id="ow-fuel-percent">{{ $fees['fuel_percent'] ?? 0 }}</span>%)</th>
+                                        <th colspan="3">Fuel Charges (<span id="ow-fuel-percent">{{ $fees['fuel_percent'] ?? 0 }}</span>%)</th>
+                                        <td></td>
+                                        <td></td>
                                         <td class="text-end" id="ow-fuel-amt">${{ number_format($totals['fuel_amount'] ?? 0, 2) }}</td>
                                         <td></td>
                                         @if ($hasAssemble)<td></td>@endif
                                     </tr>
                                     @if ($hasAssemble)
                                         <tr>
-                                            <th colspan="5">Cabinetry Assembly Cost</th>
+                                            <th colspan="3">Cabinetry Assembly Cost</th>
+                                            <td></td>
+                                            <td></td>
                                             <td class="text-end" id="ow-assemble-total">${{ number_format($assembleTotal, 2) }}</td>
                                             <td></td>
                                             <td></td>
@@ -154,7 +158,9 @@
                                     @endif
                                     @if ($hasPresetShipping && ! empty($shippingBreakdown))
                                         <tr>
-                                            <th colspan="5">Shipping Charges</th>
+                                            <th colspan="3">Shipping Charges</th>
+                                            <td></td>
+                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             @if ($hasAssemble)<td></td>@endif
@@ -162,7 +168,9 @@
                                         @foreach ($shippingBreakdown as $label => $amount)
                                             @if ((float) $amount > 0)
                                                 <tr>
-                                                    <th colspan="5">{{ $label }}</th>
+                                                    <th colspan="3">{{ $label }}</th>
+                                                    <td></td>
+                                                    <td></td>
                                                     <td class="text-end">${{ number_format((float) $amount, 2) }}</td>
                                                     <td></td>
                                                     @if ($hasAssemble)<td></td>@endif
@@ -171,7 +179,9 @@
                                         @endforeach
                                     @elseif ($hasPresetShipping && ($shippingCost ?? 0) > 0)
                                         <tr>
-                                            <th colspan="5">Shipping Charges</th>
+                                            <th colspan="3">Shipping Charges</th>
+                                            <td></td>
+                                            <td></td>
                                             <td class="text-end">${{ number_format($shippingCost, 2) }}</td>
                                             <td></td>
                                             @if ($hasAssemble)<td></td>@endif
@@ -198,7 +208,7 @@
                                         @if ($hasAssemble)<td></td>@endif
                                     </tr>
                                     <tr id="ow-payment-fee-row">
-                                        <th colspan="5"><span id="ow-payment-fee-label">Credit Card Charges ({{ $fees['credit_card_percent'] ?? 0 }}%)</span></th>
+                                        <th colspan="3"><span id="ow-payment-fee-label">Credit Card Charges ({{ $fees['credit_card_percent'] ?? 0 }}%)</span></th>
                                         <td></td>
                                         <td></td>
                                         <td class="text-end" id="ow-payment-fee-amt">${{ number_format($totals['credit_card_charges'] ?? 0, 2) }}</td>
@@ -281,5 +291,5 @@
         shipCounty: @json($shipCounty),
     };
 </script>
-<script src="{{ tenant_static_asset('js/checkout-page.js') }}?v=5"></script>
+<script src="{{ tenant_static_asset('js/checkout-page.js') }}?v=6"></script>
 @endsection

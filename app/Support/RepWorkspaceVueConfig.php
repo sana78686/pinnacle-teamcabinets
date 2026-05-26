@@ -20,8 +20,8 @@ class RepWorkspaceVueConfig
 
         $quoteColumns = [
             ['key' => 'id', 'label' => '#'],
-            ['key' => 'job_name', 'label' => 'Job name'],
             ['key' => 'quote_name', 'label' => 'Quote name'],
+            ['key' => 'job_name', 'label' => 'Job name'],
             ['key' => 'customer_name', 'label' => 'Customer'],
             ['key' => 'grand_total_cost', 'label' => 'Total', 'type' => 'money'],
             ['key' => 'sub_total_weight', 'label' => 'Weight'],
@@ -63,7 +63,13 @@ class RepWorkspaceVueConfig
                 'restoreUrl' => route('tenant_deleted_shipping_quotes_list'),
                 'restoreLabel' => 'Restore Shipping Quotes',
                 'emptyMessage' => 'No shipping quotes yet.',
-                'columns' => $quoteColumns,
+                'columns' => array_map(function (array $col) {
+                    if (($col['key'] ?? '') === 'quote_name') {
+                        $col['label'] = 'Shipping quote name';
+                    }
+
+                    return $col;
+                }, $quoteColumns),
                 'showUrl' => route('tenant_shipping_quotes_show', ['id' => '__ID__']),
                 'canDelete' => true,
             ],
@@ -74,7 +80,17 @@ class RepWorkspaceVueConfig
                 'restoreUrl' => route('tenant_deleted_stock_check_list'),
                 'restoreLabel' => 'Restore Stock Check',
                 'emptyMessage' => 'No stock check requests yet.',
-                'columns' => $workspaceColumns,
+                'columns' => [
+                    ['key' => 'id', 'label' => '#'],
+                    ['key' => 'quote_name', 'label' => 'Stock check name'],
+                    ['key' => 'job_name', 'label' => 'Job name'],
+                    ['key' => 'customer_name', 'label' => 'Customer'],
+                    ['key' => 'grand_total_cost', 'label' => 'Total', 'type' => 'money'],
+                    ['key' => 'sub_total_weight', 'label' => 'Weight'],
+                    ['key' => 'assemble_cabinets_check', 'label' => 'Assemble'],
+                    ['key' => 'shipping_status', 'label' => 'Shipping'],
+                    ['key' => 'created_at', 'label' => 'Date'],
+                ],
                 'showUrl' => route('tenant_stock_check_show', ['id' => '__ID__']),
                 'canDelete' => true,
             ],

@@ -82,7 +82,10 @@
             }
         }
         if (feeLabel && fee.kind !== 'none') {
-            feeLabel.textContent = fee.label;
+            feeLabel.textContent =
+                fee.kind === 'credit' && fee.percent > 0
+                    ? fee.label + ' (' + fee.percent + '%)'
+                    : fee.label;
         }
         set('ow-payment-fee-amt', money(fee.kind === 'none' ? 0 : fee.amount));
 

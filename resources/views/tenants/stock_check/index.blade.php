@@ -39,6 +39,7 @@
             <thead>
                 <tr>
                     <th scope="col">ID</th>
+                    <th scope="col">Stock check name</th>
                     <th scope="col">Bill Name</th>
                     <th scope="col">Job Name</th>
                     <th scope="col">Company Name</th>
@@ -52,6 +53,7 @@
                 @forelse ($stock_check_requests as $request)
                     <tr class="{{ tenant_admin_unviewed_row_class($request) }}">
                         <td>{{ $request->id }}</td>
+                        <td>{{ filled($request->quote_name ?? null) ? $request->quote_name : '—' }}</td>
                         <td>{{ $request->billToName() }}</td>
                         <td>{{ $request->job_name ?? '—' }}</td>
                         <td>{{ filled($request->user?->company_name) ? $request->user->company_name : 'N/A' }}</td>
@@ -77,7 +79,7 @@
                     </tr>
                 @empty
                     @include('partials.tc-admin-datatable-empty', [
-                        'colspan' => 8,
+                        'colspan' => 9,
                         'icon' => 'icofont-search',
                         'message' => 'No stock check requests yet.',
                     ])

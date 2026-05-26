@@ -44,6 +44,7 @@
     @include('tenants.partials.workspace-records-table', [
         'records' => $records,
         'rowLabel' => 'Shipping quote',
+        'nameColumnLabel' => 'Shipping quote name',
         'showRoute' => 'tenant_shipping_quotes_show',
         'editRoute' => 'tenant_shipping_quotes_edit',
         'destroyRoute' => 'tenant_shipping_quotes_destroy',

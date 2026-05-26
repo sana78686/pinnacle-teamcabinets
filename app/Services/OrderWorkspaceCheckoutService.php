@@ -391,7 +391,7 @@ class OrderWorkspaceCheckoutService
             $catalogNames = [];
 
             foreach ($room['products'] ?? [] as $line) {
-                $product = Product::with(['doorColor', 'productSection'])->find($line['product_id'] ?? 0);
+                $product = Product::with(['doorColor', 'productCatalog'])->find($line['product_id'] ?? 0);
                 if (! $product) {
                     continue;
                 }
@@ -408,7 +408,7 @@ class OrderWorkspaceCheckoutService
                 $color = $product->doorColor?->product_label ?? $doorColor;
                 $doorStyle = (string) ($line['product_cabinets_color'] ?? $line['door_style'] ?? $color);
                 $desc = trim(($product->sku ?? '').' — '.$color.' — '.($product->label ?? ''));
-                $lineCatalogId = $catalogId > 0 ? $catalogId : (int) ($product->product_catalog_id ?? $product->productSection?->product_catalog_id ?? 0);
+                $lineCatalogId = $catalogId > 0 ? $catalogId : (int) ($product->product_catalog_id ?? $product->productCatalog?->id ?? 0);
                 $doorId = (int) ($product->door_color_id ?? $product->doorColor?->id ?? 0);
                 $basePrice = (float) ($line['product_actual_price'] ?? $line['product_cost'] ?? $rawCost);
 

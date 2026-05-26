@@ -28,7 +28,7 @@
 @endsection
 
 @section('style')
-<link rel="stylesheet" href="{{ tenant_static_asset('css/checkout-page.css') }}?v=4">
+<link rel="stylesheet" href="{{ tenant_static_asset('css/checkout-page.css') }}?v=5">
 @endsection
 
 @section('content')
@@ -73,18 +73,18 @@
                     <div class="tc-checkout__cart-body">
                         <div class="tc-checkout__job">Job Name: {{ $cartData['job_name'] }}</div>
 
-                        <div class="table-responsive">
+                        <div class="tc-checkout-table-wrap">
                             <table class="table table-bordered table-sm tc-checkout-table mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Double Check Work</th>
-                                        <th>Cabinet Name</th>
-                                        <th>Cabinet Description</th>
-                                        <th class="text-end">Weight</th>
-                                        <th class="text-end">Unit Price</th>
-                                        <th class="text-end">Total Price</th>
-                                        <th class="text-end">Qty</th>
-                                        @if ($assembleYes)<th class="text-end">Assemble Cost</th>@endif
+                                        <th class="tc-checkout-col-checks">Checks</th>
+                                        <th class="tc-checkout-col-name">Name</th>
+                                        <th class="tc-checkout-col-desc">Description</th>
+                                        <th class="text-end tc-checkout-col-num">Weight</th>
+                                        <th class="text-end tc-checkout-col-num">Unit</th>
+                                        <th class="text-end tc-checkout-col-num">Total</th>
+                                        <th class="text-end tc-checkout-col-qty">Qty</th>
+                                        @if ($assembleYes)<th class="text-end tc-checkout-col-num">Assemble</th>@endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -99,8 +99,8 @@
                                                         <span class="tc-checkout-check tc-checkout-check--green{{ ($room['checkbox_val2'][$i] ?? '0') == '1' ? ' is-on' : '' }}"></span>
                                                     </span>
                                                 </td>
-                                                <td>{{ $room['product_sku'][$i] ?? '' }}</td>
-                                                <td>{{ $room['product_cabinets_description'][$i] ?? '' }}</td>
+                                                <td class="tc-checkout-col-name">{{ $room['product_sku'][$i] ?? '' }}</td>
+                                                <td class="tc-checkout-col-desc">{{ $room['product_cabinets_description'][$i] ?? '' }}</td>
                                                 <td class="text-end">{{ $room['product_weight'][$i] ?? 0 }} lbs</td>
                                                 <td class="text-end">${{ number_format((float) ($room['product_cost'][$i] ?? 0), 2) }}</td>
                                                 <td class="text-end">${{ number_format((float) (($room['product_cost'][$i] ?? 0) * ($room['product_quantity'][$i] ?? 1)), 2) }}</td>
@@ -154,10 +154,10 @@
                                     @else
                                         <tr>
                                             <th colspan="3">Shipping Charges</th>
-                                            <td colspan="{{ $colSpan - 3 }}">
-                                                <label class="d-block mb-1"><input type="radio" name="self_ship" value="I will pick up my order"> I will pick up my order</label>
-                                                <label class="d-block mb-1"><input type="radio" name="self_ship" value="Provide me with shipping amount via email/phone" checked> Provide me with shipping amount via email/phone</label>
-                                                <p class="text-danger small mb-0">NOTE: Shipping charges are independently from this order.</p>
+                                            <td colspan="{{ $colSpan - 3 }}" class="tc-checkout-shipping-cell">
+                                                <label class="tc-checkout-shipping-opt"><input type="radio" name="self_ship" value="I will pick up my order"> Pick up my order</label>
+                                                <label class="tc-checkout-shipping-opt"><input type="radio" name="self_ship" value="Provide me with shipping amount via email/phone" checked> Email/phone shipping quote</label>
+                                                <p class="tc-checkout-shipping-note mb-0">NOTE: Shipping charges are independent from this order.</p>
                                             </td>
                                         </tr>
                                     @endif

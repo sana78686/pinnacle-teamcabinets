@@ -131,6 +131,7 @@ class TenantProfileController extends Controller
             'country_id' => 'nullable|integer|exists:countries,id',
             'state_id' => 'nullable|integer|exists:states,id',
             'city_name' => 'nullable|string|max:120',
+            'county_name' => 'nullable|string|max:120',
             'zip_code' => 'nullable|string|max:20',
         ]);
 
@@ -150,6 +151,7 @@ class TenantProfileController extends Controller
         $user->country_id = $validated['country_id'] ?? $user->country_id;
         $user->state_id = $validated['state_id'] ?? null;
         $user->city_name = $validated['city_name'] ?? null;
+        $user->county_name = $validated['county_name'] ?? null;
         $user->zip_code = $validated['zip_code'] ?? null;
         $user->save();
 

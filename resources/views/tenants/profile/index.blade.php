@@ -145,6 +145,12 @@
                             @error('city_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label" for="profile_county">County</label>
+                            <input type="text" class="form-control @error('county_name') is-invalid @enderror" id="profile_county" name="county_name"
+                                value="{{ old('county_name', $user->county_name) }}">
+                            @error('county_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label" for="profile_zip">Zip code</label>
                             <input type="text" class="form-control @error('zip_code') is-invalid @enderror" id="profile_zip" name="zip_code"
                                 value="{{ old('zip_code', $user->zip_code) }}">

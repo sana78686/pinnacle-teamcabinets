@@ -6,7 +6,7 @@
         </label>
         <span class="tc-checkout__save" data-save-cash>You save ${{ number_format($savings['cash'] ?? 0, 2) }}</span>
     </div>
-    <div class="tc-checkout__pay-body">
+    <div class="tc-checkout__pay-body tc-checkout__pay-body--compact">
         <div class="tc-checkout__cash-options">
             <label><input type="radio" name="payment_method" value="cash" checked> Cash</label>
             <label><input type="radio" name="payment_method" value="wire transfer"> Wire Transfer</label>

@@ -28,7 +28,7 @@
 @endsection
 
 @section('style')
-<link rel="stylesheet" href="{{ tenant_static_asset('css/checkout-page.css') }}?v=10">
+<link rel="stylesheet" href="{{ tenant_static_asset('css/checkout-page.css') }}?v=11">
 @endsection
 
 @section('content')

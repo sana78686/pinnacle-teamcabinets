@@ -47,7 +47,7 @@
                             <td>{{ $product->sku }}</td>
                             <td>{{ $listDesc }}</td>
                             <td>{{ \App\Support\ProductFieldFormat::formatWeight($rawWeight ?: $product->weight) }}</td>
-                            <td>${{ number_format($rawCost, 2) }}</td>
+                            <td class="ow-picker-price">${{ number_format($cartUnit, 2) }}</td>
                             <td>{{ $product->qty }}</td>
                         </tr>
                     @endforeach

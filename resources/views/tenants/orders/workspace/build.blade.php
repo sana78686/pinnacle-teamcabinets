@@ -10,7 +10,7 @@
     data-door-label="{{ $door->product_label }}"
     data-door-image="{{ $door->image ? asset($door->image) : '' }}"
     data-catalog-name="{{ $catalog->name }}"
-    data-user-door-tree='@json($pricingContext['door_trees']['user'] ?? [])'
+    data-user-door-tree='@json($pricingContext['door_trees']['user_full'] ?? $pricingContext['door_trees']['user'] ?? [])'
     data-door-factor="{{ (($f = (float) ($pricingContext['door_factor'] ?? $pricingContext['user_door_point'] ?? 0)) > 0) ? $f : '' }}"
     data-accordion-search-prefix="{{ url('/orders/workspace/catalog/'.$catalog->id.'/door') }}"
     data-autosave-url="{{ route('tenant_order_workspace_cart_autosave', $catalog->id) }}"
@@ -225,5 +225,5 @@
 @endsection
 
 @section('script')
-<script src="{{ tenant_static_asset('js/order-page.js') }}?v=27"></script>
+<script src="{{ tenant_static_asset('js/order-page.js') }}?v=28"></script>
 @endsection

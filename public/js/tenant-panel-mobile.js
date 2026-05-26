@@ -1,15 +1,31 @@
 /**
- * Tenant panel — mobile navigation drawer + overlay
+ * Tenant panel — mobile / tablet navigation drawer (admin top nav + role icon sidebar)
  */
 (function () {
     'use strict';
 
     var menuBtn = document.getElementById('tc-pn-menu-btn');
-    var navRoot = document.querySelector('.tc-tenant-nav');
-    var mainNav = document.querySelector('.tc-tenant-nav #main-nav');
-    if (!menuBtn || !navRoot || !mainNav) {
+    if (!menuBtn) {
         return;
     }
+
+    var adminNavRoot = document.querySelector('.tc-tenant-nav');
+    var roleNavRoot = document.querySelector('.tc-role-panel .iconsidebar-menu.tc-compact-icon-sidebar')
+        || document.querySelector('.tc-role-panel .iconsidebar-menu');
+
+    var navMode = adminNavRoot ? 'admin' : (roleNavRoot ? 'role' : null);
+    if (!navMode) {
+        return;
+    }
+
+    var navRoot = navMode === 'admin' ? adminNavRoot : roleNavRoot;
+    var navPanel = navMode === 'admin' ? adminNavRoot.querySelector('#main-nav') : roleNavRoot;
+
+    if (!navPanel) {
+        return;
+    }
+
+    menuBtn.setAttribute('aria-controls', navMode === 'admin' ? 'main-nav' : 'tc-role-sidebar-nav');
 
     var overlay = document.createElement('div');
     overlay.className = 'tc-mobile-nav-overlay';
@@ -17,7 +33,7 @@
     document.body.appendChild(overlay);
 
     function isMobile() {
-        return window.matchMedia('(max-width: 991.98px)').matches;
+        return window.matchMedia('(max-width: 1199.98px)').matches;
     }
 
     function openNav() {
@@ -37,8 +53,10 @@
         document.body.classList.remove('tc-nav-open');
         menuBtn.setAttribute('aria-expanded', 'false');
         overlay.setAttribute('aria-hidden', 'true');
-        mainNav.style.left = '';
-        mainNav.style.transform = '';
+        if (navMode === 'admin') {
+            navPanel.style.left = '';
+            navPanel.style.transform = '';
+        }
     }
 
     function toggleNav() {
@@ -51,19 +69,24 @@
 
     menuBtn.addEventListener('click', function (e) {
         e.preventDefault();
+        e.stopPropagation();
         toggleNav();
     });
 
     overlay.addEventListener('click', closeNav);
 
-    document.querySelectorAll('.tc-tenant-nav .mobile-back').forEach(function (btn) {
+    document.querySelectorAll('.tc-tenant-nav .mobile-back, .tc-role-nav-mobile-back button').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
             e.preventDefault();
             closeNav();
         });
     });
 
-    navRoot.querySelectorAll('#main-menu a[href]').forEach(function (link) {
+    var linkSelector = navMode === 'admin'
+        ? '.tc-tenant-nav #main-menu a[href]'
+        : '.tc-role-panel .iconsidebar-menu a.bar-icons[href]';
+
+    navRoot.querySelectorAll(linkSelector).forEach(function (link) {
         var href = link.getAttribute('href');
         if (href && href !== '#' && href.indexOf('javascript:') !== 0) {
             link.addEventListener('click', function () {
@@ -86,20 +109,21 @@
         }
     });
 
-    /* Submenu toggle on touch devices (parent items with # href) */
-    navRoot.querySelectorAll('#main-menu > li.tc-nav-has-children > a').forEach(function (anchor) {
-        anchor.addEventListener('click', function (e) {
-            if (!isMobile()) {
-                return;
-            }
-            var href = anchor.getAttribute('href');
-            if (href === '#' || href === '' || href === null) {
-                e.preventDefault();
-                var li = anchor.closest('li');
-                if (li) {
-                    li.classList.toggle('sm-open');
+    if (navMode === 'admin') {
+        navRoot.querySelectorAll('#main-menu > li.tc-nav-has-children > a').forEach(function (anchor) {
+            anchor.addEventListener('click', function (e) {
+                if (!isMobile()) {
+                    return;
                 }
-            }
+                var href = anchor.getAttribute('href');
+                if (href === '#' || href === '' || href === null) {
+                    e.preventDefault();
+                    var li = anchor.closest('li');
+                    if (li) {
+                        li.classList.toggle('sm-open');
+                    }
+                }
+            });
         });
-    });
+    }
 })();

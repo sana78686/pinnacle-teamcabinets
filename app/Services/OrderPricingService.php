@@ -31,7 +31,7 @@ class OrderPricingService
         $parentUser = $chain['parent'];
         $repUser = $chain['representative'];
 
-        $userDoorFactor = $this->doorFactorScalar($actingUser, $catalogId, $doorId);
+        $userDoorFactor = $this->resolveUserDoorFactor($actingUser, $catalogId, $doorId);
         $parentDoorFactor = $parentUser ? $this->doorFactorScalar($parentUser, $catalogId, $doorId) : 0.0;
         $repDoorFactor = $repUser ? $this->doorFactorScalar($repUser, $catalogId, $doorId) : 0.0;
 
@@ -129,9 +129,9 @@ class OrderPricingService
             'assemble_cost' => (float) preg_replace('/[^\d.]/', '', (string) $product->assemble_cost),
             'details' => $product->value_1 ?: ($product->description ?: ''),
             'product_img' => $product->image ? asset($product->image) : '',
-            'user_door_point_tree' => $context['door_trees']['user'] ?? [],
-            'parent_door_point_tree' => $context['door_trees']['parent'] ?? [],
-            'representative_door_point_tree' => $context['door_trees']['representative'] ?? [],
+            'user_door_point_tree' => $context['door_trees']['user_full'] ?? $context['door_trees']['user'] ?? [],
+            'parent_door_point_tree' => $context['door_trees']['parent_full'] ?? $context['door_trees']['parent'] ?? [],
+            'representative_door_point_tree' => $context['door_trees']['representative_full'] ?? $context['door_trees']['representative'] ?? [],
         ];
     }
 
@@ -238,6 +238,16 @@ class OrderPricingService
         return $default !== null ? (float) $default : 0.0;
     }
 
+    public function resolveUserDoorFactor(User $user, int $catalogId, int $doorId): float
+    {
+        $scalar = $this->doorFactorScalar($user, $catalogId, $doorId);
+        if ($scalar > 0) {
+            return $scalar;
+        }
+
+        return $this->doorFactorFromUserJson($user, $catalogId, $doorId);
+    }
+
     protected function doorFactorScalar(User $user, int $catalogId, int $doorId): float
     {
         $factor = UsersCatalogDoorPointFactor::query()
@@ -247,6 +257,32 @@ class OrderPricingService
             ->value('factor');
 
         return $factor !== null ? (float) $factor : 0.0;
+    }
+
+    protected function doorFactorFromUserJson(User $user, int $catalogId, int $doorId): float
+    {
+        $catalog = ProductCatalog::query()->find($catalogId);
+        $door = DoorColors::query()->find($doorId);
+        if (! $catalog || ! $door) {
+            return 0.0;
+        }
+
+        $raw = $user->door_point_factor;
+        if (! is_array($raw) || $raw === []) {
+            return 0.0;
+        }
+
+        $catKey = $this->catalogKey($catalog->name ?? '');
+        $doorKey = $this->doorKey($door->product_label ?? '');
+
+        $val = $raw[$catKey][$doorKey] ?? null;
+        if ($val === null || $val === '' || strtolower((string) $val) === 'null') {
+            return 0.0;
+        }
+
+        $factor = (float) $val;
+
+        return $factor > 0 ? $factor : 0.0;
     }
 
     /**

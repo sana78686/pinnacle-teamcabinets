@@ -6,8 +6,13 @@
     $childUserLabel = auth()->user()?->isRepresentative() ? 'Add User' : 'Create Affiliate';
     $tcNavBadges = $tcNavBadges ?? [];
 @endphp
-<div class="iconsidebar-menu iconbar-mainmenu-close tc-compact-icon-sidebar">
+<div class="iconsidebar-menu iconbar-mainmenu-close tc-compact-icon-sidebar" id="tc-role-sidebar-nav" aria-label="Main navigation">
     <div class="sidebar">
+        <div class="tc-role-nav-mobile-back d-lg-none">
+            <button type="button" class="tc-role-nav-back-btn" aria-label="Close menu">
+                <i class="fa fa-angle-left" aria-hidden="true"></i> Back
+            </button>
+        </div>
         <ul class="iconMenu-bar custom-scrollbar">
             @if (tenant_can('dashboard-view'))
             <li class="{{ request()->routeIs('tenant_dashboard') ? 'open' : '' }}">

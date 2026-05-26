@@ -19,7 +19,7 @@
             @endauth
         </div>
 
-        <button type="button" class="pn-menu-btn tc-pn-menu-btn flex-shrink-0 d-lg-none" id="tc-pn-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">
+        <button type="button" class="pn-menu-btn tc-pn-menu-btn flex-shrink-0 d-xl-none" id="tc-pn-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
     </div>

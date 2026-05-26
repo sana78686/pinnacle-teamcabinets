@@ -197,16 +197,61 @@
         return normalizedDoorFactor(byCat[doorKey]);
     }
 
-    function resolveDoorFactor(doorTreeRaw, catalogName, doorLabel) {
-        let factor = ciDoorFactorFromTree(parseDoorTree(doorTreeRaw), catalogName, doorLabel);
+    function currentCatalogName() {
+        return cfg.catalogName || $('input[name="catalogue_name"]').val() || '';
+    }
+
+    function currentDoorLabel() {
+        return $('.product_img_name').val() || cfg.doorLabel || '';
+    }
+
+    function resolveDoorFactor(doorTreeRaw, catalogName, doorLabel, rowDoorFactor) {
+        const rowFactor = normalizedDoorFactor(rowDoorFactor);
+        if (rowFactor !== '') {
+            return rowFactor;
+        }
+        const cat = catalogName || currentCatalogName();
+        const door = doorLabel || currentDoorLabel();
+        let factor = ciDoorFactorFromTree(parseDoorTree(doorTreeRaw), cat, door);
         if (factor === '' && cfg.userDoorTree) {
-            factor = ciDoorFactorFromTree(cfg.userDoorTree, catalogName, doorLabel);
+            factor = ciDoorFactorFromTree(cfg.userDoorTree, cat, door);
         }
         if (factor === '' && cfg.doorFactor > 0) {
             factor = normalizedDoorFactor(cfg.doorFactor);
         }
 
         return factor;
+    }
+
+    function resolveLineDoorFactor($src) {
+        return resolveDoorFactor(
+            rowAttr($src, 'door-point'),
+            currentCatalogName(),
+            currentDoorLabel(),
+            rowAttr($src, 'door-factor')
+        );
+    }
+
+    function factoredUnitCost(raw, $src) {
+        const factor = resolveLineDoorFactor($src);
+        return ciCartUnitCost(raw, rowAttr($src, 'door-point'), currentCatalogName(), currentDoorLabel(), factor);
+    }
+
+    function applyInventoryDisplayPrices() {
+        $('#product-list-container tr.cabinet-row').each(function () {
+            const $row = $(this);
+            const raw = num(rowAttr($row, 'cost1') ?? rowAttr($row, 'cost'), 0);
+            const unit = factoredUnitCost(raw, $row);
+            const factor = resolveLineDoorFactor($row);
+            $row.attr('data-cart-unit', unit);
+            if (factor !== '') {
+                $row.attr('data-door-factor', factor);
+            }
+            const $priceCell = $row.find('td.ow-picker-price');
+            if ($priceCell.length) {
+                $priceCell.text(money(unit));
+            }
+        });
     }
 
     /** CI cart unit: base cost × door factor (direct multiply). No factor → full list price. */
@@ -223,19 +268,7 @@
 
     /** Prefer factored price; never use server list price when a door factor applies. */
     function effectiveCartUnit(raw, $src) {
-        const rowFactor = rowAttr($src, 'door-factor');
-        const serverCart = num(rowAttr($src, 'cart-unit'), NaN);
-        const computed = ciCartUnitCost(
-            raw,
-            rowAttr($src, 'door-point'),
-            cfg.catalogName || $('input[name="catalogue_name"]').val() || '',
-            $('.product_img_name').val() || cfg.doorLabel || '',
-            rowFactor
-        );
-        if (Number.isFinite(serverCart) && serverCart > 0 && serverCart < raw - 0.001) {
-            return serverCart;
-        }
-        return computed;
+        return factoredUnitCost(raw, $src);
     }
 
     function lineNeedsPricingRefresh(line) {
@@ -245,7 +278,11 @@
         if (line.cost < line.cost1 - 0.001) {
             return false;
         }
-        return cfg.doorFactor > 0 || !!(line.user_door_factor && String(line.user_door_factor) !== '');
+        const factor =
+            normalizedDoorFactor(line.user_door_factor) ||
+            resolveDoorFactor(cfg.userDoorTree, line.catalogue_name || currentCatalogName(), line.product_color || currentDoorLabel(), cfg.doorFactor);
+
+        return factor !== '';
     }
 
     function normalizeSavedLine(p) {
@@ -288,6 +325,7 @@
         const catalogName = cfg.catalogName || $('input[name="catalogue_name"]').val() || '';
         const raw = num(rowAttr($src, 'cost1') ?? rowAttr($src, 'cost'), 0);
         const cartCost = effectiveCartUnit(raw, $src);
+        const doorFactor = resolveLineDoorFactor($src);
         return normalizeSavedLine({
             product_id: rowAttr($src, 'cabinetid') || $src.data('cabinetid') || $src.data('productId'),
             sku: rowAttr($src, 'sku') || $src.data('sku'),
@@ -302,7 +340,7 @@
             product_color: doorColor,
             parent_door_factor: rowAttr($src, 'parent-point'),
             representative_door_factor: rowAttr($src, 'representative-point'),
-            user_door_factor: rowAttr($src, 'door-point'),
+            user_door_factor: doorFactor,
             catalogue_name: $('input[name="catalogue_name"]').val() || cfg.catalogName || '',
             quantity: 1,
         });
@@ -597,7 +635,8 @@
         $('#detail-label').text($row.data('label') || '');
         $('#detail-sku').text('SKU: ' + ($row.data('sku') || ''));
         $('#detail-weight').text('Weight: ' + ($row.data('weight') || 0) + ' lbs');
-        $('#detail-cost').text('Cost: $' + (parseFloat(rowAttr($row, 'cost1') ?? rowAttr($row, 'cost')) || 0).toFixed(2));
+        const raw = num(rowAttr($row, 'cost1') ?? rowAttr($row, 'cost'), 0);
+        $('#detail-cost').text('Cost: ' + money(factoredUnitCost(raw, $row)));
         $('#detail-info').text('Details: ' + ($row.data('details') || ''));
         const img = $row.data('product-img');
         if (img) {
@@ -610,9 +649,26 @@
     function buildProductRow(line) {
         line = enrichLineFromPicker(normalizeSavedLine(line));
         const qty = line.quantity || 1;
-        let cost = num(line.cost, 0);
         const raw = num(line.cost1, 0);
-        if (cost <= 0 && raw > 0) {
+        let cost = num(line.cost, 0);
+        if (raw > 0) {
+            const factor =
+                normalizedDoorFactor(line.user_door_factor) ||
+                resolveDoorFactor(cfg.userDoorTree, line.catalogue_name || currentCatalogName(), line.product_color || currentDoorLabel(), cfg.doorFactor);
+            const factored = ciCartUnitCost(
+                raw,
+                cfg.userDoorTree,
+                line.catalogue_name || currentCatalogName(),
+                line.product_color || currentDoorLabel(),
+                factor
+            );
+            if (factor !== '' || factored < raw - 0.001) {
+                cost = factored;
+                line.user_door_factor = factor || line.user_door_factor;
+            } else if (cost <= 0) {
+                cost = raw;
+            }
+        } else if (cost <= 0) {
             cost = raw;
         }
         const weight = line.weight;
@@ -969,6 +1025,7 @@
                         ? html
                         : '<p class="p-3 text-muted">No products for this door style. Choose another door or add products in admin.</p>'
                 );
+                applyInventoryDisplayPrices();
                 recalcCartPricingFromInventory();
             })
             .fail(function (xhr) {
@@ -1179,7 +1236,10 @@
         });
         restoring = false;
         syncJobNameGate();
+        applyInventoryDisplayPrices();
         recalcCartPricingFromInventory();
         recalcTotals();
     }
+
+    applyInventoryDisplayPrices();
 })(window.jQuery);

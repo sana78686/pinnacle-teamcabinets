@@ -103,9 +103,9 @@ class TenantCreateOrderController extends Controller
         $pricingContext = $this->pricing->contextFor($user, $catalog->id, $door->id);
 
         $doorFactorsByDoorId = $doorColors->mapWithKeys(function (DoorColors $doorOption) use ($user, $catalog) {
-            $ctx = $this->pricing->contextFor($user, $catalog->id, $doorOption->id);
+            $factor = $this->pricing->resolveUserDoorFactor($user, $catalog->id, $doorOption->id);
 
-            return [$doorOption->id => (float) ($ctx['door_factor'] ?: $ctx['user_door_point'] ?: 0)];
+            return [$doorOption->id => $factor];
         })->all();
 
         return view('tenants.orders.workspace.build', [

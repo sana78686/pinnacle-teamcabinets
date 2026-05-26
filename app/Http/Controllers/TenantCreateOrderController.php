@@ -353,7 +353,8 @@ class TenantCreateOrderController extends Controller
         $transactionId = null;
         $orderStatus = 'PENDING';
         $paytraceResponse = '';
-        $cartTotal = $subTotal + $assembleTotal;
+        // CI commCalculation() uses all_cart_total[0] — product subtotal only, not assembly.
+        $cartTotal = $subTotal;
         $affiliateId = (int) ($cartData['affiliate_id'] ?? $request->input('affiliate_id', 0));
         $affiliateId = $affiliateId > 0 ? $affiliateId : null;
         $roomDataUser = $affiliateId
@@ -447,7 +448,8 @@ class TenantCreateOrderController extends Controller
             'transaction_pro_id' => $transactionId,
             'status' => $orderStatus,
             'paytrace_response' => $paytraceResponse,
-            'credit_card_charges' => $checkoutTotals['credit_card_charges'] + $checkoutTotals['debit_card_charges'],
+            'credit_card_charges' => $checkoutTotals['credit_card_charges'],
+            'debit_card_charges' => $checkoutTotals['debit_card_charges'],
             'ach_charges' => $checkoutTotals['ach_charges'],
             'state' => 1,
         ]);

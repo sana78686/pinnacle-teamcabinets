@@ -63,7 +63,8 @@ class CommissionCalculationService
             $repCommission = $cartAmount * $userPointFactor;
             $affCommission = 0.0;
         } else {
-            if ($parentUserType === 'representatives' && $parentUserType !== 'admin') {
+            // CI: parentUserType == "representatives" (undefined $parentsUserType typo always passes).
+            if ($parentUserType === 'representatives') {
                 $repCommission = $cartAmount * $parentPointFactor;
                 $affCommission = $cartAmount * $userPointFactor;
             } else {

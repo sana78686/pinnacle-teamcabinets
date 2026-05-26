@@ -71,13 +71,15 @@ class TenantCommissionReportController extends Controller
   public function export(Request $request): StreamedResponse
   {
     $user = $request->user();
-  $filters = $request->only(['rep_id', 'from', 'to']);
+    $filters = $request->only(['rep_id', 'from', 'to']);
+    $scopedAffiliate = false;
 
     if (! $this->isAdminUser($user)) {
       if ($this->isRepresentative($user)) {
         $filters['rep_id'] = $user->id;
       } else {
         $filters['parent_id'] = $user->id;
+        $scopedAffiliate = true;
       }
     }
 
@@ -90,7 +92,7 @@ class TenantCommissionReportController extends Controller
       'Content-Disposition' => "attachment; filename=\"{$filename}\"",
     ];
 
-    $callback = function () use ($rows, $isSingleRep) {
+    $callback = function () use ($rows, $isSingleRep, $scopedAffiliate) {
       $handle = fopen('php://output', 'w');
 
       fputcsv($handle, [
@@ -123,12 +125,17 @@ class TenantCommissionReportController extends Controller
             $line['rep_cost_display'] ?? ($line['rep_door_price'] ? number_format((float) $line['rep_door_price'], 2) : 'N/A'),
             $line['rep_commission_display'] ?? ($line['rep_commission'] ? number_format((float) $line['rep_commission'], 2) : 'N/A'),
           ]);
-          $totalCommission += (float) $line['aff_commission'] + (float) $line['rep_commission'];
+          // CI export_commissions_report: rep filter sums $total_comm (rep-side); affiliates sum aff only.
+          if ($isSingleRep) {
+            $totalCommission += (float) ($line['rep_commission'] ?? 0);
+          } elseif ($scopedAffiliate) {
+            $totalCommission += (float) ($line['aff_commission'] ?? 0);
+          }
           $firstLine = false;
         }
       }
 
-      if ($isSingleRep) {
+      if ($isSingleRep || $scopedAffiliate) {
         fputcsv($handle, array_merge(
           array_fill(0, 14, ''),
           ['Total Commission: '.number_format($totalCommission, 2)]
@@ -235,8 +242,8 @@ class TenantCommissionReportController extends Controller
       unset($filters['rep_id']);
     }
 
-    $rows = $this->reportService->formattedData($filters);
-    $filename = 'Admin_Saving_Report_'.now()->format('Ymd').'.csv';
+    $rows = $this->reportService->savingReportRows($filters);
+    $filename = 'Saving_Report_CSV'.now()->format('Ymd').'.csv';
 
     $headers = [
       'Content-Type' => 'text/csv',
@@ -246,30 +253,53 @@ class TenantCommissionReportController extends Controller
     $callback = function () use ($rows) {
       $handle = fopen('php://output', 'w');
       fputcsv($handle, [
-        'Invoice #', 'Customer', 'Invoice Date', 'Door Style', 'List Price',
-        'Customer Cost', 'Aff Commission', 'Rep Commission',
-        'Mfg Comm', 'Rep Comm', 'Aff Comm', 'Sub-Aff Comm',
+        'Invoice_number', 'Order_date', 'Sale', 'Commission', 'Sales_tax',
+        'Shipping_charges', 'Assembly_charges', 'Fuel_charges',
+        'Credit/Debit/ACH charges', 'Net_sale',
       ]);
 
-      foreach ($rows as $order) {
-        $firstLine = true;
-        foreach ($order['door_lines'] as $line) {
-          fputcsv($handle, [
-            $firstLine ? ($order['invoice_number'] ?? '') : '',
-            $firstLine ? ($order['customer_name'] ?? '') : '',
-            $firstLine ? ($order['invoice_date'] ?? '') : '',
-            $line['door_style'],
-            number_format((float) ($line['product_actual_price'] ?? $line['list_price'] ?? 0), 2),
-            number_format((float) $line['user_door_price'], 2),
-            $line['aff_commission_display'] ?? 'N/A',
-            $line['rep_commission_display'] ?? 'N/A',
-            $firstLine ? number_format((float) $order['mfg_comm'], 2) : '',
-            $firstLine ? number_format((float) $order['rep_comm'], 2) : '',
-            $firstLine ? number_format((float) $order['aff_comm'], 2) : '',
-            $firstLine ? number_format((float) $order['sub_aff_commission'], 2) : '',
-          ]);
-          $firstLine = false;
-        }
+      $totals = [
+        'sale' => 0.0,
+        'commission' => 0.0,
+        'tax' => 0.0,
+        'shipping' => 0.0,
+        'assembly' => 0.0,
+        'fuel' => 0.0,
+        'payment' => 0.0,
+        'net' => 0.0,
+      ];
+
+      foreach ($rows as $row) {
+        fputcsv($handle, [
+          $row['invoice_number'],
+          $row['order_date'],
+          number_format((float) $row['total_sale'], 2),
+          number_format((float) $row['total_commission'], 2),
+          number_format((float) $row['sales_tax'], 2),
+          number_format((float) $row['shipping_charges'], 2),
+          number_format((float) $row['assembly_charges'], 2),
+          number_format((float) $row['fuel_charges'], 2),
+          number_format((float) $row['payment_charges'], 2),
+          number_format((float) $row['net_sale'], 2),
+        ]);
+
+        $totals['sale'] += (float) $row['total_sale'];
+        $totals['commission'] += (float) $row['total_commission'];
+        $totals['tax'] += (float) $row['sales_tax'];
+        $totals['shipping'] += (float) $row['shipping_charges'];
+        $totals['assembly'] += (float) $row['assembly_charges'];
+        $totals['fuel'] += (float) $row['fuel_charges'];
+        $totals['payment'] += (float) $row['payment_charges'];
+        $totals['net'] += (float) $row['net_sale'];
+      }
+
+      if ($rows !== []) {
+        fputcsv($handle, [
+          '', '', 'Total', number_format($totals['commission'], 2),
+          number_format($totals['tax'], 2), number_format($totals['shipping'], 2),
+          number_format($totals['assembly'], 2), number_format($totals['fuel'], 2),
+          number_format($totals['payment'], 2), number_format($totals['net'], 2),
+        ]);
       }
 
       fclose($handle);

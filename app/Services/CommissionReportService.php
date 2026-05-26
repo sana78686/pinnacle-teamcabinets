@@ -36,28 +36,7 @@ class CommissionReportService
      */
     public function formattedData(array $filters = []): array
     {
-        $query = Order::query()
-            ->with('user')
-            ->where('state', $filters['state'] ?? 1);
-
-        if (! empty($filters['rep_id']) && $filters['rep_id'] !== 'all') {
-            $query->where('rep_id', $filters['rep_id']);
-        }
-        if (! empty($filters['parent_id'])) {
-            $parentId = $filters['parent_id'];
-            $query->where(function ($q) use ($parentId) {
-                $q->where('commission_parent_id', $parentId)
-                    ->orWhere('parent_id', $parentId);
-            });
-        }
-        if (! empty($filters['from'])) {
-            $query->whereDate('created_at', '>=', $filters['from']);
-        }
-        if (! empty($filters['to'])) {
-            $query->whereDate('created_at', '<=', $filters['to']);
-        }
-
-        $orders = $query->orderByDesc('id')->get();
+        $orders = $this->ordersForReport($filters);
         $result = [];
 
         foreach ($orders as $order) {
@@ -229,6 +208,210 @@ class CommissionReportService
         unset($line);
 
         return array_values($byDoorStyle);
+    }
+
+    /**
+     * CI export_admin_saving_report — door-line commission total per order.
+     */
+    public function orderDoorCommissionTotal(Order $order): float
+    {
+        $doorLines = $this->doorLinesForOrder($order);
+        if ($doorLines === []) {
+            return 0.0;
+        }
+
+        $customer = $order->user;
+        if (! $customer) {
+            return 0.0;
+        }
+
+        $chain = $this->ciCommissionChain($customer);
+        $colorCount = count($doorLines);
+        $parentComm = 0.0;
+        $repComm = 0.0;
+
+        foreach ($doorLines as $line) {
+            $aff = (float) ($line['aff_commission'] ?? 0);
+            $rep = (float) ($line['rep_commission'] ?? 0);
+
+            if ($chain['has_parent'] && $chain['has_representative']) {
+                if ($colorCount > 1) {
+                    $parentComm += $aff;
+                    $repComm += $rep;
+                } else {
+                    $parentComm = $aff;
+                    $repComm = $rep;
+                }
+            } elseif ($chain['has_parent']) {
+                if ($colorCount > 1) {
+                    $parentComm += $aff;
+                } else {
+                    $parentComm = $aff;
+                }
+                $repComm = 0.0;
+            } else {
+                $parentComm = 0.0;
+                $repComm = 0.0;
+            }
+        }
+
+        return round($parentComm + $repComm, 2);
+    }
+
+    /**
+     * CI saving-report CSV rows (one row per order).
+     *
+     * @param  array{rep_id?: int|string, parent_id?: int|string, from?: string, to?: string, state?: int}  $filters
+     * @return array<int, array<string, mixed>>
+     */
+    public function savingReportRows(array $filters = []): array
+    {
+        $rows = [];
+
+        foreach ($this->ordersForReport($filters) as $order) {
+            if ($this->doorLinesForOrder($order) === []) {
+                continue;
+            }
+
+            $totalSale = (float) ($order->order_amount ?? $order->grand_total_cost ?? 0);
+            $totalCommission = $this->orderDoorCommissionTotal($order);
+            $salesTax = $this->orderSalesTaxAmount($order);
+            $shipping = $this->orderShippingAmount($order);
+            $assembly = $this->orderAssemblyAmount($order);
+            $fuel = (float) ($order->fuel_charges ?? 0);
+            $payment = $this->orderPaymentProcessingCharge($order);
+            $netSale = round(
+                $totalSale - $totalCommission - $salesTax - $shipping - $payment - $assembly - $fuel,
+                2
+            );
+
+            $rows[] = [
+                'invoice_number' => $order->id,
+                'order_date' => $order->created_at?->format('m/d/Y') ?? '',
+                'total_sale' => $totalSale,
+                'total_commission' => $totalCommission,
+                'sales_tax' => $salesTax,
+                'shipping_charges' => $shipping,
+                'assembly_charges' => $assembly,
+                'fuel_charges' => $fuel,
+                'payment_charges' => $payment,
+                'net_sale' => $netSale,
+            ];
+        }
+
+        return $rows;
+    }
+
+    public function orderSalesTaxAmount(Order $order): float
+    {
+        if (isset($order->tax) && is_numeric($order->tax)) {
+            return round((float) $order->tax, 2);
+        }
+
+        $subTotal = (float) ($order->sub_total_cost ?? 0);
+        $percent = (float) ($order->sales_tax ?? 0);
+
+        return round($subTotal * ($percent / 100), 2);
+    }
+
+    public function orderShippingAmount(Order $order): float
+    {
+        $shipping = $order->shipping_cost ?? 0;
+
+        return is_numeric($shipping) ? round((float) $shipping, 2) : 0.0;
+    }
+
+    public function orderAssemblyAmount(Order $order): float
+    {
+        if (isset($order->assemble_cabinetry_charged) && is_numeric($order->assemble_cabinetry_charged)) {
+            return round((float) $order->assemble_cabinetry_charged, 2);
+        }
+
+        return round((float) ($order->sub_total_assemble_cost ?? 0), 2);
+    }
+
+    public function orderPaymentProcessingCharge(Order $order): float
+    {
+        $credit = (float) ($order->credit_card_charges ?? 0);
+        if ($credit > 0) {
+            return round($credit, 2);
+        }
+
+        $debit = (float) ($order->debit_card_charges ?? 0);
+        if ($debit > 0) {
+            return round($debit, 2);
+        }
+
+        $ach = (float) ($order->ach_charges ?? 0);
+        if ($ach > 0) {
+            return round($ach, 2);
+        }
+
+        return 0.0;
+    }
+
+    /**
+     * CI getUserDetail chain: parent = customer's parent; representative = parent's parent when not admin.
+     *
+     * @return array{has_parent: bool, has_representative: bool}
+     */
+    protected function ciCommissionChain(User $customer): array
+    {
+        $directParent = $customer->parent_id
+            ? User::query()->find((int) $customer->parent_id)
+            : null;
+
+        $hasParent = $directParent !== null && ! $this->isCiSkippedHierarchyUser($directParent);
+
+        $grandParent = ($hasParent && $directParent->parent_id)
+            ? User::query()->find((int) $directParent->parent_id)
+            : null;
+
+        $hasRepresentative = $grandParent !== null && ! $this->isCiSkippedHierarchyUser($grandParent);
+
+        return [
+            'has_parent' => $hasParent,
+            'has_representative' => $hasRepresentative,
+        ];
+    }
+
+    protected function isCiSkippedHierarchyUser(User $user): bool
+    {
+        if ($user->id === 4) {
+            return true;
+        }
+
+        return $user->isAdmin();
+    }
+
+    /**
+     * @param  array{rep_id?: int|string, parent_id?: int|string, from?: string, to?: string, state?: int}  $filters
+     * @return \Illuminate\Support\Collection<int, Order>
+     */
+    protected function ordersForReport(array $filters)
+    {
+        $query = Order::query()
+            ->with('user')
+            ->where('state', $filters['state'] ?? 1);
+
+        if (! empty($filters['rep_id']) && $filters['rep_id'] !== 'all') {
+            $query->where('rep_id', $filters['rep_id']);
+        }
+        if (! empty($filters['parent_id'])) {
+            $parentId = $filters['parent_id'];
+            $query->where(function ($q) use ($parentId) {
+                $q->where('commission_parent_id', $parentId)
+                    ->orWhere('parent_id', $parentId);
+            });
+        }
+        if (! empty($filters['from'])) {
+            $query->whereDate('created_at', '>=', $filters['from']);
+        }
+        if (! empty($filters['to'])) {
+            $query->whereDate('created_at', '<=', $filters['to']);
+        }
+
+        return $query->orderByDesc('id')->get();
     }
 
     /**

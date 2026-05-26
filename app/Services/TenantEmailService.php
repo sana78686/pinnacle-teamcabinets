@@ -14,6 +14,31 @@ class TenantEmailService
     /**
      * Branding for tenant emails: logo + name from Site Settings, else static Pinnacle logo.
      */
+    /**
+     * Branding for central / Pinnacle emails (no tenant context).
+     *
+     * @return array<string, mixed>
+     */
+    public function centralBranding(): array
+    {
+        $pinnacleName = (string) config('pinnacle.name', 'Pinnacle');
+        $logoPath = (string) config('pinnacle.email.logo', 'assets/logo/pinnacle-tenant.png');
+
+        return [
+            'brand_name' => $pinnacleName,
+            'tenant_business_name' => $pinnacleName,
+            'tagline' => (string) config('pinnacle.tagline', 'Cabinet dealer platform'),
+            'address_line' => null,
+            'phone' => config('pinnacle.support_phone'),
+            'email' => config('pinnacle.support_email', config('mail.from.address')),
+            'website' => central_url(),
+            'website_label' => parse_url(central_url(), PHP_URL_HOST) ?: central_url(),
+            'logo' => $logoPath,
+            'logo_url' => $this->logoUrl($logoPath),
+            'uses_pinnacle_logo' => true,
+        ];
+    }
+
     public function branding(): array
     {
         $settings = tenant() ? SiteSetting::query()->first() : null;

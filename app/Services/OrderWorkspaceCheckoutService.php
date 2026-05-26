@@ -327,14 +327,14 @@ class OrderWorkspaceCheckoutService
         $debitChargeAmount = 0.0;
         $achCharge = 0.0;
         $cardPercent = 0.0;
-        $method = strtolower($paymentMethod);
+        $method = strtolower(trim($paymentMethod));
 
-        if (str_contains($method, 'credit')) {
+        if (in_array($method, ['credit card', 'credit', 'by_credit_card'], true)) {
             $cardPercent = $fees['credit_card_percent'];
             $cardChargeAmount = $cardPercent > 0 ? round($prePayment * ($cardPercent / 100), 2) : 0.0;
-        } elseif (str_contains($method, 'debit')) {
+        } elseif (in_array($method, ['debit card', 'debit', 'by_debit_card'], true)) {
             $debitChargeAmount = $fees['debit_card_flat'];
-        } elseif ($method === 'ach') {
+        } elseif (in_array($method, ['ach', 'pay_ach'], true)) {
             $achCharge = $fees['ach_charge'];
         }
 

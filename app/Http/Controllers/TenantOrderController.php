@@ -319,7 +319,7 @@ $data['door_id'] = $door_id;
     /**
      * Display the specified resource.
      */
-    public function show(string $id, AdminRecordViewService $adminView, ClaimWorkspaceService $claims): View
+    public function show(string $id, AdminRecordViewService $adminView, ClaimWorkspaceService $claims, \App\Services\OrderCiDetailViewService $ciDetailView): View
     {
         $order = Order::query()->with('user')->findOrFail($id);
 
@@ -332,19 +332,8 @@ $data['door_id'] = $door_id;
 
         $data = [
             'record' => $order,
-            'recordLabel' => 'Order',
-            'nameRowLabel' => 'Job name',
-            'recordName' => $order->job_name ?? '—',
-            'catalogLabel' => $this->recordWorkspace->catalogLabel($order),
-            'doorLabel' => $order->product_img_name ?? '—',
-            'billName' => $this->recordWorkspace->billName($order),
-            'shipName' => $order->user_address ?? $this->recordWorkspace->shipName($order),
-            'rooms' => $order->rooms ?? [],
-            'listRoute' => 'tenant_order_list',
-            'editRoute' => null,
+            'ciDetail' => $ciDetailView->build($order),
             'canClaim' => $canClaim,
-            'showClaimDisabled' => ! $canClaim,
-            'claimLines' => $canClaim ? $claims->buildClaimLineOptions($order) : [],
         ];
 
         $view = Auth::user()->isAdmin()

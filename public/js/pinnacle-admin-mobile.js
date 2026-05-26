@@ -92,23 +92,30 @@
         });
 
         window.addEventListener('resize', function () {
-            if (!isMobile()) {
-                closeSidebar();
-                var sidebar = sidebarEl();
-                if (sidebar) {
-                    sidebar.classList.remove('iconbar-second-close', 'iconbar-mainmenu-close');
-                }
-            } else {
-                closeSidebar();
-            }
+            applyViewportLayout();
         });
+    }
+
+    function applyViewportLayout() {
+        var sidebar = sidebarEl();
+        if (!sidebar) {
+            return;
+        }
+        if (isMobile()) {
+            closeSidebar();
+        } else {
+            sidebar.classList.remove('iconbar-second-close');
+            if (!sidebar.classList.contains('iconbar-mainmenu-close')) {
+                sidebar.classList.add('iconbar-mainmenu-close');
+            }
+            document.body.classList.remove('pn-admin-sidebar-open');
+            setMenuExpanded(false);
+        }
     }
 
     function init() {
         bindSidebar();
-        if (isMobile()) {
-            closeSidebar();
-        }
+        applyViewportLayout();
         if (typeof feather !== 'undefined') {
             feather.replace();
         }

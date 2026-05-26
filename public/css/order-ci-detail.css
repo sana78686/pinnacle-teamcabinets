@@ -1,0 +1,155 @@
+/* CI order view / print parity */
+.ci-order-detail__title {
+    margin-bottom: 0.75rem;
+}
+
+.ci-order-detail__back {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin: -2.25rem 0 0.75rem 0;
+}
+
+.ci-order-detail__border {
+    border: 1px solid #000;
+}
+
+.ci-order-detail__bill {
+    padding: 0.5rem 1rem;
+}
+
+.ci-order-detail__ship {
+    border-left: 1px solid #000;
+    padding: 0.5rem 1rem;
+}
+
+.ci-order-detail__box-title {
+    margin-bottom: 0.35rem;
+}
+
+.ci-order-detail__line {
+    margin-bottom: 0.15rem;
+    font-size: 0.9rem;
+}
+
+.ci-order-detail__meta {
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #000;
+    padding: 0.5rem 1.25rem;
+}
+
+.ci-order-detail__meta div {
+    padding: 0.15rem 0;
+}
+
+.ci-order-detail__table-wrap {
+    padding: 0.65rem 1.25rem 0.5rem;
+}
+
+.ci-order-detail__table {
+    font-size: 0.8125rem;
+}
+
+.ci-order-detail__table th,
+.ci-order-detail__table td {
+    vertical-align: middle;
+}
+
+.ci-order-detail__checks {
+    white-space: nowrap;
+}
+
+.ci-order-detail__footer-line {
+    padding: 0.35rem 1.5rem;
+    font-size: 0.9rem;
+}
+
+/* Yellow / green checkboxes (CI) */
+.container_chk_lbl,
+.container_chk_lbl_01 {
+    display: inline-block;
+    position: relative;
+    padding-left: 28px;
+    margin-bottom: 0;
+    margin-right: 0.25rem;
+    cursor: not-allowed;
+    height: 26px;
+    width: 26px;
+    vertical-align: middle;
+}
+
+.container_chk_lbl input,
+.container_chk_lbl_01 input {
+    position: absolute;
+    opacity: 0;
+    height: 0;
+    width: 0;
+}
+
+.container_chk_lbl .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 22px;
+    width: 22px;
+    background-color: #ffeb3b;
+}
+
+.container_chk_lbl_01 .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 22px;
+    width: 22px;
+    background-color: #28a745;
+}
+
+.container_chk_lbl input:checked ~ .checkmark:after,
+.container_chk_lbl_01 input:checked ~ .checkmark:after {
+    content: '';
+    position: absolute;
+    display: block;
+    left: 7px;
+    top: 3px;
+    width: 5px;
+    height: 10px;
+    border: solid #000;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.ci-order-detail--print .ci-order-detail__back {
+    display: none;
+}
+
+@media print {
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+
+    body {
+        background: #fff !important;
+    }
+
+    .page-wrapper .sidebar-wrapper,
+    .page-header,
+    .breadcrumb,
+    .footer,
+    .ci-order-detail__back {
+        display: none !important;
+    }
+
+    .page-body {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .ci-order-detail--print .ci-order-detail__print-actions {
+        display: none !important;
+    }
+
+    .ci-order-detail__border {
+        border-color: #000;
+    }
+}

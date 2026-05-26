@@ -540,18 +540,17 @@ class TenantCreateOrderController extends Controller
         return redirect()->route('tenant_order_show', $order->id);
     }
 
-    public function printOrder(int $id): View
+    public function printOrder(int $id, QuoteWorkspaceService $quotes, \App\Services\OrderCiDetailViewService $ciDetailView): View
     {
         $order = Order::query()->with(['user.country', 'user.state', 'user.city', 'user.county'])->findOrFail($id);
-        $user = $order->user;
-        $formattedAddress = $user ? $this->workspace->formatUserAddress($user) : '';
+
+        if (! $quotes->userMayAccess($order, auth()->user())) {
+            abort(403);
+        }
 
         return view('tenants.orders.workspace.print', [
             'order' => $order,
-            'billUser' => $user,
-            'shipUser' => $user,
-            'formattedAddress' => $formattedAddress,
-            'letterhead' => $this->workspace->printLetterhead(),
+            'ciDetail' => $ciDetailView->build($order),
         ]);
     }
 

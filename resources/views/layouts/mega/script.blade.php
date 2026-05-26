@@ -24,7 +24,7 @@
 <script src="{{asset('assets/main/js/megamenu.js')}}"></script>
 <script src="{{ asset('js/password-toggle.js') }}?v=1"></script>
 <script src="{{ asset('js/admin-table-mobile.js') }}?v=1"></script>
-<script src="{{ asset('js/pinnacle-admin-mobile.js') }}?v=2"></script>
+<script src="{{ asset('js/pinnacle-admin-mobile.js') }}?v=3"></script>
 <!-- login js-->
 @yield('script')
 @include('partials.cloudflare-turnstile-scripts')

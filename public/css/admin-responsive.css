@@ -105,7 +105,57 @@
     display: none !important;
 }
 
-/* ─── Layout & sidebar ─── */
+/* ─── Desktop / laptop: keep module sidebar visible (chat_sidebar breaks theme ~ sibling rules) ─── */
+@media (min-width: 992px) {
+    .pn-admin-panel .iconsidebar-menu {
+        display: block !important;
+        visibility: visible !important;
+        transform: none !important;
+        pointer-events: auto !important;
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1030;
+    }
+
+    .pn-admin-panel .iconsidebar-menu .iconMenu-bar {
+        display: block !important;
+        margin-left: 0 !important;
+        height: 100vh;
+        top: 0;
+    }
+
+    .pn-admin-panel .iconsidebar-menu.iconbar-second-close .iconMenu-bar {
+        margin-left: 0 !important;
+    }
+
+    .pn-admin-panel .iconsidebar-menu .iconMenu-bar .iconbar-mainmenu {
+        top: 0;
+        height: 100vh;
+    }
+
+    .pn-admin-panel .page-body-wrapper .page-body,
+    .pn-admin-panel .page-body-wrapper > footer,
+    .pn-admin-panel .page-main-header {
+        margin-left: 90px !important;
+        width: calc(100% - 90px) !important;
+    }
+
+    .pn-admin-panel .page-body-wrapper {
+        margin-left: 0 !important;
+    }
+
+    .pn-admin-panel .mobile-sidebar {
+        display: none !important;
+    }
+
+    .pn-admin-panel .right-sidebar {
+        display: none !important;
+    }
+}
+
+/* ─── Layout & sidebar (tablet / phone) ─── */
 @media (max-width: 991.98px) {
     .pn-admin-panel .right-sidebar {
         display: none !important;

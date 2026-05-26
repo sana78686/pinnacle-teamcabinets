@@ -353,6 +353,27 @@ class OrderWorkspaceCheckoutService
     }
 
     /**
+     * Sum line assemble amounts from CI-style room_data JSON.
+     *
+     * @param  array<string, array<string, mixed>>  $ciRooms
+     */
+    public function sumAssembleFromCiRoomMap(array $ciRooms): float
+    {
+        $total = 0.0;
+
+        foreach ($ciRooms as $room) {
+            if (! is_array($room)) {
+                continue;
+            }
+            foreach ($room['product_assemble_cost'] ?? [] as $cost) {
+                $total += (float) $cost;
+            }
+        }
+
+        return round($total, 2);
+    }
+
+    /**
      * @param  array<int, array{room_name: string, products: array}>  $rooms
      * @return array<string, array<string, array<int, mixed>>>
      */

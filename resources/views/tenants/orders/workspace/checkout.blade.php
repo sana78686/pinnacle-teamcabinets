@@ -28,7 +28,7 @@
 @endsection
 
 @section('style')
-<link rel="stylesheet" href="{{ tenant_static_asset('css/checkout-page.css') }}?v=5">
+<link rel="stylesheet" href="{{ tenant_static_asset('css/checkout-page.css') }}?v=6">
 @endsection
 
 @section('content')
@@ -37,7 +37,9 @@
     $fees = $feeConfig ?? [];
     $totals = $checkoutTotals ?? [];
     $savings = $paymentSavings ?? [];
-    $colSpan = ($assembleYes ?? false) ? 8 : 7;
+    $hasAssemble = $assembleYes ?? false;
+    $colSpan = $hasAssemble ? 8 : 7;
+    $hasPresetShipping = $hasPresetShipping ?? false;
     $shipState = old('ship_state', $cartData['ship_to_state'] ?? '');
     $shipCounty = old('ship_county', $cartData['ship_to_county'] ?? '');
     $isFlShip = in_array(strtolower($shipState), ['florida', 'fl'], true);
@@ -58,7 +60,7 @@
         <input type="hidden" name="total_fuel_charges_for_order" id="ow-fuel-total-input" value="{{ $totals['fuel_amount'] ?? 0 }}">
         <input type="hidden" name="updated_sales_tax" id="ow-sales-tax-input" value="{{ $salesTaxPercent }}">
         <input type="hidden" name="custom_all_cart_total" id="ow-grand-total-input" value="{{ $totals['grand_total'] ?? 0 }}">
-        @if ($isShippingQuote ?? false)
+        @if ($hasPresetShipping)
             <input type="hidden" name="is_shipping_quote" value="{{ $cartData['is_shipping_quote'] ?? 1 }}">
             <input type="hidden" name="order_shipping_cost" value="{{ $shippingCost }}">
         @endif
@@ -71,20 +73,20 @@
                         <h2>Cart</h2>
                     </div>
                     <div class="tc-checkout__cart-body">
-                        <div class="tc-checkout__job">Job Name: {{ $cartData['job_name'] }}</div>
+                        <div class="tc-checkout__job"><strong>Job Name</strong> : {{ $cartData['job_name'] }}</div>
 
                         <div class="tc-checkout-table-wrap">
                             <table class="table table-bordered table-sm tc-checkout-table mb-0">
                                 <thead>
                                     <tr>
-                                        <th class="tc-checkout-col-checks">Checks</th>
-                                        <th class="tc-checkout-col-name">Name</th>
-                                        <th class="tc-checkout-col-desc">Description</th>
+                                        <th class="tc-checkout-col-checks">Double Check Work</th>
+                                        <th class="tc-checkout-col-name">Cabinet Name</th>
+                                        <th class="tc-checkout-col-desc">Cabinet Description</th>
                                         <th class="text-end tc-checkout-col-num">Weight</th>
-                                        <th class="text-end tc-checkout-col-num">Unit</th>
-                                        <th class="text-end tc-checkout-col-num">Total</th>
-                                        <th class="text-end tc-checkout-col-qty">Qty</th>
-                                        @if ($assembleYes)<th class="text-end tc-checkout-col-num">Assemble</th>@endif
+                                        <th class="text-end tc-checkout-col-num">Unit Price</th>
+                                        <th class="text-end tc-checkout-col-num">Total Price</th>
+                                        <th class="text-end tc-checkout-col-qty">Quantity</th>
+                                        @if ($hasAssemble)<th class="text-end tc-checkout-col-num">Assemble Cost</th>@endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -103,10 +105,22 @@
                                                 <td class="tc-checkout-col-desc">{{ $room['product_cabinets_description'][$i] ?? '' }}</td>
                                                 <td class="text-end">{{ $room['product_weight'][$i] ?? 0 }} lbs</td>
                                                 <td class="text-end">${{ number_format((float) ($room['product_cost'][$i] ?? 0), 2) }}</td>
-                                                <td class="text-end">${{ number_format((float) (($room['product_cost'][$i] ?? 0) * ($room['product_quantity'][$i] ?? 1)), 2) }}</td>
+                                                @php
+                                                    $lineTotal = (float) ($room['product_tot_price'][$i] ?? 0);
+                                                    if ($lineTotal <= 0) {
+                                                        $lineTotal = (float) ($room['product_cost'][$i] ?? 0) * (int) ($room['product_quantity'][$i] ?? 1);
+                                                    }
+                                                @endphp
+                                                <td class="text-end">${{ number_format($lineTotal, 2) }}</td>
                                                 <td class="text-end">{{ $room['product_quantity'][$i] ?? 1 }}</td>
-                                                @if ($assembleYes)
-                                                    <td class="text-end">${{ number_format((float) ($room['product_assemble_cost'][$i] ?? 0), 2) }}</td>
+                                                @if ($hasAssemble)
+                                                    <td class="text-end">
+                                                        @if ((float) ($room['product_assemble_cost'][$i] ?? 0) > 0)
+                                                            ${{ number_format((float) $room['product_assemble_cost'][$i], 2) }}
+                                                        @else
+                                                            N/A
+                                                        @endif
+                                                    </td>
                                                 @endif
                                             </tr>
                                         @endfor
@@ -115,41 +129,51 @@
                                 <tfoot>
                                     <tr>
                                         <th colspan="3">Sub Total</th>
-                                        <th class="text-end">{{ number_format($weight, 2) }} lbs</th>
-                                        <th></th>
-                                        <th class="text-end">${{ number_format($subTotal, 2) }}</th>
-                                        <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                        <td class="text-end">{{ number_format($weight, 2) }} lbs</td>
+                                        <td></td>
+                                        <td class="text-end">${{ number_format($subTotal, 2) }}</td>
+                                        <td></td>
+                                        @if ($hasAssemble)
+                                            <td class="text-end" id="ow-assemble-subtotal">${{ number_format($assembleTotal, 2) }}</td>
+                                        @endif
                                     </tr>
                                     <tr>
-                                        <th colspan="3">Fuel Charges (<span id="ow-fuel-percent">{{ $fees['fuel_percent'] ?? 0 }}</span>%)</th>
-                                        <td class="text-end">—</td>
+                                        <th colspan="5">Fuel Charges (<span id="ow-fuel-percent">{{ $fees['fuel_percent'] ?? 0 }}</span>%)</th>
+                                        <td class="text-end" id="ow-fuel-amt">${{ number_format($totals['fuel_amount'] ?? 0, 2) }}</td>
                                         <td></td>
-                                        <th class="text-end" id="ow-fuel-amt">${{ number_format($totals['fuel_amount'] ?? 0, 2) }}</th>
-                                        <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                        @if ($hasAssemble)<td></td>@endif
                                     </tr>
-                                    @if ($assembleYes)
+                                    @if ($hasAssemble)
                                         <tr>
                                             <th colspan="5">Cabinetry Assembly Cost</th>
-                                            <th class="text-end">${{ number_format($assembleTotal, 2) }}</th>
-                                            <th colspan="2"></th>
+                                            <td class="text-end" id="ow-assemble-total">${{ number_format($assembleTotal, 2) }}</td>
+                                            <td></td>
+                                            <td></td>
                                         </tr>
                                     @endif
-                                    @if (($isShippingQuote ?? false) && ! empty($shippingBreakdown))
-                                        <tr><th colspan="{{ $colSpan }}">Shipping Charges</th></tr>
+                                    @if ($hasPresetShipping && ! empty($shippingBreakdown))
+                                        <tr>
+                                            <th colspan="5">Shipping Charges</th>
+                                            <td></td>
+                                            <td></td>
+                                            @if ($hasAssemble)<td></td>@endif
+                                        </tr>
                                         @foreach ($shippingBreakdown as $label => $amount)
                                             @if ((float) $amount > 0)
                                                 <tr>
                                                     <th colspan="5">{{ $label }}</th>
-                                                    <th class="text-end">${{ number_format((float) $amount, 2) }}</th>
-                                                    <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                                    <td class="text-end">${{ number_format((float) $amount, 2) }}</td>
+                                                    <td></td>
+                                                    @if ($hasAssemble)<td></td>@endif
                                                 </tr>
                                             @endif
                                         @endforeach
-                                    @elseif (($isShippingQuote ?? false) && ($shippingCost ?? 0) > 0)
+                                    @elseif ($hasPresetShipping && ($shippingCost ?? 0) > 0)
                                         <tr>
                                             <th colspan="5">Shipping Charges</th>
-                                            <th class="text-end">${{ number_format($shippingCost, 2) }}</th>
-                                            <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                            <td class="text-end">${{ number_format($shippingCost, 2) }}</td>
+                                            <td></td>
+                                            @if ($hasAssemble)<td></td>@endif
                                         </tr>
                                     @else
                                         <tr>
@@ -164,41 +188,46 @@
                                     <tr>
                                         <th colspan="3">
                                             Sales Tax (<span id="ow-tax-percent">{{ $salesTaxPercent }}%</span>)
-                                            <p class="tc-checkout-tax-note">NOTE: 'Sales Tax' will be calculated as per your Ship To 'County'.</p>
+                                            <p class="tc-checkout-tax-note mb-0">NOTE: 'Sales Tax' will be calculated as per your Ship To 'County'.</p>
                                         </th>
-                                        <td class="text-end">—</td>
                                         <td></td>
-                                        <th class="text-end" id="ow-sales-tax">${{ number_format($totals['sales_tax_amount'] ?? 0, 2) }}</th>
-                                        <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                        <td></td>
+                                        <td class="text-end" id="ow-sales-tax">${{ number_format($totals['sales_tax_amount'] ?? 0, 2) }}</td>
+                                        <td></td>
+                                        @if ($hasAssemble)<td></td>@endif
                                     </tr>
                                     <tr id="ow-credit-fee-row">
                                         <th colspan="5"><span id="ow-payment-fee-label">Credit Card Charges ({{ $fees['credit_card_percent'] ?? 0 }}%)</span></th>
-                                        <th class="text-end" id="ow-payment-fee-amt">${{ number_format($totals['credit_card_charges'] ?? 0, 2) }}</th>
-                                        <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                        <td class="text-end" id="ow-payment-fee-amt">${{ number_format($totals['credit_card_charges'] ?? 0, 2) }}</td>
+                                        <td></td>
+                                        @if ($hasAssemble)<td></td>@endif
                                     </tr>
                                     <tr id="ow-debit-fee-row" style="display:none">
                                         <th colspan="5">Debit Card Charges</th>
-                                        <th class="text-end" id="ow-debit-fee-amt">${{ number_format($totals['debit_card_charges'] ?? 0, 2) }}</th>
-                                        <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                        <td class="text-end" id="ow-debit-fee-amt">${{ number_format($totals['debit_card_charges'] ?? 0, 2) }}</td>
+                                        <td></td>
+                                        @if ($hasAssemble)<td></td>@endif
                                     </tr>
                                     <tr id="ow-ach-fee-row" style="display:none">
                                         <th colspan="5">ACH Charges</th>
-                                        <th class="text-end" id="ow-ach-fee-amt">${{ number_format($totals['ach_charges'] ?? 0, 2) }}</th>
-                                        <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                        <td class="text-end" id="ow-ach-fee-amt">${{ number_format($totals['ach_charges'] ?? 0, 2) }}</td>
+                                        <td></td>
+                                        @if ($hasAssemble)<td></td>@endif
                                     </tr>
                                     <tr class="table-active">
                                         <th colspan="3">Grand Total</th>
-                                        <th class="text-end">{{ number_format($weight, 2) }} lbs</th>
-                                        <th></th>
-                                        <th class="text-end" id="ow-grand-total">${{ number_format($totals['grand_total'] ?? 0, 2) }}</th>
-                                        <th colspan="{{ $assembleYes ? 2 : 1 }}"></th>
+                                        <td class="text-end">{{ number_format($weight, 2) }} lbs</td>
+                                        <td></td>
+                                        <td class="text-end" id="ow-grand-total">${{ number_format($totals['grand_total'] ?? 0, 2) }}</td>
+                                        <td></td>
+                                        @if ($hasAssemble)<td></td>@endif
                                     </tr>
                                 </tfoot>
                             </table>
                         </div>
 
                         @if (! empty($cartData['order_comment']))
-                            <div class="tc-checkout__comment"><strong>Comment:</strong> {{ $cartData['order_comment'] }}</div>
+                            <div class="tc-checkout__comment"><strong>Comment :</strong> {{ $cartData['order_comment'] }}</div>
                         @endif
                     </div>
                 </div>
@@ -261,5 +290,5 @@
         shipCounty: @json($shipCounty),
     };
 </script>
-<script src="{{ tenant_static_asset('js/checkout-page.js') }}?v=3"></script>
+<script src="{{ tenant_static_asset('js/checkout-page.js') }}?v=4"></script>
 @endsection

@@ -394,26 +394,6 @@ class StockCheckAdminViewService
         $shippingCost = (float) ($totals['shipping_cost'] ?? $record->shipping_cost ?? 0);
         $isShippingRequired = $this->isShippingRequired($record);
 
-        $payload = [
-            'job_name' => $record->job_name,
-            'rooms' => $rooms,
-            'assemble' => $assembleYes ? 'yes' : 'no',
-            'shipping_status' => 'yes',
-            'comment' => $record->comment,
-            'user' => $user,
-            'totals' => [
-                'sub_total_cost' => (float) ($totals['sub_total_price'] ?? 0),
-                'sub_total_weight' => (float) ($totals['sub_total_weight'] ?? 0),
-                'sub_total_assemble_cost' => (float) ($totals['sub_total_assemble'] ?? 0),
-                'grand_total_cost' => (float) ($totals['grand_total'] ?? 0),
-            ],
-            'shipping_cost' => $shippingCost,
-            'product_catalog_id' => $record->product_catalog_id,
-            'door_color_id' => $record->door_color_id,
-            'product_img_src' => $record->product_img_src,
-            'product_img_name' => $record->product_img_name,
-        ];
-
         $catalogName = $record->product_catalog_id
             ? (ProductCatalog::query()->whereKey($record->product_catalog_id)->value('name') ?? '')
             : '';
@@ -424,13 +404,39 @@ class StockCheckAdminViewService
             'catalog_id' => $record->product_catalog_id,
         ]);
 
+        $ciRooms = $this->checkout->buildCiRoomData($rooms, $roomRequest, $user);
+        $subTotalAssemble = max(
+            (float) ($totals['sub_total_assemble'] ?? 0),
+            $this->checkout->sumAssembleFromCiRoomMap($ciRooms)
+        );
+
+        $payload = [
+            'job_name' => $record->job_name,
+            'rooms' => $rooms,
+            'assemble' => $assembleYes ? 'yes' : 'no',
+            'shipping_status' => 'yes',
+            'comment' => $record->comment,
+            'user' => $user,
+            'totals' => [
+                'sub_total_cost' => (float) ($totals['sub_total_price'] ?? 0),
+                'sub_total_weight' => (float) ($totals['sub_total_weight'] ?? 0),
+                'sub_total_assemble_cost' => $subTotalAssemble,
+                'grand_total_cost' => (float) ($totals['grand_total'] ?? 0),
+            ],
+            'shipping_cost' => $shippingCost,
+            'product_catalog_id' => $record->product_catalog_id,
+            'door_color_id' => $record->door_color_id,
+            'product_img_src' => $record->product_img_src,
+            'product_img_name' => $record->product_img_name,
+        ];
+
         $cartData = array_merge($this->checkout->billShipAddresses($user), [
             'user_id' => $user->id,
             'job_name' => $record->job_name,
             'order_comment' => $record->comment ?? '',
             'is_assemble' => $assembleYes ? 1 : 2,
             'assemble_cabinets_check' => $assembleYes ? 'yes' : 'no',
-            'room_data' => json_encode($this->checkout->buildCiRoomData($rooms, $roomRequest, $user)),
+            'room_data' => json_encode($ciRooms),
             'cart_product_weight' => number_format((float) ($totals['sub_total_weight'] ?? 0), 2).' lbs',
             'all_cart_total' => number_format((float) ($totals['sub_total_price'] ?? 0), 2, '.', ''),
             'catalogue' => $record->product_catalog_id,

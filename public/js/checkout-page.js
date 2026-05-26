@@ -68,6 +68,8 @@
         set('ow-sales-tax', money(t.tax));
         set('ow-tax-percent', (taxPct ?? cfg.salesTaxPercent) + '%');
         set('ow-grand-total', money(grand));
+        set('ow-assemble-subtotal', money(t.assemble));
+        set('ow-assemble-total', money(t.assemble));
 
         const creditRow = document.getElementById('ow-credit-fee-row');
         const debitRow = document.getElementById('ow-debit-fee-row');

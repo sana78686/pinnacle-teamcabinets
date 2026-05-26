@@ -10,7 +10,10 @@
 @section('setting_content')
 @include('layouts.tenant.partials.tax-fees-nav')
 
-<p class="text-muted small mb-3">Paytrace API credentials for card processing at checkout.</p>
+<p class="text-muted small mb-3">
+    Paytrace <strong>API user</strong> credentials for checkout (not your PayTrace web login email).
+    When <code>PAYTRACE_ENV=sandbox</code> in <code>.env</code>, server env credentials are used instead of these fields.
+</p>
 
 <form class="tc-settings-form" action="{{ route('tenant_setting_tax_fees_paytrace_store') }}" method="post">
     @csrf

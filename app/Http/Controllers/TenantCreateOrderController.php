@@ -232,8 +232,15 @@ class TenantCreateOrderController extends Controller
         $salesTaxPercent = $this->checkout->salesTaxPercentForLocation($shipState, $shipCounty, $user);
         $feeConfig = $this->checkout->paymentFeeConfig();
 
+        $rooms = json_decode($cartData['room_data'] ?? '{}', true) ?: [];
         $subTotal = (float) ($payload['totals']['sub_total_cost'] ?? 0);
+        $assembleYes = ($payload['assemble'] ?? 'no') === 'yes'
+            || (int) ($cartData['is_assemble'] ?? 0) === 1
+            || ($cartData['assemble_cabinets_check'] ?? '') === 'yes';
         $assembleTotal = (float) ($payload['totals']['sub_total_assemble_cost'] ?? 0);
+        if ($assembleTotal <= 0 && $assembleYes) {
+            $assembleTotal = $this->checkout->sumAssembleFromCiRoomMap($rooms);
+        }
         $cartWeight = (float) ($payload['totals']['sub_total_weight'] ?? 0);
         $shippingCost = (float) ($payload['shipping_cost'] ?? $cartData['order_shipping_cost'] ?? 0);
         $shippingCost = $this->checkout->applyWeightShippingSurcharge($cartWeight, $shippingCost);
@@ -242,6 +249,8 @@ class TenantCreateOrderController extends Controller
         $shippingQuoteId = session('shipping_quote_checkout_id');
         $stockCheckId = session('stock_check_checkout_id');
         $shippingBreakdown = json_decode((string) ($cartData['shipping_charges_arr'] ?? '[]'), true) ?: [];
+        $hasPresetShipping = in_array((int) ($cartData['is_shipping_quote'] ?? 0), [1, 2], true)
+            && (! empty($shippingBreakdown) || $shippingCost > 0);
 
         $checkoutTotals = $this->checkout->calculateCheckoutTotals(
             $subTotal,
@@ -263,9 +272,10 @@ class TenantCreateOrderController extends Controller
             'subTotal' => $subTotal,
             'assembleTotal' => $assembleTotal,
             'weight' => $payload['totals']['sub_total_weight'] ?? 0,
-            'assembleYes' => ($payload['assemble'] ?? 'no') === 'yes' || (int) ($cartData['is_assemble'] ?? 0) === 1,
+            'assembleYes' => $assembleYes,
             'shippingCost' => $shippingCost,
             'shippingBreakdown' => $shippingBreakdown,
+            'hasPresetShipping' => $hasPresetShipping,
             'isShippingQuote' => $isShippingQuote,
             'shippingQuoteId' => $shippingQuoteId,
             'backToCartUrl' => $stockCheckId

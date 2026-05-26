@@ -63,9 +63,9 @@
 
         @if (! empty($record->comment))
             <div class="col-lg-4 col-md-12 mb-3">
-                <div class="tc-workspace-detail__comment border rounded p-3 bg-light h-100">
-                    <strong>Comment</strong>
-                    <p class="mb-0 mt-2">{{ $record->comment }}</p>
+                <div class="tc-workspace-detail__comment border rounded p-3 h-100">
+                    <strong class="tc-workspace-detail__comment-title">Comment</strong>
+                    <p class="tc-workspace-detail__comment-text mb-0 mt-2">{{ $record->comment }}</p>
                 </div>
             </div>
         @endif

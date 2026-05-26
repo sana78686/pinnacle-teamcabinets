@@ -10,6 +10,7 @@
     $exportCsvUrl = $exportCsvUrl ?? null;
     $nameColumnLabel = $nameColumnLabel ?? null;
     $colspan = $nameColumnLabel ? 10 : 9;
+    $recordNames = app(\App\Services\QuoteWorkspaceService::class);
 @endphp
 
 @if ($showListToolbar ?? true)
@@ -42,8 +43,10 @@
             @forelse ($records as $record)
                 <tr class="{{ tenant_admin_unviewed_row_class($record) }}">
                     <td>{{ $records->firstItem() + $loop->index }}</td>
+                    @if ($nameColumnLabel)
+                        <td>{{ $recordNames->displayRecordName($record) }}</td>
+                    @endif
                     <td>{{ $record->job_name }}</td>
-                    <td>{{ filled($record->quote_name ?? null) ? $record->quote_name : '—' }}</td>
                     <td>{{ $record->user?->name ?? $record->user_email ?? '—' }}</td>
                     <td>${{ number_format((float) ($record->grand_total_cost ?? 0), 2) }}</td>
                     <td>{{ $record->sub_total_weight ?? '0' }} lbs</td>

@@ -3079,10 +3079,38 @@ button.tc-verify-pill {
     width: 42%;
     font-weight: 600;
     background: #f8fafc;
+    color: #334155 !important;
 }
 
+.tc-workspace-detail__table td {
+    color: #1e293b !important;
+    background: #fff !important;
+}
+
+.tc-workspace-detail__table thead.table-secondary th {
+    color: #1e293b !important;
+    background: #e2e8f0 !important;
+}
+
+/* Theme [class*='bg-'] { color:#fff } matches bg-light — use custom class, force readable text */
 .tc-workspace-detail__comment {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
+    background: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    color: #1e293b !important;
+}
+
+.tc-workspace-detail__comment-title {
+    display: block;
+    color: #0f172a !important;
+    font-weight: 600;
+}
+
+.tc-workspace-detail__comment-text {
+    color: #334155 !important;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 /* Product setup hub (tabs on lists, sidebar on forms — mirrors Settings) */
@@ -5489,4 +5517,50 @@ button.tc-verify-pill {
 
 .tc-header-alert-dot-menu__dot--stock {
     background: #ea580c;
+}
+
+/* Orders list (CI parity) */
+.tc-orders-list-table .tc-order-status-select {
+    min-width: 9.5rem;
+    max-width: 11rem;
+    margin: 0 auto;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+}
+
+.tc-order-status-select--pending {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+.tc-order-status-select--paid {
+    background-color: #28a745 !important;
+    color: #fff !important;
+}
+
+.tc-order-status-select--cancelled {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+}
+
+.tc-order-status-select--completed {
+    background-color: #6c757d !important;
+    color: #fff !important;
+}
+
+.tc-order-status-select--processing {
+    background-color: #17a2b8 !important;
+    color: #fff !important;
+}
+
+.tc-order-status-select--default {
+    background-color: #e9ecef !important;
+}
+
+.tc-orders-user-filter {
+    min-width: 10rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
 }

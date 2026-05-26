@@ -25,6 +25,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -514,7 +515,20 @@ class TenantCreateOrderController extends Controller
             // Templates may be missing; order is still saved.
         }
 
-        session()->forget(['workspace_checkout', 'cart_data', 'shipping_quote_checkout_id', 'stock_check_checkout_id']);
+        $this->linkCheckoutSourcesToOrder(
+            $order,
+            (int) session('stock_check_checkout_id'),
+            (int) session('shipping_quote_checkout_id'),
+            (int) session('editing_quote_id'),
+        );
+
+        session()->forget([
+            'workspace_checkout',
+            'cart_data',
+            'shipping_quote_checkout_id',
+            'stock_check_checkout_id',
+            'editing_quote_id',
+        ]);
 
         TenantNotificationService::flashToast(
             'Order #'.$order->id.' placed successfully! You can file a claim from this order when needed.',
@@ -696,12 +710,23 @@ class TenantCreateOrderController extends Controller
     ): JsonResponse {
         $record = null;
         $clearCart = $this->shouldClearWorkspaceCart($modelClass);
+        $sourceQuoteId = (int) session('editing_quote_id');
         try {
             $payload = $this->workspace->parsePayload($request, $defaultShippingStatus);
             $payload = $this->mergeWorkspaceMeta($request, $payload);
 
             $record = $this->resolveWorkspaceRecord($request, $modelClass, $payload);
             $this->sendActionEmails($modelClass, $payload, $record);
+
+            if (
+                $sourceQuoteId > 0
+                && in_array($modelClass, [ShippingQuote::class, StockCheckRequest::class], true)
+            ) {
+                $quote = Quote::query()->find($sourceQuoteId);
+                if ($quote && $this->quoteWorkspace->userMayAccess($quote, $request->user())) {
+                    $quote->delete();
+                }
+            }
 
             if ($clearCart) {
                 $this->clearWorkspaceCart($request);
@@ -881,5 +906,36 @@ class TenantCreateOrderController extends Controller
         } catch (\Throwable) {
             // Email templates may be missing in some tenants; do not block save.
         }
+    }
+
+    protected function linkCheckoutSourcesToOrder(
+        Order $order,
+        int $stockCheckId,
+        int $shippingQuoteId,
+        int $quoteId,
+    ): void {
+        if ($stockCheckId > 0) {
+            $this->setWorkspaceOrderId(StockCheckRequest::class, 'stock_check_requests', $stockCheckId, $order->id);
+        }
+        if ($shippingQuoteId > 0) {
+            $this->setWorkspaceOrderId(ShippingQuote::class, 'shipping_quotes', $shippingQuoteId, $order->id);
+        }
+        if ($quoteId > 0) {
+            $this->setWorkspaceOrderId(Quote::class, 'quotes', $quoteId, $order->id);
+        }
+    }
+
+    protected function setWorkspaceOrderId(string $modelClass, string $table, int $recordId, int $orderId): void
+    {
+        if ($recordId <= 0 || $orderId <= 0 || ! Schema::hasTable($table)) {
+            return;
+        }
+
+        $column = Schema::hasColumn($table, 'orders_id') ? 'orders_id' : 'order_id';
+        if (! Schema::hasColumn($table, $column)) {
+            return;
+        }
+
+        $modelClass::query()->whereKey($recordId)->update([$column => $orderId]);
     }
 }

@@ -376,12 +376,17 @@ class OrderWorkspaceService
         return [
             'id',
             'job_name',
+            'quote_name',
+            'comment',
             'user_id',
             'user_email',
             'grand_total_cost',
+            'order_amount',
             'sub_total_weight',
             'assemble_cabinets_check',
             'shipping_status',
+            'status',
+            'transaction_pro_id',
             'created_at',
             'updated_at',
             'admin_viewed_at',
@@ -392,7 +397,7 @@ class OrderWorkspaceService
     {
         $query = $modelClass::query()
             ->select(self::workspaceListColumns())
-            ->with(['user:id,name,email'])
+            ->with(['user:id,name,email,company_name,user_type'])
             ->latest('id');
 
         if (! $user->isAdmin()) {

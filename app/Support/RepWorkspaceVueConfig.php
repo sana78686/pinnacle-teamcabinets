@@ -7,6 +7,20 @@ class RepWorkspaceVueConfig
     /** @return array<string, array<string, mixed>> */
     public static function modules(): array
     {
+        $orderColumns = [
+            ['key' => 'id', 'label' => 'Order ID'],
+            ['key' => 'customer_name', 'label' => 'Customer Name'],
+            ['key' => 'customer_type', 'label' => 'Customer Type'],
+            ['key' => 'customer_email', 'label' => 'Customer Email'],
+            ['key' => 'job_name', 'label' => 'Job Name'],
+            ['key' => 'company_name', 'label' => 'Company Name'],
+            ['key' => 'order_weight', 'label' => 'Order Weight'],
+            ['key' => 'order_amount', 'label' => 'Order Amount', 'type' => 'money'],
+            ['key' => 'status', 'label' => 'Order Status'],
+            ['key' => 'transaction_id', 'label' => 'Transaction ID'],
+            ['key' => 'created_at', 'label' => 'Order Date'],
+        ];
+
         $workspaceColumns = [
             ['key' => 'id', 'label' => '#'],
             ['key' => 'job_name', 'label' => 'Job name'],
@@ -40,8 +54,10 @@ class RepWorkspaceVueConfig
                 'restoreUrl' => route('tenant_deleted_order_list'),
                 'restoreLabel' => 'Restore Orders',
                 'emptyMessage' => 'No orders yet. Use Create Order workspace to add one.',
-                'columns' => $workspaceColumns,
+                'columns' => $orderColumns,
                 'showUrl' => route('tenant_order_show', ['id' => '__ID__']),
+                'pickListUrl' => route('tenant_order_warehouse_pick', ['id' => '__ID__']),
+                'printUrl' => route('tenant_order_workspace_print_page', ['id' => '__ID__']),
                 'canDelete' => true,
             ],
             'quotes' => [

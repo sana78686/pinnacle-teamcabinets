@@ -32,6 +32,8 @@ class TenantShippingQuoteController extends Controller
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('job_name', 'like', '%'.$search.'%')
+                    ->orWhere('quote_name', 'like', '%'.$search.'%')
+                    ->orWhere('comment', 'like', '%'.$search.'%')
                     ->orWhereHas('user', function ($u) use ($search) {
                         $u->where('name', 'like', '%'.$search.'%')
                             ->orWhere('email', 'like', '%'.$search.'%');

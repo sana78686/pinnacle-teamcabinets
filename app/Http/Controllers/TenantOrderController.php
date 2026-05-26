@@ -12,10 +12,13 @@ use App\Models\ProductSection;
 use App\Models\TaxValues;
 use App\Services\AdminRecordViewService;
 use App\Services\ClaimWorkspaceService;
+use App\Services\OrderAdminListService;
 use App\Services\QuoteWorkspaceService;
 use App\Services\TenantNavBadgeService;
 use App\Services\WarehousePickListService;
 use App\Support\TenantListPaginator;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -31,28 +34,46 @@ class TenantOrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request, TenantNavBadgeService $navBadges)
+    public function index(Request $request, OrderAdminListService $orderList)
     {
         $perPage = TenantListPaginator::perPage($request);
         $search = TenantListPaginator::search($request);
-        $workspace = app(\App\Services\OrderWorkspaceService::class);
-        $query = $workspace->listQuery(Order::class, Auth::user());
+        $userType = $request->input('user_type', '');
+
+        if (Auth::user()->isAdmin()) {
+            $query = $orderList->adminListQuery();
+            $orderList->applyUserTypeFilter($query, is_string($userType) ? $userType : '');
+        } else {
+            $workspace = app(\App\Services\OrderWorkspaceService::class);
+            $query = $workspace->listQuery(Order::class, Auth::user());
+        }
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('job_name', 'like', '%'.$search.'%')
+                    ->orWhere('id', 'like', '%'.$search.'%')
+                    ->orWhere('transaction_pro_id', 'like', '%'.$search.'%')
                     ->orWhereHas('user', function ($u) use ($search) {
                         $u->where('name', 'like', '%'.$search.'%')
-                            ->orWhere('email', 'like', '%'.$search.'%');
+                            ->orWhere('email', 'like', '%'.$search.'%')
+                            ->orWhere('company_name', 'like', '%'.$search.'%');
                     });
             });
         }
 
+        $records = $query->paginate($perPage)->withQueryString();
+        $sourceBadges = Auth::user()->isAdmin()
+            ? $orderList->sourceBadgesForOrderIds($records->getCollection()->pluck('id')->all())
+            : [];
+
         $data = [
-            'records' => $query->paginate($perPage)->withQueryString(),
+            'records' => $records,
+            'sourceBadges' => $sourceBadges,
             'perPage' => $perPage,
             'search' => $search,
-            'exportCsvUrl' => route('tenant_order_export_csv', $request->only(['search', 'status', 'from', 'to'])),
+            'userType' => $userType,
+            'userTypeFilters' => OrderAdminListService::USER_TYPE_FILTERS,
+            'exportCsvUrl' => route('tenant_order_export_csv', $request->only(['search', 'status', 'from', 'to', 'user_type'])),
         ];
 
         if (Auth::user()->isAdmin()) {
@@ -60,6 +81,36 @@ class TenantOrderController extends Controller
         }
 
         return view('tenants.representative_modals.orders.index', $data);
+    }
+
+    public function updateStatus(Request $request): JsonResponse
+    {
+        if (! Auth::user()->isAdmin()) {
+            abort(403);
+        }
+
+        $raw = (string) $request->input('status', '');
+        if (! preg_match('/^(PROCESSING|PAID|PENDING|CANCELLED|COMPLETED)_(\d+)$/', $raw, $matches)) {
+            return response()->json(['message' => 'Invalid status value.'], 422);
+        }
+
+        $order = Order::query()->findOrFail((int) $matches[2]);
+        $order->update(['status' => $matches[1]]);
+
+        return response()->json(1);
+    }
+
+    public function sendQuickBooks(string $id): RedirectResponse
+    {
+        if (! Auth::user()->isAdmin()) {
+            abort(403);
+        }
+
+        Order::query()->findOrFail($id);
+
+        return redirect()
+            ->route('tenant_order_list')
+            ->with('info', 'QuickBooks order sync is not configured yet. Connect QuickBooks under Settings, then use Send-QB when invoice export is enabled.');
     }
 
     /**
@@ -322,9 +373,19 @@ $data['door_id'] = $door_id;
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $id): RedirectResponse
     {
-        //
+        $order = Order::query()->findOrFail($id);
+
+        if (! $this->recordWorkspace->userMayAccess($order, Auth::user())) {
+            abort(403);
+        }
+
+        $order->delete();
+
+        return redirect()
+            ->route('tenant_order_list')
+            ->with('success', 'Order deleted successfully.');
     }
 
     public function deletedorderList()
@@ -377,10 +438,15 @@ $data['door_id'] = $door_id;
         ]);
     }
 
-    public function exportCsv(Request $request): StreamedResponse
+    public function exportCsv(Request $request, OrderAdminListService $orderList): StreamedResponse
     {
-        $workspace = app(\App\Services\OrderWorkspaceService::class);
-        $query = $workspace->listQuery(Order::class, Auth::user());
+        if (Auth::user()->isAdmin()) {
+            $query = $orderList->adminListQuery();
+            $orderList->applyUserTypeFilter($query, (string) $request->input('user_type', ''));
+        } else {
+            $workspace = app(\App\Services\OrderWorkspaceService::class);
+            $query = $workspace->listQuery(Order::class, Auth::user());
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));

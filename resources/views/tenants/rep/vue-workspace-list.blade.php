@@ -72,15 +72,23 @@
                                 <span v-if="col.type === 'money'">$@{{ row[col.key] }}</span>
                                 <span v-else>@{{ row[col.key] ?? '—' }}</span>
                             </td>
-                            <td class="text-nowrap tc-admin-datatable__actions">
-                                <a v-if="config.showUrl" :href="showUrl(row.id)" class="tc-admin-datatable__edit">Show</a>
+                            <td class="text-nowrap text-center tc-admin-datatable__actions">
+                                <a v-if="config.showUrl" :href="showUrl(row.id)">View</a>
+                                <template v-if="config.pickListUrl">
+                                    <span> || </span>
+                                    <a :href="pickListUrl(row.id)">Pick List</a>
+                                </template>
+                                <template v-if="config.printUrl">
+                                    <span> || </span>
+                                    <a :href="printUrl(row.id)" target="_blank" rel="noopener">Print</a>
+                                </template>
                                 <template v-if="config.editUrl">
-                                    <span v-if="config.showUrl" class="text-muted"> | </span>
-                                    <a :href="editUrl(row.id)" class="tc-admin-datatable__edit">Edit</a>
+                                    <span> || </span>
+                                    <a :href="editUrl(row.id)">Edit</a>
                                 </template>
                                 <template v-if="config.canDelete">
-                                    <span v-if="config.showUrl || config.editUrl" class="text-muted"> | </span>
-                                    <button type="button" class="btn btn-link btn-sm p-0 text-danger align-baseline"
+                                    <span> || </span>
+                                    <button type="button" class="btn btn-link btn-sm p-0 align-baseline"
                                         @click="destroyRow(row.id)">Delete</button>
                                 </template>
                             </td>

@@ -9,6 +9,7 @@ use App\Models\ShippingQuote;
 use App\Models\StockCheckRequest;
 use App\Services\AdminRecordViewService;
 use App\Services\ClaimWorkspaceService;
+use App\Services\OrderAdminListService;
 use App\Services\OrderWorkspaceService;
 use App\Services\QuoteWorkspaceService;
 use App\Support\RepWorkspaceVueConfig;
@@ -42,19 +43,23 @@ class RepWorkspaceListApiController extends Controller
     $query = $workspace->listQuery($this->models[$type], $user);
 
     if ($search !== '') {
-      $query->where(function ($q) use ($search) {
+      $query->where(function ($q) use ($search, $type) {
         $q->where('job_name', 'like', '%'.$search.'%')
           ->orWhereHas('user', function ($u) use ($search) {
             $u->where('name', 'like', '%'.$search.'%')
               ->orWhere('email', 'like', '%'.$search.'%');
           });
+        if (in_array($type, ['quotes', 'shipping-quotes'], true)) {
+          $q->orWhere('quote_name', 'like', '%'.$search.'%')
+            ->orWhere('comment', 'like', '%'.$search.'%');
+        }
       });
     }
 
     $paginator = $query->paginate(TenantListPaginator::perPage($request))->withQueryString();
 
     return response()->json([
-      'data' => collect($paginator->items())->map(fn ($row) => $this->serializeWorkspace($row)),
+      'data' => collect($paginator->items())->map(fn ($row) => $this->serializeWorkspace($row, $type)),
       'meta' => [
         'current_page' => $paginator->currentPage(),
         'last_page' => $paginator->lastPage(),
@@ -115,14 +120,34 @@ class RepWorkspaceListApiController extends Controller
     ]);
   }
 
-  protected function serializeWorkspace(object $row): array
+  protected function serializeWorkspace(object $row, string $type = ''): array
   {
     $views = app(AdminRecordViewService::class);
+    $names = app(QuoteWorkspaceService::class);
+
+    if ($row instanceof Order) {
+      $list = app(OrderAdminListService::class);
+
+      return [
+        'id' => $row->id,
+        'job_name' => $list->jobName($row),
+        'customer_name' => $list->customerName($row),
+        'customer_type' => $list->customerType($row),
+        'customer_email' => $list->customerEmail($row),
+        'company_name' => $list->companyName($row),
+        'order_weight' => $list->formatWeight($row),
+        'order_amount' => number_format((float) ($row->order_amount ?? $row->grand_total_cost ?? 0), 2),
+        'status' => strtoupper((string) ($row->status ?? 'PENDING')),
+        'transaction_id' => $row->transaction_pro_id ?: '—',
+        'created_at' => $list->formatCiDate($row->created_at),
+        'is_unviewed' => $views->isUnviewed($row),
+      ];
+    }
 
     return [
       'id' => $row->id,
       'job_name' => $row->job_name ?? '—',
-      'quote_name' => filled($row->quote_name ?? null) ? $row->quote_name : '—',
+      'quote_name' => $names->displayRecordName($row),
       'customer_name' => $row->user?->name ?? $row->user_email ?? '—',
       'grand_total_cost' => number_format((float) ($row->grand_total_cost ?? 0), 2),
       'sub_total_weight' => ($row->sub_total_weight ?? '0').' lbs',

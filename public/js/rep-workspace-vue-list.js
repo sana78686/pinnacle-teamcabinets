@@ -71,6 +71,12 @@
                 editUrl(id) {
                     return this.config.editUrl ? this.apiUrl(this.config.editUrl, id) : '#';
                 },
+                pickListUrl(id) {
+                    return this.config.pickListUrl ? this.apiUrl(this.config.pickListUrl, id) : '#';
+                },
+                printUrl(id) {
+                    return this.config.printUrl ? this.apiUrl(this.config.printUrl, id) : '#';
+                },
                 clearSearch() {
                     this.search = '';
                     this.loadRows(1);

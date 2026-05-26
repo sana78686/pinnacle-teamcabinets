@@ -335,6 +335,8 @@ Route::prefix('storefront-chat')->group(function () {
           Route::get('orders/create/{id}/step-2', [TenantOrderController::class, 'step_2'])->name('tenant_order_step_2');
           Route::post('orders', [TenantOrderController::class, 'store'])->name('tenant_order_store');
           Route::get('orders/export-csv', [TenantOrderController::class, 'exportCsv'])->name('tenant_order_export_csv');
+          Route::post('orders/status', [TenantOrderController::class, 'updateStatus'])->name('tenant_order_update_status');
+          Route::get('orders/{id}/send-quickbooks', [TenantOrderController::class, 'sendQuickBooks'])->name('tenant_order_send_quickbooks');
           Route::get('orders/{id}/warehouse-pick', [TenantOrderController::class, 'warehousePickList'])->name('tenant_order_warehouse_pick');
           Route::match(['get', 'post'], 'orders/{id}/warehouse-pick/print', [TenantOrderController::class, 'warehousePickListPrint'])->name('tenant_order_warehouse_pick_print');
           Route::get('orders/{id}/edit', [TenantOrderController::class, 'edit'])->name('tenant_order_edit');

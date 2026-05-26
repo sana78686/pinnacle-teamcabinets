@@ -364,11 +364,17 @@ class TenantSettingController extends Controller
     public function store_tax_fees_paytrace(Request $request, TaxValuesService $taxValues)
     {
         $request->validate([
+            'paytrace_env' => 'required|in:sandbox,production',
+            'paytrace_base_url' => 'nullable|string|max:255',
+            'paytrace_integrator_id' => 'nullable|string|max:64',
             'paytrace_username' => 'nullable|string|max:255',
             'paytrace_password' => 'nullable|string|max:255',
         ]);
 
         foreach (TaxValuesService::paytraceKeys() as $key => $meta) {
+            if ($key === 'paytrace_password' && ! $request->filled('paytrace_password')) {
+                continue;
+            }
             if ($request->has($key)) {
                 $taxValues->set($key, (string) $request->input($key, ''), $meta['label']);
             }
@@ -376,7 +382,7 @@ class TenantSettingController extends Controller
 
         return redirect()
             ->route('tenant_setting_tax_fees_paytrace')
-            ->with('success', 'Paytrace credentials saved.');
+            ->with('success', 'Paytrace settings saved.');
     }
 
     /** @deprecated Use tab-specific store routes. */

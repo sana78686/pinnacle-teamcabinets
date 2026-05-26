@@ -275,8 +275,10 @@
     margin-bottom: 0.15rem;
 }
 
-.tc-checkout-address .tc-req {
-    color: #dc2626;
+.tc-checkout-page .tc-req,
+.tc-checkout .tc-req {
+    color: #dc2626 !important;
+    font-weight: 600;
 }
 
 .tc-checkout-address .form-control {

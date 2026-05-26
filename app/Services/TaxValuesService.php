@@ -38,6 +38,9 @@ class TaxValuesService
     public static function paytraceKeys(): array
     {
         return [
+            'paytrace_env' => ['label' => 'Paytrace environment', 'default' => 'production'],
+            'paytrace_base_url' => ['label' => 'Paytrace API base URL (optional)', 'default' => ''],
+            'paytrace_integrator_id' => ['label' => 'Paytrace integrator ID', 'default' => ''],
             'paytrace_username' => ['label' => 'Paytrace API username', 'default' => ''],
             'paytrace_password' => ['label' => 'Paytrace API password', 'default' => ''],
         ];

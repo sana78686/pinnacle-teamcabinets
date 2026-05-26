@@ -13,25 +13,25 @@ class PaytracePaymentService
      */
     public function charge(string $type, float $amount, array $input): array
     {
-        [$username, $password] = $this->resolveCredentials();
+        $config = $this->tenantConfig();
 
-        if ($username === '' || $password === '') {
+        if ($config['username'] === '' || $config['password'] === '') {
             return [
                 'success' => false,
-                'status_message' => 'Paytrace is not configured for this tenant. Use Cash/Wire Transfer, or add Paytrace API credentials under Settings → Taxes & fees → Paytrace.',
+                'status_message' => 'Paytrace is not configured for this tenant. Use Cash/Wire Transfer, or add Paytrace settings under Settings → Taxes & fees → Paytrace.',
             ];
         }
 
         try {
-            $token = $this->oauthToken($username, $password);
+            $token = $this->oauthToken($config);
             if (! $token) {
                 return [
                     'success' => false,
-                    'status_message' => $this->authFailureMessage(),
+                    'status_message' => $this->authFailureMessage($config),
                 ];
             }
 
-            return $this->submitTransaction($token, $type, $amount, $input);
+            return $this->submitTransaction($token, $config, $type, $amount, $input);
         } catch (\Throwable $e) {
             Log::warning('Paytrace charge failed: '.$e->getMessage());
 
@@ -40,60 +40,63 @@ class PaytracePaymentService
     }
 
     /**
-     * @return array{0: string, 1: string}
+     * @return array{username: string, password: string, env: string, base_url: string, integrator_id: string, sandbox: bool}
      */
-    protected function resolveCredentials(): array
+    public function tenantConfig(): array
     {
-        $envUser = trim((string) config('paytrace.username', ''));
-        $envPass = (string) config('paytrace.password', '');
-        $tenantUser = trim((string) (tax_value('paytrace_username', '') ?? ''));
-        $tenantPass = (string) (tax_value('paytrace_password', '') ?? '');
-
-        $preferEnv = (bool) config('paytrace.prefer_env_credentials', false)
-            || config('paytrace.env') === 'sandbox';
-
-        if ($preferEnv && $envUser !== '') {
-            return [$envUser, $envPass];
+        $env = strtolower(trim((string) (tax_value('paytrace_env', 'production') ?? 'production')));
+        if (! in_array($env, ['sandbox', 'production'], true)) {
+            $env = 'production';
         }
 
-        if ($tenantUser !== '') {
-            return [$tenantUser, $tenantPass];
+        $baseUrl = trim((string) (tax_value('paytrace_base_url', '') ?? ''));
+        if ($baseUrl === '') {
+            $baseUrl = $env === 'sandbox'
+                ? 'https://api.sandbox.paytrace.com'
+                : 'https://api.paytrace.com';
         }
 
-        return [$envUser, $envPass];
+        $integratorId = trim((string) (tax_value('paytrace_integrator_id', '') ?? ''));
+        if ($integratorId === '') {
+            $integratorId = (string) config('paytrace.integrator_id', '92371rHTLxWk');
+        }
+
+        return [
+            'username' => trim((string) (tax_value('paytrace_username', '') ?? '')),
+            'password' => (string) (tax_value('paytrace_password', '') ?? ''),
+            'env' => $env,
+            'base_url' => rtrim($baseUrl, '/'),
+            'integrator_id' => $integratorId,
+            'sandbox' => $env === 'sandbox' || str_contains(strtolower($baseUrl), 'sandbox.paytrace.com'),
+        ];
     }
 
-    protected function baseUrl(): string
+    /**
+     * @param  array{username: string, password: string, base_url: string, sandbox: bool}  $config
+     */
+    protected function oauthTokenUrl(array $config): string
     {
-        return rtrim((string) config('paytrace.base_url', 'https://api.paytrace.com'), '/');
+        return $config['sandbox']
+            ? $config['base_url'].'/v3/token/'
+            : $config['base_url'].'/oauth/token';
     }
 
-    protected function isSandbox(): bool
-    {
-        return config('paytrace.env') === 'sandbox'
-            || str_contains($this->baseUrl(), 'sandbox.paytrace.com');
-    }
-
-    protected function oauthTokenUrl(): string
-    {
-        return $this->isSandbox()
-            ? $this->baseUrl().'/v3/token/'
-            : $this->baseUrl().'/oauth/token';
-    }
-
-    protected function oauthToken(string $username, string $password): ?string
+    /**
+     * @param  array{username: string, password: string, sandbox: bool, base_url: string}  $config
+     */
+    protected function oauthToken(array $config): ?string
     {
         $response = Http::asForm()
-            ->withBasicAuth($username, $password)
-            ->post($this->oauthTokenUrl(), [
+            ->withBasicAuth($config['username'], $config['password'])
+            ->post($this->oauthTokenUrl($config), [
                 'grant_type' => 'client_credentials',
             ]);
 
         if (! $response->successful()) {
             Log::warning('Paytrace OAuth failed', [
                 'status' => $response->status(),
-                'url' => $this->oauthTokenUrl(),
-                'sandbox' => $this->isSandbox(),
+                'url' => $this->oauthTokenUrl($config),
+                'sandbox' => $config['sandbox'],
                 'body' => $response->json() ?? $response->body(),
             ]);
 
@@ -103,22 +106,25 @@ class PaytracePaymentService
         return $response->json('access_token');
     }
 
-    protected function authFailureMessage(): string
+    /**
+     * @param  array{sandbox: bool}  $config
+     */
+    protected function authFailureMessage(array $config): string
     {
-        $hint = $this->isSandbox()
-            ? 'Use your PayTrace sandbox API user (not your web login email). Credentials come from .env when PAYTRACE_ENV=sandbox.'
-            : 'Use your PayTrace API user credentials in Settings → Taxes & fees → Paytrace (not your PayTrace web login).';
+        $hint = $config['sandbox']
+            ? 'Check sandbox API username, password, and integrator ID under Settings → Taxes & fees → Paytrace.'
+            : 'Check production API credentials under Settings → Taxes & fees → Paytrace (use an API user, not your web login).';
 
         return 'Could not authenticate with Paytrace. '.$hint;
     }
 
     /**
+     * @param  array{base_url: string, integrator_id: string}  $config
      * @param  array<string, mixed>  $input
      * @return array{success: bool, transaction_id?: string, check_transaction_id?: string, status_message: string}
      */
-    protected function submitTransaction(string $token, string $type, float $amount, array $input): array
+    protected function submitTransaction(string $token, array $config, string $type, float $amount, array $input): array
     {
-        $integratorId = (string) config('paytrace.integrator_id', '92371rHTLxWk');
         $billing = [
             'name' => $input['billing_name'] ?? '',
             'street_address' => $input['billing_address'] ?? '',
@@ -135,10 +141,10 @@ class PaytracePaymentService
                     'account_number' => $input['account_number'] ?? '',
                     'routing_number' => $input['routing_number'] ?? '',
                 ],
-                'integrator_id' => $integratorId,
+                'integrator_id' => $config['integrator_id'],
                 'billing_address' => $billing,
             ];
-            $url = $this->baseUrl().'/v1/checks/sale/keyed';
+            $url = $config['base_url'].'/v1/checks/sale/keyed';
         } else {
             $exp = explode('/', (string) ($input['expiry_date'] ?? ''));
             $payload = [
@@ -148,11 +154,11 @@ class PaytracePaymentService
                     'expiration_month' => $exp[0] ?? '',
                     'expiration_year' => $exp[1] ?? '',
                 ],
-                'integrator_id' => $integratorId,
+                'integrator_id' => $config['integrator_id'],
                 'csc' => $input['cvv_number'] ?? '',
                 'billing_address' => $billing,
             ];
-            $url = $this->baseUrl().'/v1/transactions/sale/keyed';
+            $url = $config['base_url'].'/v1/transactions/sale/keyed';
         }
 
         $response = Http::withToken($token)->post($url, $payload);

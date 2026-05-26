@@ -1,9 +1,9 @@
 <div class="tc-checkout__pay-card is-active" data-pay="credit">
     <div class="tc-checkout__pay-head">
-        <div>
+        <label class="tc-checkout__pay-choice" for="by_cre_card">
             <input type="radio" name="credit_or_not_credit_card" id="by_cre_card" value="by_credit_card" checked>
-            <label for="by_cre_card">I Will Pay Using Credit Card</label>
-        </div>
+            <span>I Will Pay Using Credit Card</span>
+        </label>
         <span class="tc-checkout__save" data-save-credit>(You save nothing.)</span>
     </div>
     <div class="tc-checkout__pay-body">

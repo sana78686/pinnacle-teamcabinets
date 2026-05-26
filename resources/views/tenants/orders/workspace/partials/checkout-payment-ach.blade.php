@@ -1,10 +1,10 @@
 <div class="tc-checkout__pay-card" data-pay="ach">
     <div class="tc-checkout__pay-head">
-        <div>
+        <label class="tc-checkout__pay-choice" for="pay_ach">
             <input type="radio" name="credit_or_not_credit_card" id="pay_ach" value="pay_ach">
-            <label for="pay_ach">I Will Pay Using ACH</label>
-        </div>
-        <span class="tc-checkout__save" data-save-ach>(You save ${{ number_format($savings['ach'] ?? 0, 2) }})</span>
+            <span>I Will Pay Using ACH</span>
+        </label>
+        <span class="tc-checkout__save" data-save-ach>You save ${{ number_format($savings['ach'] ?? 0, 2) }}</span>
     </div>
     <div class="tc-checkout__pay-body">
         <div class="row g-2">

@@ -28,7 +28,7 @@
 @endsection
 
 @section('style')
-<link rel="stylesheet" href="{{ tenant_static_asset('css/checkout-page.css') }}?v=9">
+<link rel="stylesheet" href="{{ tenant_static_asset('css/checkout-page.css') }}?v=10">
 @endsection
 
 @section('content')
@@ -257,12 +257,14 @@
                 </div>
             </div>
 
-            {{-- Right: Payment methods (CI stacked boxes) --}}
+            {{-- Right: Payment methods (CI stacked cyan option bars) --}}
             <div class="col-lg-5 tc-checkout__pay-col">
-                @include('tenants.orders.workspace.partials.checkout-payment-credit', ['savings' => $savings, 'cartData' => $cartData])
-                @include('tenants.orders.workspace.partials.checkout-payment-debit', ['savings' => $savings])
-                @include('tenants.orders.workspace.partials.checkout-payment-ach', ['savings' => $savings])
-                @include('tenants.orders.workspace.partials.checkout-payment-cash', ['savings' => $savings])
+                <div class="tc-checkout__pay-stack">
+                    @include('tenants.orders.workspace.partials.checkout-payment-credit', ['savings' => $savings, 'cartData' => $cartData])
+                    @include('tenants.orders.workspace.partials.checkout-payment-debit', ['savings' => $savings])
+                    @include('tenants.orders.workspace.partials.checkout-payment-ach', ['savings' => $savings])
+                    @include('tenants.orders.workspace.partials.checkout-payment-cash', ['savings' => $savings])
+                </div>
             </div>
         </div>
     </form>
@@ -290,5 +292,5 @@
         shipCounty: @json($shipCounty),
     };
 </script>
-<script src="{{ tenant_static_asset('js/checkout-page.js') }}?v=6"></script>
+<script src="{{ tenant_static_asset('js/checkout-page.js') }}?v=7"></script>
 @endsection

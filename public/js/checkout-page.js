@@ -111,15 +111,19 @@
         const debitSave = Math.max(0, creditFee - (cfg.debitCardFlat || 0));
         const achSave = Math.max(0, creditFee - (cfg.achCharge || 0));
 
-        const setSave = (sel, amt) => {
+        const setSave = (sel, amt, creditStyle) => {
             document.querySelectorAll(sel).forEach((el) => {
-                el.textContent = amt > 0 ? '(You save ' + money(amt) + ')' : '(You save nothing.)';
+                if (creditStyle) {
+                    el.textContent = '(You save nothing.)';
+                    return;
+                }
+                el.textContent = 'You save ' + money(amt);
             });
         };
-        setSave('[data-save-credit]', 0);
-        setSave('[data-save-debit]', debitSave);
-        setSave('[data-save-ach]', achSave);
-        setSave('[data-save-cash]', creditFee);
+        setSave('[data-save-credit]', 0, true);
+        setSave('[data-save-debit]', debitSave, false);
+        setSave('[data-save-ach]', achSave, false);
+        setSave('[data-save-cash]', creditFee, false);
     }
 
     function syncPaymentPanels() {
@@ -311,10 +315,15 @@
 
     document.querySelectorAll('.tc-checkout__pay-head').forEach((head) => {
         head.addEventListener('click', function (e) {
-            if (e.target.tagName === 'INPUT') {
+            if (e.target.tagName === 'INPUT' || e.target.closest('label.tc-checkout__pay-choice')) {
+                const radio = this.querySelector('input[name="credit_or_not_credit_card"]');
+                if (radio && !radio.checked) {
+                    radio.checked = true;
+                    syncPaymentPanels();
+                }
                 return;
             }
-            const radio = this.querySelector('input[type="radio"]');
+            const radio = this.querySelector('input[name="credit_or_not_credit_card"]');
             if (radio) {
                 radio.checked = true;
                 syncPaymentPanels();

@@ -1,10 +1,10 @@
 <div class="tc-checkout__pay-card" data-pay="debit">
     <div class="tc-checkout__pay-head">
-        <div>
+        <label class="tc-checkout__pay-choice" for="by_debit_card">
             <input type="radio" name="credit_or_not_credit_card" id="by_debit_card" value="by_debit_card">
-            <label for="by_debit_card">I Will Pay Using Debit Card</label>
-        </div>
-        <span class="tc-checkout__save" data-save-debit>(You save ${{ number_format($savings['debit'] ?? 0, 2) }})</span>
+            <span>I Will Pay Using Debit Card</span>
+        </label>
+        <span class="tc-checkout__save" data-save-debit>You save ${{ number_format($savings['debit'] ?? 0, 2) }}</span>
     </div>
     <div class="tc-checkout__pay-body">
         <div class="row g-2">

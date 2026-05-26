@@ -5,11 +5,20 @@
 
 <div class="tc-role-dashboard__bulletin">
     @if ($fileUrl)
+        <div class="tc-role-dashboard__viewer-actions mb-2">
+            <a href="{{ $fileUrl }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">
+                @if ($bulletin->isPdfAttachment())
+                    Open PDF
+                @else
+                    Open attachment
+                @endif
+            </a>
+        </div>
         <div class="tc-role-dashboard__viewer mb-2">
             @if ($bulletin->isImageAttachment())
                 <img src="{{ $fileUrl }}" alt="{{ $bulletin->bulletin_title }}" class="tc-role-dashboard__viewer-img">
             @elseif ($bulletin->isPdfAttachment())
-                <object data="{{ $fileUrl }}" type="application/pdf" class="tc-role-dashboard__viewer-object">
+                <object data="{{ $fileUrl }}#toolbar=1" type="application/pdf" class="tc-role-dashboard__viewer-object">
                     <p class="tc-role-dashboard__viewer-fallback mb-0">
                         No preview available.
                         <a href="{{ $fileUrl }}" target="_blank" rel="noopener">Open PDF</a>

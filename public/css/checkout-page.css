@@ -57,7 +57,8 @@
 .ow-checkout-main {
     flex: 1;
     padding: 1rem 1.25rem 1.5rem;
-    overflow-x: hidden;
+    overflow-x: auto;
+    min-width: 0;
 }
 
 .page-body .tc-checkout-page .ow-checkout-main {
@@ -84,6 +85,10 @@
     background: #fff;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
     margin-bottom: 1rem;
+    overflow: visible;
+}
+
+.tc-checkout__pay-card {
     overflow: hidden;
 }
 
@@ -115,6 +120,11 @@
 
 .tc-checkout__cart-body {
     padding: 0.75rem 1rem 1rem;
+    min-width: 0;
+}
+
+.tc-checkout__main-col {
+    min-width: 0;
 }
 
 .tc-checkout__job {
@@ -124,18 +134,32 @@
 }
 
 .tc-checkout-table-wrap {
+    display: block;
     width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     margin-bottom: 0.25rem;
+    border: 1px solid var(--tc-checkout-border);
+    border-radius: 6px;
+    background: #fff;
+}
+
+.tc-checkout-table-scroll-hint {
+    display: none;
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    color: var(--tc-checkout-muted);
 }
 
 .tc-checkout-table {
     table-layout: fixed;
-    width: 100%;
-    min-width: 52rem;
+    width: max(100%, 56rem);
+    min-width: 56rem;
     font-size: 0.8125rem;
     margin-bottom: 0;
+    border-collapse: collapse;
 }
 
 .tc-checkout-table thead th {
@@ -162,28 +186,34 @@
 }
 
 .tc-checkout-table .tc-checkout-col-checks {
-    width: 4.5rem;
+    width: 5.5rem;
 }
 
 .tc-checkout-table .tc-checkout-col-name {
-    width: 6.5rem;
+    width: 7rem;
 }
 
 .tc-checkout-table .tc-checkout-col-desc {
-    width: auto;
-    min-width: 10rem;
-    word-break: normal;
-    overflow-wrap: break-word;
+    width: 14rem;
+    min-width: 14rem;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+    hyphens: auto;
 }
 
 .tc-checkout-table .tc-checkout-col-num {
-    width: 5.5rem;
+    width: 5.75rem;
     white-space: nowrap;
 }
 
 .tc-checkout-table .tc-checkout-col-qty {
-    width: 3.25rem;
+    width: 4rem;
     white-space: nowrap;
+}
+
+.tc-checkout-th-short {
+    display: none;
 }
 
 .tc-checkout-table tbody .text-end,
@@ -356,8 +386,8 @@
 }
 
 @media (max-width: 1199.98px) {
-    .tc-checkout-table {
-        min-width: 48rem;
+    .tc-checkout-table-scroll-hint {
+        display: block;
     }
 }
 
@@ -370,16 +400,151 @@
     .tc-checkout-address {
         margin-bottom: 1rem;
     }
+
+    .ow-checkout-main {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+}
+
+/* Tablet / phone: card rows instead of squeezed columns */
+@media (max-width: 767.98px) {
+    .tc-checkout-table-scroll-hint {
+        display: none;
+    }
+
+    .tc-checkout-table-wrap {
+        overflow-x: visible;
+        border: none;
+        background: transparent;
+    }
+
+    .tc-checkout-table {
+        min-width: 0;
+        width: 100%;
+        table-layout: auto;
+    }
+
+    .tc-checkout-table thead {
+        display: none;
+    }
+
+    .tc-checkout-table tbody tr.table-light {
+        display: block;
+        margin: 0.75rem 0 0.35rem;
+        border: none;
+        background: transparent !important;
+    }
+
+    .tc-checkout-table tbody tr.table-light th {
+        display: block;
+        padding: 0.35rem 0;
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: var(--tc-checkout-accent);
+        border: none;
+        background: transparent;
+    }
+
+    .tc-checkout-table tbody tr:not(.table-light) {
+        display: block;
+        margin-bottom: 0.75rem;
+        padding: 0.65rem 0.75rem;
+        border: 1px solid var(--tc-checkout-border);
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    }
+
+    .tc-checkout-table tbody tr:not(.table-light) td {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.35rem 0;
+        border: none;
+        text-align: right !important;
+    }
+
+    .tc-checkout-table tbody tr:not(.table-light) td::before {
+        content: attr(data-label);
+        flex: 0 0 42%;
+        max-width: 42%;
+        text-align: left;
+        font-weight: 600;
+        color: #475569;
+        font-size: 0.75rem;
+        line-height: 1.35;
+    }
+
+    .tc-checkout-table tbody tr:not(.table-light) td.tc-checkout-col-desc {
+        flex-wrap: wrap;
+    }
+
+    .tc-checkout-table tbody tr:not(.table-light) td.tc-checkout-col-desc::before {
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin-bottom: 0.15rem;
+    }
+
+    .tc-checkout-table tfoot tr {
+        display: block;
+        margin-bottom: 0.35rem;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--tc-checkout-border);
+        border-radius: 6px;
+        background: #f8fafc;
+    }
+
+    .tc-checkout-table tfoot tr.table-active {
+        background: #eef2ff;
+        border-color: #c7d2fe;
+    }
+
+    .tc-checkout-table tfoot th,
+    .tc-checkout-table tfoot td {
+        display: block;
+        width: 100% !important;
+        padding: 0.2rem 0;
+        border: none;
+        text-align: left !important;
+        white-space: normal;
+    }
+
+    .tc-checkout-table tfoot th[colspan] {
+        font-weight: 600;
+    }
+
+    .tc-checkout-table tfoot td.text-end {
+        text-align: right !important;
+        font-weight: 600;
+        padding-top: 0.15rem;
+    }
+
+    .tc-checkout-table tfoot tr:has(.tc-checkout-shipping-cell) {
+        padding: 0.65rem 0.75rem;
+    }
+
+    .tc-checkout-table tfoot .tc-checkout-shipping-cell {
+        display: block;
+    }
+
+    .tc-checkout__pay-head {
+        flex-wrap: wrap;
+    }
+
+    .tc-checkout__save {
+        white-space: normal;
+    }
 }
 
 @media (max-width: 575.98px) {
-    .tc-checkout-table {
-        min-width: 42rem;
-        font-size: 0.75rem;
+    .tc-checkout__cart-body {
+        padding-left: 0.65rem;
+        padding-right: 0.65rem;
     }
 
-    .tc-checkout-table thead th {
-        font-size: 0.7rem;
-        padding: 0.4rem 0.3rem;
+    .tc-checkout__pay-head label {
+        font-size: 0.9rem;
     }
 }

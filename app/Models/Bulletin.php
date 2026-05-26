@@ -18,21 +18,28 @@ class Bulletin extends Model
 
     public function scopeVisibleToUser(Builder $query, User $user): Builder
     {
-        $roleKeys = BulletinAudience::roleKeysForUser($user);
+        $userType = BulletinAudience::primaryUserTypeKey($user);
 
-        return $query->where(function (Builder $q) use ($roleKeys) {
-            $q->where('user_option', 'every_one')
-                ->orWhere(function (Builder $inner) use ($roleKeys) {
-                    $inner->where('user_option', 'specific_user')
-                        ->where(function (Builder $roleQuery) use ($roleKeys) {
-                            $roleQuery->whereNull('target_role')
-                                ->orWhere('target_role', '');
+        return $query->where(function (Builder $q) use ($userType) {
+            $q->where('user_option', 'every_one');
 
-                            if ($roleKeys !== []) {
-                                $roleQuery->orWhereIn('target_role', $roleKeys);
-                            }
-                        });
-                });
+            if ($userType === '') {
+                return;
+            }
+
+            $q->orWhere(function (Builder $inner) use ($userType) {
+                $inner->where('user_option', 'specific_user')
+                    ->where(function (Builder $roleQuery) use ($userType) {
+                        $roleQuery->whereNull('target_role')
+                            ->orWhere('target_role', '')
+                            ->orWhere('target_role', $userType);
+
+                        $expanded = BulletinAudience::expandTargetRoleKeys($userType);
+                        if ($expanded !== []) {
+                            $roleQuery->orWhereIn('target_role', $expanded);
+                        }
+                    });
+            });
         });
     }
 
@@ -55,11 +62,7 @@ class Bulletin extends Model
             return null;
         }
 
-        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
-            return $this->image;
-        }
-
-        return asset(ltrim($this->image, '/'));
+        return tenant_media_url($this->image);
     }
 
     public function attachmentExtension(): string

@@ -4439,6 +4439,15 @@ button.tc-verify-pill {
     color: var(--pn-navy, #0c2340);
 }
 
+.tc-role-panel .tc-role-dashboard__past-title {
+    display: inline;
+    word-break: break-word;
+}
+
+.tc-role-panel .tc-role-dashboard__viewer-actions {
+    padding: 0 0.85rem;
+}
+
 .tc-role-panel .tc-role-dashboard__bulletin-body {
     overflow-y: auto;
     height: 100%;

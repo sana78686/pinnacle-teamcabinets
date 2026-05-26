@@ -105,10 +105,13 @@
                     </div>
                     <div class="tc-ci-box__body p-0 tc-role-dashboard__past-list">
                         @forelse ($pastBulletins as $bulletin)
-                            <a href="{{ route('tenant_dashboard', ['bulletin' => $bulletin->id]) }}"
+                            <a href="{{ route('tenant_dashboard', ['bulletin' => $bulletin->id]) }}#tc-bulletin-{{ $bulletin->id }}"
                                 class="tc-role-dashboard__past-item {{ ($openBulletinId ?? $pastBulletins->first()?->id) === $bulletin->id ? 'is-active' : '' }}">
-                                {{ $bulletin->bulletin_title }}
+                                <span class="tc-role-dashboard__past-title">{{ $bulletin->bulletin_title }}</span>
                                 <span class="text-muted">({{ $bulletin->created_at?->format('m/d/Y') }})</span>
+                                @if ($bulletin->isPdfAttachment())
+                                    <span class="badge bg-light text-dark border ms-1">PDF</span>
+                                @endif
                             </a>
                         @empty
                             <div class="tc-role-dashboard__empty">

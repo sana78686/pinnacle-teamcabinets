@@ -75,6 +75,7 @@
                     <div class="tc-checkout__cart-body">
                         <div class="tc-checkout__job"><strong>Job Name</strong> : {{ $cartData['job_name'] }}</div>
 
+                        <p class="tc-checkout-table-scroll-hint mb-0">Swipe or scroll horizontally to see all cart columns.</p>
                         <div class="tc-checkout-table-wrap">
                             <table class="table table-bordered table-sm tc-checkout-table mb-0">
                                 <thead>
@@ -95,26 +96,26 @@
                                         @php $n = count($room['product_sku'] ?? []); @endphp
                                         @for ($i = 0; $i < $n; $i++)
                                             <tr>
-                                                <td>
+                                                <td data-label="Double Check">
                                                     <span class="tc-checkout-checks">
                                                         <span class="tc-checkout-check tc-checkout-check--yellow{{ ($room['checkbox_val1'][$i] ?? '0') == '1' ? ' is-on' : '' }}"></span>
                                                         <span class="tc-checkout-check tc-checkout-check--green{{ ($room['checkbox_val2'][$i] ?? '0') == '1' ? ' is-on' : '' }}"></span>
                                                     </span>
                                                 </td>
-                                                <td class="tc-checkout-col-name">{{ $room['product_sku'][$i] ?? '' }}</td>
-                                                <td class="tc-checkout-col-desc">{{ $room['product_cabinets_description'][$i] ?? '' }}</td>
-                                                <td class="text-end">{{ $room['product_weight'][$i] ?? 0 }} lbs</td>
-                                                <td class="text-end">${{ number_format((float) ($room['product_cost'][$i] ?? 0), 2) }}</td>
+                                                <td class="tc-checkout-col-name" data-label="Cabinet Name">{{ $room['product_sku'][$i] ?? '' }}</td>
+                                                <td class="tc-checkout-col-desc" data-label="Description">{{ $room['product_cabinets_description'][$i] ?? '' }}</td>
+                                                <td class="text-end" data-label="Weight">{{ $room['product_weight'][$i] ?? 0 }} lbs</td>
+                                                <td class="text-end" data-label="Unit Price">${{ number_format((float) ($room['product_cost'][$i] ?? 0), 2) }}</td>
                                                 @php
                                                     $lineTotal = (float) ($room['product_tot_price'][$i] ?? 0);
                                                     if ($lineTotal <= 0) {
                                                         $lineTotal = (float) ($room['product_cost'][$i] ?? 0) * (int) ($room['product_quantity'][$i] ?? 1);
                                                     }
                                                 @endphp
-                                                <td class="text-end">${{ number_format($lineTotal, 2) }}</td>
-                                                <td class="text-end">{{ $room['product_quantity'][$i] ?? 1 }}</td>
+                                                <td class="text-end" data-label="Total Price">${{ number_format($lineTotal, 2) }}</td>
+                                                <td class="text-end" data-label="Qty">{{ $room['product_quantity'][$i] ?? 1 }}</td>
                                                 @if ($hasAssemble)
-                                                    <td class="text-end">
+                                                    <td class="text-end" data-label="Assemble">
                                                         @if ((float) ($room['product_assemble_cost'][$i] ?? 0) > 0)
                                                             ${{ number_format((float) $room['product_assemble_cost'][$i], 2) }}
                                                         @else

@@ -70,14 +70,41 @@ class BulletinAudience
         return array_values(array_unique(array_filter($keys)));
     }
 
+    /**
+     * CI dashboard: bulletin.select_user_type == login user user_type.
+     */
+    public static function primaryUserTypeKey(User $user): string
+    {
+        $ciRole = $user->getCiRole();
+        if ($ciRole !== '') {
+            return self::normalizeTargetRole($ciRole) ?? $ciRole;
+        }
+
+        if (filled($user->user_type)) {
+            return self::normalizeTargetRole($user->user_type) ?? (string) $user->user_type;
+        }
+
+        return '';
+    }
+
     /** @return list<string> */
     public static function roleKeysForUser(User $user): array
     {
         $keys = [];
 
+        $primary = self::primaryUserTypeKey($user);
+        if ($primary !== '') {
+            $keys = array_merge($keys, self::expandTargetRoleKeys($primary), [$primary]);
+        }
+
+        if (filled($user->user_type)) {
+            $keys[] = (string) $user->user_type;
+            $keys = array_merge($keys, self::expandTargetRoleKeys($user->user_type));
+        }
+
         try {
             foreach ($user->getRoleNames() as $roleName) {
-                $keys = array_merge($keys, self::expandTargetRoleKeys($roleName));
+                $keys = array_merge($keys, self::expandTargetRoleKeys($roleName), [$roleName]);
             }
         } catch (\Throwable) {
             // ignore
@@ -89,6 +116,11 @@ class BulletinAudience
     public static function targetMatchesUser(?string $targetRole, User $user): bool
     {
         if ($targetRole === null || trim($targetRole) === '') {
+            return true;
+        }
+
+        $userType = self::primaryUserTypeKey($user);
+        if ($userType !== '' && self::optionMatchesStored($targetRole, $userType)) {
             return true;
         }
 

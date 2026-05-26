@@ -35,7 +35,7 @@ class TenantRoleDashboardService
     {
         return Bulletin::query()
             ->visibleToUser($user)
-            ->latest('id')
+            ->orderByDesc('id')
             ->get()
             ->filter(fn (Bulletin $bulletin) => $bulletin->isVisibleToUser($user))
             ->values();

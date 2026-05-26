@@ -81,6 +81,9 @@ class TenantBulletinController extends Controller
         ], MediaUpload::imageOrPdfFieldRules('image')));
 
         $bulletin = new Bulletin;
+        if (tenancy()->initialized) {
+            $bulletin->tenant_id = tenant()->getTenantKey();
+        }
         $bulletin->user_option = $validated['user_option'];
         $bulletin->target_role = $validated['user_option'] === 'specific_user'
             ? BulletinAudience::normalizeTargetRole($validated['target_role'] ?? null)

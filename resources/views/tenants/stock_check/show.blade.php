@@ -18,6 +18,6 @@
     @if ($isAdminView ?? false)
         <script src="{{ tenant_static_asset('js/stock-check-admin.js') }}?v=3"></script>
     @else
-        <script src="{{ tenant_static_asset('js/stock-check-user.js') }}?v=1"></script>
+        <script src="{{ tenant_static_asset('js/stock-check-user.js') }}?v=2"></script>
     @endif
 @endsection

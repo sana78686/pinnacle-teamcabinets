@@ -237,8 +237,10 @@ class TenantCreateOrderController extends Controller
         $cartWeight = (float) ($payload['totals']['sub_total_weight'] ?? 0);
         $shippingCost = (float) ($payload['shipping_cost'] ?? $cartData['order_shipping_cost'] ?? 0);
         $shippingCost = $this->checkout->applyWeightShippingSurcharge($cartWeight, $shippingCost);
-        $isShippingQuote = (int) ($cartData['is_shipping_quote'] ?? 0) > 0;
+        $isShippingQuote = (int) ($cartData['is_shipping_quote'] ?? 0) === 1;
+        $isStockCheckCheckout = (int) ($cartData['is_shipping_quote'] ?? 0) === 2;
         $shippingQuoteId = session('shipping_quote_checkout_id');
+        $stockCheckId = session('stock_check_checkout_id');
         $shippingBreakdown = json_decode((string) ($cartData['shipping_charges_arr'] ?? '[]'), true) ?: [];
 
         $checkoutTotals = $this->checkout->calculateCheckoutTotals(
@@ -266,10 +268,12 @@ class TenantCreateOrderController extends Controller
             'shippingBreakdown' => $shippingBreakdown,
             'isShippingQuote' => $isShippingQuote,
             'shippingQuoteId' => $shippingQuoteId,
-            'backToCartUrl' => $isShippingQuote && $shippingQuoteId
-                ? route('tenant_shipping_quotes_show', $shippingQuoteId)
-                : route('tenant_order_workspace'),
-            'backToCartDisabled' => $isShippingQuote,
+            'backToCartUrl' => $stockCheckId
+                ? route('tenant_stock_check_show', $stockCheckId)
+                : ($isShippingQuote && $shippingQuoteId
+                    ? route('tenant_shipping_quotes_show', $shippingQuoteId)
+                    : route('tenant_order_workspace')),
+            'backToCartDisabled' => $isShippingQuote || $isStockCheckCheckout,
             'states' => $this->checkout->usStateOptions(),
             'floridaCounties' => $this->checkout->floridaCountyOptions(),
             'catalogId' => $cartData['catalogue'] ?? null,
@@ -489,7 +493,7 @@ class TenantCreateOrderController extends Controller
             // Templates may be missing; order is still saved.
         }
 
-        session()->forget(['workspace_checkout', 'cart_data', 'shipping_quote_checkout_id']);
+        session()->forget(['workspace_checkout', 'cart_data', 'shipping_quote_checkout_id', 'stock_check_checkout_id']);
 
         TenantNotificationService::flashToast(
             'Order #'.$order->id.' placed successfully! You can file a claim from this order when needed.',

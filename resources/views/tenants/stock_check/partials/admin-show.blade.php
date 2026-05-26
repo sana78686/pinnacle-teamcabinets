@@ -187,7 +187,33 @@
             </div>
         @endif
 
-        @if ($isApproved ?? false)
+        @if (! $isAdmin && ($canProceedToCheckout ?? false))
+            <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
+                <button type="button" class="btn btn-primary approve_stock_check" id="sc-btn-proceed-checkout">
+                    Approve &amp; Proceed To Checkout
+                </button>
+            </div>
+            <form method="POST" action="{{ $proceedCheckoutRoute }}" id="sc-proceed-checkout-form" class="d-none">
+                @csrf
+            </form>
+            <div class="modal fade" id="userStockCheckApproveModal" tabindex="-1" aria-labelledby="userStockCheckApproveModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="userStockCheckApproveModalLabel">Stock Check Approved Confirmation</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body tc-stock-check-approve-popup">
+                            {!! other_page_content('stock_check_approve_pop_up') !!}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-success" id="sc-proceed-checkout-confirm">Yes</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">No</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @elseif ($isApproved ?? false)
             <p class="text-success mb-0">This stock check request has been approved.</p>
         @elseif ($isAdmin)
             @if ($isShippingRequired ?? false)

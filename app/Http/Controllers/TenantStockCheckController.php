@@ -85,6 +85,37 @@ class TenantStockCheckController extends Controller
         return view('tenants.stock_check.show', $data);
     }
 
+    public function proceedToCheckout(string $id): RedirectResponse
+    {
+        $stockCheck = StockCheckRequest::query()->with('user')->findOrFail($id);
+
+        if (! $this->recordWorkspace->userMayAccess($stockCheck, Auth::user())) {
+            abort(403);
+        }
+
+        if (! $this->stockAdminView->canProceedToCheckout($stockCheck)) {
+            return redirect()
+                ->route('tenant_stock_check_show', $stockCheck->id)
+                ->with('error', 'Shipping charges are not ready yet. Please wait for an administrator to complete your stock check.');
+        }
+
+        try {
+            $session = $this->stockAdminView->buildCheckoutSession($stockCheck, Auth::user());
+        } catch (\InvalidArgumentException $e) {
+            return redirect()
+                ->route('tenant_stock_check_show', $stockCheck->id)
+                ->with('error', $e->getMessage());
+        }
+
+        session([
+            'workspace_checkout' => $session['payload'],
+            'cart_data' => $session['cartData'],
+            'stock_check_checkout_id' => $stockCheck->id,
+        ]);
+
+        return redirect()->route('tenant_order_workspace_checkout');
+    }
+
     public function updateItemNotes(Request $request, string $id): JsonResponse|RedirectResponse
     {
         $stockCheck = StockCheckRequest::query()->findOrFail($id);

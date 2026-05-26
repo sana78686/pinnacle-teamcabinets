@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Models\ManageEmailsContent;
 use App\Models\Product;
+use App\Models\ProductCatalog;
 use App\Models\StockCheckRequest;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
@@ -46,6 +48,11 @@ class StockCheckAdminViewService
         }
 
         $isApproved = $record->isApproved();
+        $adminHasSetShipping = $isApproved && (
+            $isShippingRequired
+            || (float) ($totals['shipping_cost'] ?? 0) > 0
+            || (float) ($totals['pallets_cost'] ?? 0) > 0
+        );
         $displayGrandTotal = $isApproved
             ? (float) $totals['grand_total']
             : round(
@@ -68,8 +75,10 @@ class StockCheckAdminViewService
             'isShippingRequired' => $isShippingRequired,
             'isApproved' => $isApproved,
             'notesLocked' => $isApproved,
-            'showUserShipping' => $isApproved && $isShippingRequired,
-            'showSimpleShipping' => $isApproved && ! $isShippingRequired && (float) ($record->shipping_cost ?? 0) > 0,
+            'showUserShipping' => $adminHasSetShipping && $isShippingRequired,
+            'showSimpleShipping' => $adminHasSetShipping && ! $isShippingRequired && (float) ($record->shipping_cost ?? 0) > 0,
+            'canProceedToCheckout' => $this->canProceedToCheckout($record),
+            'proceedCheckoutRoute' => route('tenant_stock_check_proceed_checkout', $record->id),
             'showAdminForm' => ! $isApproved,
             'deliveryLabel' => $this->deliveryLabel($record),
             'unloadLabel' => $this->unloadLabel($record),
@@ -355,6 +364,125 @@ class StockCheckAdminViewService
             'shipping_cost' => $shippingCost,
             'grand_total' => $grandTotal,
         ];
+    }
+
+    public function canProceedToCheckout(StockCheckRequest $record): bool
+    {
+        if (! $record->isApproved()) {
+            return false;
+        }
+
+        $shippingCost = (float) ($record->shipping_cost ?? 0);
+
+        return (float) ($record->grand_total_cost ?? 0) > 0
+            && ($shippingCost > 0 || $this->isShippingRequired($record));
+    }
+
+    /**
+     * @return array{payload: array<string, mixed>, cartData: array<string, mixed>}
+     */
+    public function buildCheckoutSession(StockCheckRequest $record, User $user): array
+    {
+        if (! $this->canProceedToCheckout($record)) {
+            throw new \InvalidArgumentException('Stock check is not ready for checkout.');
+        }
+
+        $record->loadMissing(['user.country', 'user.state']);
+        $rooms = $record->normalizedRooms();
+        $assembleYes = $this->resolveAssembleYes($record, $this->buildLineItems($rooms));
+        $totals = $this->totalsFromRecord($record, $assembleYes);
+        $shippingCost = (float) ($totals['shipping_cost'] ?? $record->shipping_cost ?? 0);
+        $isShippingRequired = $this->isShippingRequired($record);
+
+        $payload = [
+            'job_name' => $record->job_name,
+            'rooms' => $rooms,
+            'assemble' => $assembleYes ? 'yes' : 'no',
+            'shipping_status' => 'yes',
+            'comment' => $record->comment,
+            'user' => $user,
+            'totals' => [
+                'sub_total_cost' => (float) ($totals['sub_total_price'] ?? 0),
+                'sub_total_weight' => (float) ($totals['sub_total_weight'] ?? 0),
+                'sub_total_assemble_cost' => (float) ($totals['sub_total_assemble'] ?? 0),
+                'grand_total_cost' => (float) ($totals['grand_total'] ?? 0),
+            ],
+            'shipping_cost' => $shippingCost,
+            'product_catalog_id' => $record->product_catalog_id,
+            'door_color_id' => $record->door_color_id,
+            'product_img_src' => $record->product_img_src,
+            'product_img_name' => $record->product_img_name,
+        ];
+
+        $catalogName = $record->product_catalog_id
+            ? (ProductCatalog::query()->whereKey($record->product_catalog_id)->value('name') ?? '')
+            : '';
+
+        $roomRequest = Request::create('/', 'GET', [
+            'product_img_name' => $record->product_img_name,
+            'catalogue_name' => $catalogName,
+            'catalog_id' => $record->product_catalog_id,
+        ]);
+
+        $cartData = array_merge($this->checkout->billShipAddresses($user), [
+            'user_id' => $user->id,
+            'job_name' => $record->job_name,
+            'order_comment' => $record->comment ?? '',
+            'is_assemble' => $assembleYes ? 1 : 2,
+            'assemble_cabinets_check' => $assembleYes ? 'yes' : 'no',
+            'room_data' => json_encode($this->checkout->buildCiRoomData($rooms, $roomRequest, $user)),
+            'cart_product_weight' => number_format((float) ($totals['sub_total_weight'] ?? 0), 2).' lbs',
+            'all_cart_total' => number_format((float) ($totals['sub_total_price'] ?? 0), 2, '.', ''),
+            'catalogue' => $record->product_catalog_id,
+            'product_img_src' => $record->product_img_src ?? '',
+            'product_img_name' => $record->product_img_name ?? '',
+            'is_shipping_quote' => 2,
+            'order_shipping_cost' => $shippingCost,
+            'shipping_charges_arr' => json_encode($this->shippingChargesBreakdown($record)),
+            'stock_check_shipping_type' => $isShippingRequired ? 1 : 2,
+            'shipping_quote_id' => $record->id,
+        ]);
+
+        return ['payload' => $payload, 'cartData' => $cartData];
+    }
+
+    /**
+     * @return array<string, float>
+     */
+    protected function shippingChargesBreakdown(StockCheckRequest $record): array
+    {
+        $lines = [];
+        $pallets = (float) ($record->pallets_cost ?? 0);
+        if ($pallets > 0) {
+            $count = (int) ($record->total_pallets ?? 1);
+            if ($count < 1) {
+                $count = 1;
+            }
+            $lines['Pallets(Total Pallets = '.$count.')'] = $pallets;
+        }
+        $delivery = (float) ($record->delivery_cost ?? 0);
+        if ($delivery > 0) {
+            $lines[$this->deliveryLabel($record) === 'Commercial'
+                ? 'Delivery Charges(Commercial)'
+                : 'Delivery Charges(Residential)'] = $delivery;
+        }
+        $liftgate = (float) ($record->liftgate_cost ?? 0);
+        if ($liftgate > 0) {
+            $lines['Liftgate Charges'] = $liftgate;
+        }
+        $unload = (float) ($record->unload_cost ?? 0);
+        if ($unload > 0) {
+            $label = $this->unloadLabel($record) === 'By Hand'
+                ? 'Unload Charges(By Hand)'
+                : 'Unload Charges(By Forklift)';
+            $lines[$label] = $unload;
+        }
+        $misc = (float) ($record->miscellaneous_cost ?? 0);
+        if ($misc > 0) {
+            $lines['Miscellneous Charges'] = $misc;
+        }
+
+        return $lines;
     }
 
     /**

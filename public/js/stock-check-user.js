@@ -2,6 +2,28 @@
     var form = document.getElementById('sc-item-notes-form');
     var btn = document.getElementById('sc-btn-update-notes');
     var msg = document.getElementById('sc-user-status-msg');
+    var proceedBtn = document.getElementById('sc-btn-proceed-checkout');
+    var proceedForm = document.getElementById('sc-proceed-checkout-form');
+    var proceedConfirm = document.getElementById('sc-proceed-checkout-confirm');
+    var approveModal = document.getElementById('userStockCheckApproveModal');
+
+    if (proceedBtn && proceedForm && approveModal) {
+        proceedBtn.addEventListener('click', function () {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                bootstrap.Modal.getOrCreateInstance(approveModal).show();
+            } else if (typeof $ !== 'undefined' && $.fn.modal) {
+                $(approveModal).modal('show');
+            } else if (window.confirm('Proceed to checkout with this stock check?')) {
+                proceedForm.submit();
+            }
+        });
+
+        if (proceedConfirm) {
+            proceedConfirm.addEventListener('click', function () {
+                proceedForm.submit();
+            });
+        }
+    }
 
     if (!form || !btn) {
         return;

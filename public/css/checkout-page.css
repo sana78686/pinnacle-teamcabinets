@@ -1,4 +1,4 @@
-/* CI cart_checkout_product layout — standalone workspace (no panel header) */
+/* CI cart_checkout_product layout — tenant panel or standalone workspace */
 .tc-checkout-page {
     --tc-checkout-accent: #1a4a7a;
     --tc-checkout-border: #e8ebf2;
@@ -58,6 +58,10 @@
     flex: 1;
     padding: 1rem 1.25rem 1.5rem;
     overflow-x: hidden;
+}
+
+.page-body .tc-checkout-page .ow-checkout-main {
+    padding: 0 0 1.5rem;
 }
 
 .tc-checkout {

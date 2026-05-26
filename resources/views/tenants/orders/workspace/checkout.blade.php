@@ -1,9 +1,34 @@
-@extends('layouts.tenant.standalone')
+@extends(tenant_panel_layout())
 
 @section('title', 'Checkout')
 
+@section('breadcrumb-title')
+    <h2>Checkout</h2>
+@endsection
+
+@section('breadcrumb-items')
+    @php
+        $stockCheckId = session('stock_check_checkout_id');
+        $shippingQuoteId = session('shipping_quote_checkout_id');
+    @endphp
+    @if ($stockCheckId)
+        <li class="breadcrumb-item"><a href="{{ route('tenant_stock_check_index') }}">Stock Check</a></li>
+        @unless ($backToCartDisabled ?? false)
+            <li class="breadcrumb-item"><a href="{{ $backToCartUrl }}">Request</a></li>
+        @endunless
+    @elseif ($shippingQuoteId)
+        <li class="breadcrumb-item"><a href="{{ route('tenant_shipping_quotes_index') }}">Shipping Quotes</a></li>
+        @unless ($backToCartDisabled ?? false)
+            <li class="breadcrumb-item"><a href="{{ $backToCartUrl }}">Quote</a></li>
+        @endunless
+    @else
+        <li class="breadcrumb-item"><a href="{{ route('tenant_order_workspace') }}">Create Order</a></li>
+    @endif
+    <li class="breadcrumb-item active">Checkout</li>
+@endsection
+
 @section('style')
-<link rel="stylesheet" href="{{ tenant_static_asset('css/checkout-page.css') }}?v=3">
+<link rel="stylesheet" href="{{ tenant_static_asset('css/checkout-page.css') }}?v=4">
 @endsection
 
 @section('content')
@@ -18,15 +43,8 @@
     $isFlShip = in_array(strtolower($shipState), ['florida', 'fl'], true);
 @endphp
 
-<div class="ow-page ow-page--fullscreen tc-checkout-page">
-    @include('tenants.orders.workspace.partials.workspace-standalone-bar', [
-        'backUrl' => $backToCartUrl ?? route('tenant_order_workspace'),
-        'backLabel' => 'Back To Cart',
-        'backDisabled' => $backToCartDisabled ?? false,
-    ])
-
-    <div class="container-fluid tc-checkout ow-checkout-main">
-    @include('partial.message')
+<div class="container-fluid tc-checkout-page">
+    <div class="tc-checkout ow-checkout-main">
 
     @if ($errors->any())
         <div class="alert alert-danger">{{ $errors->first() }}</div>

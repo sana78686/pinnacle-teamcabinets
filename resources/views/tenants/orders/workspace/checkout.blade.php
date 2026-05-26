@@ -28,7 +28,7 @@
 @endsection
 
 @section('style')
-<link rel="stylesheet" href="{{ tenant_static_asset('css/checkout-page.css') }}?v=8">
+<link rel="stylesheet" href="{{ tenant_static_asset('css/checkout-page.css') }}?v=9">
 @endsection
 
 @section('content')
@@ -75,13 +75,12 @@
                     <div class="tc-checkout__cart-body">
                         <div class="tc-checkout__job"><strong>Job Name</strong> : {{ $cartData['job_name'] }}</div>
 
-                        <p class="tc-checkout-table-scroll-hint mb-0">Swipe or scroll horizontally to see all cart columns.</p>
                         <div class="tc-checkout-table-wrap">
                             <table class="table table-bordered table-sm tc-checkout-table mb-0">
                                 <thead>
                                     <tr>
-                                        <th class="tc-checkout-col-checks">Double Check Work</th>
-                                        <th class="tc-checkout-col-name">Cabinet Name</th>
+                                        <th class="tc-checkout-col-checks"><span class="tc-checkout-th-lines">Double<br>Check</span></th>
+                                        <th class="tc-checkout-col-name">Cabinet<br>Name</th>
                                         <th class="tc-checkout-col-desc">Cabinet Description</th>
                                         <th class="text-end tc-checkout-col-num">Weight</th>
                                         <th class="text-end tc-checkout-col-num">Unit Price</th>

@@ -217,7 +217,11 @@ class TenantUserController extends Controller
     {
         return view('tenants.users.create', array_merge(
             $this->doorFactorBootstrapData(),
-            ['roleOptions' => \App\Services\TenantRoleService::roleOptionsForUserForms()]
+            [
+                'roleOptions' => \App\Services\TenantRoleService::roleOptionsForUserForms(),
+                'countries' => Country::where('id', 233)->pluck('name', 'id'),
+                'states' => State::where('country_id', 233)->pluck('name', 'id'),
+            ]
         ));
     }
 

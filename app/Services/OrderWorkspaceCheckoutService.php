@@ -135,17 +135,20 @@ class OrderWorkspaceCheckoutService
             return 0.0;
         }
 
+        $county = trim($county);
+        if ($county !== '' && Schema::hasTable('sales_tax_counties')) {
+            // CI behavior: if a managed county exists, prefer it (even if state text isn't Florida).
+            $row = SalesTaxCounty::query()
+                ->whereRaw('LOWER(counties) = ?', [strtolower($county)])
+                ->first();
+            if ($row && (float) $row->tax > 0) {
+                return (float) $row->tax;
+            }
+        }
+
         $stateNorm = strtolower(trim($state));
 
         if ($stateNorm === 'florida' || $stateNorm === 'fl') {
-            $county = trim($county);
-            if ($county !== '' && Schema::hasTable('sales_tax_counties')) {
-                $row = SalesTaxCounty::query()->where('counties', $county)->first();
-                if ($row && (float) $row->tax > 0) {
-                    return (float) $row->tax;
-                }
-            }
-
             return 7.0;
         }
 

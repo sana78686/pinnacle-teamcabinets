@@ -148,7 +148,11 @@
                         <select class="js-example-basic-single col-sm-12 form-control b-r-0" id="search_country"
                             name="country_id" data-toggle="tooltip" title="Select the country where the user resides"
                             autofocus>
-                            <!-- Options -->
+                            @foreach (($countries ?? []) as $id => $name)
+                                <option value="{{ $id }}" {{ (int) old('country_id', 233) === (int) $id ? 'selected' : '' }}>
+                                    {{ $name }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -158,7 +162,11 @@
                         <strong>State &nbsp;<span class="txt-danger">*</span></strong>
                         <select class="js-example-basic-single col-sm-12 form-control b-r-0" id="search_state"
                             name="state_id" data-toggle="tooltip" title="Select the state of residence" autofocus>
-                            <!-- Options -->
+                            @foreach (($states ?? []) as $id => $name)
+                                <option value="{{ $id }}" {{ (int) old('state_id', 0) === (int) $id ? 'selected' : '' }}>
+                                    {{ $name }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -274,8 +282,6 @@
     <script type="text/javascript">
         $(document).ready(function() {
             var role_path = "{{ route('tenant_role_autocomplete') }}";
-            var country_path = "{{ route('tenant_country_autocomplete') }}";
-            var state_path = "{{ route('tenant_state_autocomplete') }}";
             var city_path = "{{ route('tenant_city_autocomplete') }}";
             var county_path = "{{ route('tenant_county_autocomplete') }}";
             var $roleSelect = $('#search_role');
@@ -367,58 +373,15 @@
             //         cache: true
             //     }
             // });
+            // Country/State: default United States + preload US states
             $('#search_country').select2({
                 placeholder: '--- Select Country ---',
-                allowClear: true,
-                ajax: {
-                    url: country_path,
-                    dataType: 'json',
-                    delay: 250,
-                    processResults: function(data) {
-                        return {
-                            results: $.map(data, function(item) {
-                                return {
-                                    text: item.name,
-                                    id: item.id,
-                                };
-                            }),
-                        };
-                    },
-                    cache: true,
-                },
-            }).on('change', function() {
-                const countryId = $(this).val();
-                $('#search_state').val(null).trigger('change'); // Clear state dropdown
-                $('#search_city').val(null).trigger('change'); // Clear city dropdown
+                allowClear: false,
+            });
 
-                if (countryId) {
-                    $('#search_state').select2({
-                        placeholder: '--- Select State ---',
-                        allowClear: true,
-                        ajax: {
-                            url: state_path,
-                            dataType: 'json',
-                            delay: 250,
-                            data: function(params) {
-                                return {
-                                    q: params.term, // Search query
-                                    country_id: countryId, // Pass selected country ID
-                                };
-                            },
-                            processResults: function(data) {
-                                return {
-                                    results: $.map(data, function(item) {
-                                        return {
-                                            text: item.name,
-                                            id: item.id,
-                                        };
-                                    }),
-                                };
-                            },
-                            cache: true,
-                        },
-                    });
-                }
+            $('#search_state').select2({
+                placeholder: '--- Select State ---',
+                allowClear: true,
             });
 
             $('#search_state').on('change', function() {

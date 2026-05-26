@@ -129,6 +129,9 @@ Route::prefix('storefront-chat')->group(function () {
 
          /**** Pinnacle Tenants routes */
          Route::prefix('tenants')->middleware(['auth', 'tenant.auth', 'tenant.subscribed', 'tenant.permission'])->group(function () {
+             Route::get('media/storage/{path}', [\App\Http\Controllers\TenantPublicFileController::class, 'storage'])
+                 ->where('path', '.*')
+                 ->name('tenant_serve_storage');
 
 
          Route::get('website-designing/about', [TenantPageController::class, 'editAbout'])->name('tenant_storefront_about');

@@ -94,8 +94,7 @@ class BulletinApiController extends Controller
             $request,
             'image',
             null,
-            'images',
-            'public'
+            'images'
         );
         $bulletin->save();
 
@@ -127,8 +126,7 @@ class BulletinApiController extends Controller
             $request,
             'image',
             $bulletin->image,
-            'images',
-            'public'
+            'images'
         );
         $bulletin->save();
 

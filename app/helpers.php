@@ -128,6 +128,10 @@ if (! function_exists('tenant_media_url')) {
 
         $storageFile = storage_path('app/public/'.$path);
         if (is_file($storageFile)) {
+            if (tenant_request_uses_public_asset_root() && \Illuminate\Support\Facades\Route::has('tenant_serve_storage')) {
+                return route('tenant_serve_storage', ['path' => $path]);
+            }
+
             return asset('storage/'.$path);
         }
 

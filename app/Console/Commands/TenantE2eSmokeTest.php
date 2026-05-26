@@ -150,11 +150,11 @@ class TenantE2eSmokeTest extends Command
                         throw new \RuntimeException('No dealer user for commission test');
                     }
                     $result = $commission->calculate(1000.0, $dealer);
-                    if (! isset($result['mgfCommission'], $result['repCommission'])) {
+                    if (! isset($result['mfgCommission'], $result['repCommission'])) {
                         throw new \RuntimeException('Invalid commission result shape');
                     }
 
-                    return 'mfg='.($result['mgfCommission'] ?? 0).', rep='.($result['repCommission'] ?? 0);
+                    return 'mfg='.($result['mfgCommission'] ?? 0).', rep='.($result['repCommission'] ?? 0);
                 });
 
                 $this->step('Catalog sales analytics', function () use ($catalogSales) {

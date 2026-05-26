@@ -54,7 +54,7 @@ class CommissionCalculationService
             ->first();
         $adminPointFactor = $admin ? (float) $admin->point_factor : 0.0;
 
-        $mgfCommission = $cartAmount * $adminPointFactor;
+        $mfgCommission = $cartAmount * $adminPointFactor;
         $repCommission = 0.0;
         $affCommission = 0.0;
         $subAffCommission = 0.0;
@@ -84,13 +84,13 @@ class CommissionCalculationService
         }
 
         return [
-            'mgfCommission' => round($mgfCommission, 4),
+            'mfgCommission' => round($mfgCommission, 4),
             'repCommission' => round($repCommission, 4),
             'affCommission' => round($affCommission, 4),
             'sub_aff_commission' => round($subAffCommission, 4),
             'repId' => $repId,
             'parentId' => $parentId,
-            'mfgComm' => round($mgfCommission, 4),
+            'mfgComm' => round($mfgCommission, 4),
             'repComm' => round($repCommission, 4),
             'affComm' => round($affCommission, 4),
             'subAffComm' => round($subAffCommission, 4),

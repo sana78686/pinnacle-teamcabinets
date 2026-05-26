@@ -6,7 +6,7 @@
 
     const cfg = window.owCheckout || {};
     const form = document.getElementById('ow-checkout-form');
-    if (!form || !cfg.subTotal) {
+    if (!form || cfg.subTotal == null) {
         return;
     }
 
@@ -71,27 +71,20 @@
         set('ow-assemble-subtotal', money(t.assemble));
         set('ow-assemble-total', money(t.assemble));
 
-        const creditRow = document.getElementById('ow-credit-fee-row');
-        const debitRow = document.getElementById('ow-debit-fee-row');
-        const achRow = document.getElementById('ow-ach-fee-row');
-
-        if (creditRow) {
-            creditRow.style.display = fee.kind === 'credit' && fee.amount > 0 ? '' : 'none';
-        }
-        if (debitRow) {
-            debitRow.style.display = fee.kind === 'debit' && fee.amount > 0 ? '' : 'none';
-        }
-        if (achRow) {
-            achRow.style.display = fee.kind === 'ach' && fee.amount > 0 ? '' : 'none';
-        }
-
-        set('ow-payment-fee-amt', money(fee.kind === 'credit' ? fee.amount : 0));
-        set('ow-debit-fee-amt', money(fee.kind === 'debit' ? fee.amount : 0));
-        set('ow-ach-fee-amt', money(fee.kind === 'ach' ? fee.amount : 0));
+        const paymentFeeRow = document.getElementById('ow-payment-fee-row');
         const feeLabel = document.getElementById('ow-payment-fee-label');
-        if (feeLabel && fee.kind === 'credit') {
-            feeLabel.textContent = fee.label + (fee.percent ? ' (' + fee.percent + '%)' : '');
+
+        if (paymentFeeRow) {
+            if (fee.kind === 'none') {
+                paymentFeeRow.style.display = 'none';
+            } else {
+                paymentFeeRow.style.display = '';
+            }
         }
+        if (feeLabel && fee.kind !== 'none') {
+            feeLabel.textContent = fee.label;
+        }
+        set('ow-payment-fee-amt', money(fee.kind === 'none' ? 0 : fee.amount));
 
         const hidGrand = document.getElementById('ow-grand-total-input');
         if (hidGrand) {

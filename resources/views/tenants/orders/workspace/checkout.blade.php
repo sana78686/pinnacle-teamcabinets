@@ -196,21 +196,11 @@
                                         <td></td>
                                         @if ($hasAssemble)<td></td>@endif
                                     </tr>
-                                    <tr id="ow-credit-fee-row">
+                                    <tr id="ow-payment-fee-row">
                                         <th colspan="5"><span id="ow-payment-fee-label">Credit Card Charges ({{ $fees['credit_card_percent'] ?? 0 }}%)</span></th>
+                                        <td></td>
+                                        <td></td>
                                         <td class="text-end" id="ow-payment-fee-amt">${{ number_format($totals['credit_card_charges'] ?? 0, 2) }}</td>
-                                        <td></td>
-                                        @if ($hasAssemble)<td></td>@endif
-                                    </tr>
-                                    <tr id="ow-debit-fee-row" style="display:none">
-                                        <th colspan="5">Debit Card Charges</th>
-                                        <td class="text-end" id="ow-debit-fee-amt">${{ number_format($totals['debit_card_charges'] ?? 0, 2) }}</td>
-                                        <td></td>
-                                        @if ($hasAssemble)<td></td>@endif
-                                    </tr>
-                                    <tr id="ow-ach-fee-row" style="display:none">
-                                        <th colspan="5">ACH Charges</th>
-                                        <td class="text-end" id="ow-ach-fee-amt">${{ number_format($totals['ach_charges'] ?? 0, 2) }}</td>
                                         <td></td>
                                         @if ($hasAssemble)<td></td>@endif
                                     </tr>
@@ -290,5 +280,5 @@
         shipCounty: @json($shipCounty),
     };
 </script>
-<script src="{{ tenant_static_asset('js/checkout-page.js') }}?v=4"></script>
+<script src="{{ tenant_static_asset('js/checkout-page.js') }}?v=5"></script>
 @endsection

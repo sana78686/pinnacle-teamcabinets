@@ -171,14 +171,12 @@
                         <strong>Country &nbsp;<span class="txt-danger">*</span></strong>
                         <select class="js-example-basic-single col-sm-12 form-control b-r-0" id="search_country"
                             name="country_id" required>
-                            @if ($user->country_id)
-                                @foreach ($countries as $id => $name)
-                                    <option value="{{ $id }}"
-                                        {{ old('country_id', $user->country_id) == $id ? 'selected' : '' }}>
-                                        {{ $name }}
-                                    </option>
-                                @endforeach
-                            @endif
+                            @foreach ($countries as $id => $name)
+                                <option value="{{ $id }}"
+                                    {{ (int) old('country_id', $user->country_id ?? 233) === (int) $id ? 'selected' : '' }}>
+                                    {{ $name }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -191,11 +189,12 @@
                         <select class="js-example-basic-single col-sm-12 form-control b-r-0"
                                 id="search_state"
                                 name="state_id" required>
-                                @if ($user->state_id)
-                                <option value="{{ $user->state_id }}" selected>
-                                    {{ $user->state->name }}
+                            @foreach ($states as $id => $name)
+                                <option value="{{ $id }}"
+                                    {{ (int) old('state_id', $user->state_id ?? 0) === (int) $id ? 'selected' : '' }}>
+                                    {{ $name }}
                                 </option>
-                            @endif
+                            @endforeach
                         </select>
                         {{-- <select class="js-example-basic-single col-sm-12 form-control b-r-0"
                                 id="search_state_demo"
@@ -409,7 +408,14 @@
                     },
                     cache: true,
                 },
-            }).on('change', function() {
+            });
+
+            $('#search_state').select2({
+                placeholder: '--- Select State ---',
+                allowClear: true,
+            });
+
+            $('#search_country').on('change', function() {
                 const countryId = $(this).val();
                 $('#search_state').val(null).trigger('change'); // Clear state dropdown
                 $('#search_city').val(null).trigger('change'); // Clear city dropdown

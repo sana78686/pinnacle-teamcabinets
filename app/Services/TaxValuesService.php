@@ -13,7 +13,7 @@ class TaxValuesService
         return [
             'fuel_charges_value' => ['label' => 'Fuel surcharge (%)', 'default' => '2'],
             'credit_card_charges' => ['label' => 'Credit card charges (%)', 'default' => '3'],
-            'debit_card_charges' => ['label' => 'Debit card charges (%)', 'default' => '0.5'],
+            'debit_card_charges' => ['label' => 'Debit card charges ($ flat fee)', 'default' => '0.50'],
             'ach_pay_charges' => ['label' => 'ACH charges ($)', 'default' => '10.00'],
             'sales_tax_percentage' => ['label' => 'Fallback sales tax (%) — used when county lookup is unavailable', 'default' => '0'],
         ];

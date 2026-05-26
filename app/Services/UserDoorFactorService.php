@@ -215,7 +215,6 @@ class UserDoorFactorService
             }
         });
 
-        // Update users JSON after factor rows commit — avoids lock wait on users row inside the transaction.
         $this->syncCiJsonColumns($user);
     }
 
@@ -298,9 +297,7 @@ class UserDoorFactorService
 
         $this->updateUserColumnsWithRetry($userId, $updates);
 
-        $user->setRawAttributes(array_merge($user->getAttributes(), $updates, [
-            'updated_at' => now(),
-        ]));
+        $user->refresh();
     }
 
     /** @param  array<string, mixed>  $updates */
@@ -311,9 +308,18 @@ class UserDoorFactorService
 
         while (true) {
             try {
-                $record = User::query()->findOrFail($userId);
-                $record->forceFill($updates);
-                $record->saveQuietly();
+                $payload = ['updated_at' => now()];
+                foreach ($updates as $key => $value) {
+                    if (in_array($key, ['door_point_factor', 'catalog_visibility'], true)) {
+                        $payload[$key] = is_array($value)
+                            ? json_encode($value, JSON_THROW_ON_ERROR)
+                            : (string) $value;
+                    } else {
+                        $payload[$key] = $value;
+                    }
+                }
+
+                DB::table('users')->where('id', $userId)->update($payload);
 
                 return;
             } catch (\Illuminate\Database\QueryException $e) {

@@ -7,9 +7,13 @@
     $total = $paginator?->total();
     $from = $total > 0 ? $paginator->firstItem() : 0;
     $to = $total > 0 ? $paginator->lastItem() : 0;
+    $toolbarExcept = ['page', 'per_page', 'search'];
+    if (! empty($userTypeFilters)) {
+        $toolbarExcept[] = 'user_type';
+    }
 @endphp
 <form method="get" action="{{ $listUrl ?? url()->current() }}" class="tc-list-toolbar tc-list-toolbar--modern" data-tc-list-filter>
-    @foreach (request()->except(['page', 'per_page', 'search']) as $key => $val)
+    @foreach (request()->except($toolbarExcept) as $key => $val)
         @if (is_scalar($val) && $val !== '')
             <input type="hidden" name="{{ $key }}" value="{{ $val }}">
         @endif
@@ -35,6 +39,17 @@
                         No records
                     @endif
                 </span>
+            @endif
+            @if (! empty($userTypeFilters))
+                <label class="tc-list-toolbar__per-page mb-0">
+                    <span class="text-muted">User</span>
+                    <select name="user_type" class="form-select form-select-sm tc-list-toolbar__select"
+                        data-tc-list-user-type onchange="this.form.submit()" aria-label="Filter by user type">
+                        @foreach ($userTypeFilters as $value => $label)
+                            <option value="{{ $value }}" @selected(($userType ?? '') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </label>
             @endif
             <label class="tc-list-toolbar__per-page mb-0">
                 <span class="text-muted">Per page</span>

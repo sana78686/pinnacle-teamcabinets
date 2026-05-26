@@ -7,16 +7,8 @@
 @endphp
 
 <div class="pt-0 card-body">
-    @include('partials.tc-list-toolbar', [
-        'listUrl' => route('tenant_order_list'),
-        'perPage' => $perPage ?? tenant_list_per_page(),
-        'search' => $search ?? '',
-        'paginator' => $records,
-        'searchPlaceholder' => 'Search orders…',
-    ])
-
     <div class="table-responsive table-sm tc-admin-datatable">
-        <table class="table p-0 m-0 display table-striped table-bordered table-sm tc-orders-list-table">
+        <table class="table p-0 m-0 display table-striped table-bordered table-sm tc-orders-list-table mb-0">
             <thead>
                 <tr>
                     <th scope="col">Order ID</th>
@@ -50,7 +42,7 @@
                         <td>{{ $listService->companyName($order) }}</td>
                         <td>{{ $listService->formatWeight($order) }}</td>
                         <td>{{ $listService->formatAmount($order) }}</td>
-                        <td class="text-center">
+                        <td class="tc-orders-list-table__status">
                             @if ($isAdmin)
                                 <select class="form-select form-select-sm tc-order-status-select {{ $listService->statusSelectClass((string) ($order->status ?? 'PENDING')) }}"
                                     data-order-status-select data-order-id="{{ $order->id }}"
@@ -68,7 +60,7 @@
                         </td>
                         <td>{{ $order->transaction_pro_id ?: '—' }}</td>
                         <td>{{ $listService->formatCiDate($order->created_at) }}</td>
-                        <td class="text-nowrap text-center tc-admin-datatable__actions">
+                        <td class="text-nowrap tc-admin-datatable__actions">
                             <a href="{{ route('tenant_order_show', $order->id) }}">View</a> ||
                             <a href="{{ route('tenant_order_warehouse_pick', $order->id) }}">Pick List</a> ||
                             @if ($isAdmin)

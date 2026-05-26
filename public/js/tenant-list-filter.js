@@ -20,6 +20,13 @@
                 });
             }
 
+            var userType = form.querySelector('[data-tc-list-user-type]');
+            if (userType) {
+                userType.addEventListener('change', function () {
+                    submitForm(form);
+                });
+            }
+
             if (search) {
                 search.addEventListener('keydown', function (e) {
                     if (e.key === 'Enter') {

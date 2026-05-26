@@ -2,7 +2,7 @@
 @section('title', 'Orders')
 
 @section('breadcrumb-title')
-    <h2>Orders</h2>
+    <h2>Orders <span>List</span></h2>
 @endsection
 
 @section('breadcrumb-items')
@@ -13,35 +13,42 @@
 @section('content')
     @include('partial.message')
 
-    <div class="p-2 mt-0 card-header no-border d-flex flex-wrap align-items-center justify-content-end gap-2">
-        <a href="{{ route('tenant_deleted_order_list') }}" class="btn btn-info btn-sm text-white">Deleted Orders</a>
-        @if (! empty($exportCsvUrl))
-            <a href="{{ $exportCsvUrl }}" class="btn btn-info btn-sm text-white">Download All Orders CSV</a>
-        @endif
-        <form method="get" action="{{ route('tenant_order_list') }}" class="mb-0">
-            @foreach (request()->except(['page', 'user_type']) as $key => $val)
-                @if (is_scalar($val) && $val !== '')
-                    <input type="hidden" name="{{ $key }}" value="{{ $val }}">
-                @endif
-            @endforeach
-            <select name="user_type" class="form-select form-select-sm btn btn-info text-white tc-orders-user-filter"
-                onchange="this.form.submit()" aria-label="Filter orders by user type">
-                @foreach ($userTypeFilters as $value => $label)
-                    <option value="{{ $value }}" @selected(($userType ?? '') === $value)>{{ $label }}</option>
-                @endforeach
-            </select>
-        </form>
+    <div class="p-2 mt-0 card-header no-border">
+        <a href="{{ route('tenant_deleted_order_list') }}" class="btn btn-success btn-sm" data-toggle="tooltip"
+            title="View deleted orders">
+            <i class="icofont icofont-trash"></i> Deleted Orders
+        </a>
+        <a href="{{ url()->current() }}" class="btn btn-light btn-sm" data-toggle="tooltip" title="Refresh this page">
+            <i class="icofont icofont-refresh"></i> Refresh
+        </a>
+        <div class="pull-right">
+            @if (! empty($exportCsvUrl))
+                <a href="{{ $exportCsvUrl }}" class="btn btn-primary btn-sm" data-toggle="tooltip"
+                    title="Download all orders as CSV">
+                    <i class="icofont icofont-download-alt"></i> Download All Orders CSV
+                </a>
+            @endif
+        </div>
     </div>
+
+    @include('partials.tc-list-toolbar', [
+        'listUrl' => route('tenant_order_list'),
+        'perPage' => $perPage,
+        'search' => $search,
+        'paginator' => $records,
+        'searchPlaceholder' => 'Filter…',
+        'userTypeFilters' => $userTypeFilters ?? null,
+        'userType' => $userType ?? '',
+    ])
 
     @include('tenants.orders.partials.orders-list-table', [
         'records' => $records,
         'sourceBadges' => $sourceBadges,
-        'perPage' => $perPage,
-        'search' => $search,
     ])
 @endsection
 
 @section('script')
+    <script src="{{ $panelAsset('js/tenant-list-filter.js') }}?v=2"></script>
     @if (auth()->user()?->isAdmin())
         <script>
             document.querySelectorAll('[data-order-status-select]').forEach(function(select) {

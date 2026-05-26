@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\SiteSetting;
 use App\Models\TaxValues;
@@ -370,10 +371,17 @@ class OrderWorkspaceService
     /**
      * @param  class-string<Model>  $modelClass
      */
-    /** Columns for admin list tables (excludes heavy JSON `rooms` / `comment`). */
-    public static function workspaceListColumns(): array
+    /**
+     * @param  class-string<Model>  $modelClass
+     * @return list<string>
+     */
+    public static function workspaceListColumns(string $modelClass): array
     {
-        return [
+        $model = new $modelClass;
+        $table = $model->getTable();
+        $connection = $model->getConnectionName();
+
+        $columns = [
             'id',
             'job_name',
             'quote_name',
@@ -381,22 +389,36 @@ class OrderWorkspaceService
             'user_id',
             'user_email',
             'grand_total_cost',
-            'order_amount',
             'sub_total_weight',
             'assemble_cabinets_check',
             'shipping_status',
-            'status',
-            'transaction_pro_id',
             'created_at',
             'updated_at',
             'admin_viewed_at',
         ];
+
+        if ($modelClass === Order::class) {
+            $columns = array_merge($columns, [
+                'order_amount',
+                'status',
+                'transaction_pro_id',
+            ]);
+        }
+
+        $schema = $connection
+            ? Schema::connection($connection)
+            : Schema::connection(config('database.default'));
+
+        return array_values(array_filter(
+            $columns,
+            static fn (string $column): bool => $schema->hasColumn($table, $column)
+        ));
     }
 
     public function listQuery(string $modelClass, User $user): \Illuminate\Database\Eloquent\Builder
     {
         $query = $modelClass::query()
-            ->select(self::workspaceListColumns())
+            ->select(self::workspaceListColumns($modelClass))
             ->with(['user:id,name,email,company_name,user_type'])
             ->latest('id');
 

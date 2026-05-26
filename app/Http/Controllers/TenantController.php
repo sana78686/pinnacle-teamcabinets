@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Services\TenantDashboardService;
 use App\Services\TenantRoleDashboardService;
 use App\Services\TenantProvisioningService;
+use App\Services\TenantSubscriptionService;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;

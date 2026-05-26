@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\ManageRoleController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TenantAuthController;
+use App\Http\Controllers\BulletinApiController;
 use App\Http\Controllers\TenantBulletinController;
 use App\Http\Controllers\TenantClaimController;
 use App\Http\Controllers\TenantCommissionReportController;
@@ -371,13 +372,21 @@ Route::prefix('storefront-chat')->group(function () {
 
          Route::get('bulletins/index', [TenantBulletinController::class, 'index'])->name('tenant_bulletin_index');
          Route::get('bulletins/create', [TenantBulletinController::class, 'create'])->name('tenant_bulletin_create');
+         Route::get('bulletins/deleted/list', [TenantBulletinController::class, 'deletedbulletinList'])->name('tenant_deleted_bulletin_list');
+         Route::prefix('bulletins/api')->name('tenant_bulletins_api_')->group(function () {
+             Route::get('/', [BulletinApiController::class, 'index'])->name('index');
+             Route::post('/', [BulletinApiController::class, 'store'])->name('store');
+             Route::get('{id}', [BulletinApiController::class, 'show'])->whereNumber('id')->name('show');
+             Route::post('{id}', [BulletinApiController::class, 'update'])->whereNumber('id')->name('update');
+             Route::delete('{id}', [BulletinApiController::class, 'destroy'])->whereNumber('id')->name('destroy');
+             Route::post('{id}/restore', [BulletinApiController::class, 'restore'])->whereNumber('id')->name('restore');
+         });
          Route::post('bulletins', [TenantBulletinController::class, 'store'])->name('tenant_bulletin_store');
          Route::get('bulletins/{id}/edit', [TenantBulletinController::class, 'edit'])->name('tenant_bulletin_edit');
          Route::get('bulletins/{id}/show', [TenantBulletinController::class, 'show'])->name('tenant_bulletin_show');
+         Route::get('bulletins/{id}/restore', [TenantBulletinController::class, 'restoreDeletedbulletin'])->name('tenant_bulletin_restore');
          Route::post('bulletins/{id}', [TenantBulletinController::class, 'update'])->name('tenant_bulletin_update');
          Route::get('bulletins/{id}', [TenantBulletinController::class, 'destroy'])->name('tenant_bulletin_destroy');
-         Route::get('bulletins/deleted/list', [TenantBulletinController::class, 'deletedbulletinList'])->name('tenant_deleted_bulletin_list');
-         Route::get('bulletins/{id}/restore', [TenantBulletinController::class, 'restoreDeletedbulletin'])->name('tenant_bulletin_restore');
 
            /*** export and import bulletins route */
 

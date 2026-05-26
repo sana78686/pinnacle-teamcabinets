@@ -13,6 +13,42 @@
 
     <div v-if="flash" class="alert mx-2" :class="flash.ok ? 'alert-success' : 'alert-danger'" role="alert">@{{ flash.text }}</div>
 
+    <form v-if="config.type === 'bulletins'" class="tc-list-toolbar tc-list-toolbar--modern mx-2 mb-3" @submit.prevent="applyFilters">
+        <div class="tc-list-toolbar__row">
+            <div class="tc-list-toolbar__search-wrap">
+                <label class="visually-hidden" for="tc_bulletin_search">Search bulletins</label>
+                <span class="tc-list-toolbar__search-icon" aria-hidden="true"><i data-feather="search"></i></span>
+                <input type="search" id="tc_bulletin_search" class="form-control tc-list-toolbar__search"
+                    v-model="filters.search" placeholder="Search title, description, or user type…" autocomplete="off">
+                <button v-if="filters.search" type="button" class="tc-list-toolbar__clear" @click="clearSearch" aria-label="Clear search">&times;</button>
+            </div>
+            <div class="tc-list-toolbar__actions flex-wrap">
+                <label class="tc-list-toolbar__per-page mb-0">
+                    <span class="text-muted">Sort</span>
+                    <select class="form-select form-select-sm" v-model="filters.sort" @change="applyFilters">
+                        <option v-for="opt in (config.filterOptions.sort || [])" :key="opt.value" :value="opt.value">@{{ opt.label }}</option>
+                    </select>
+                </label>
+                <label class="tc-list-toolbar__per-page mb-0">
+                    <span class="text-muted">Audience</span>
+                    <select class="form-select form-select-sm" v-model="filters.audience" @change="applyFilters">
+                        <option v-for="opt in (config.filterOptions.audience || [])" :key="opt.value" :value="opt.value">@{{ opt.label }}</option>
+                    </select>
+                </label>
+                <span v-if="pagination.total > 0" class="tc-list-toolbar__count text-muted align-self-center">
+                    Showing <strong>@{{ pagination.from }}–@{{ pagination.to }}</strong>
+                    of <strong>@{{ pagination.total }}</strong>
+                </span>
+                <label class="tc-list-toolbar__per-page mb-0">
+                    <span class="text-muted">Per page</span>
+                    <select class="form-select form-select-sm" v-model="filters.per_page" @change="applyFilters">
+                        <option v-for="opt in (config.filterOptions.per_page || [])" :key="opt.value" :value="opt.value">@{{ opt.label }}</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+    </form>
+
     <div class="card tc-dash-card mb-3">
         <div class="card-body p-0">
             <div class="table-responsive table-sm tc-admin-datatable">
@@ -49,6 +85,18 @@
                             <a v-if="row.pdf_view_url" :href="row.pdf_view_url" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">View PDF</a>
                             <span v-else class="text-muted">—</span>
                         </template>
+                        <template v-else-if="col.type === 'attachment'">
+                            <a v-if="row.attachment_url && row.is_image_attachment" :href="row.attachment_url" target="_blank" rel="noopener" class="tc-bulletin-admin__thumb">
+                                <img :src="row.attachment_url" alt="">
+                            </a>
+                            <a v-else-if="row.attachment_url" :href="row.attachment_url" target="_blank" rel="noopener" class="tc-bulletin-admin__file-badge">
+                                @{{ row.attachment_ext }}
+                            </a>
+                            <span v-else class="text-muted">—</span>
+                        </template>
+                        <span v-else-if="col.type === 'badge'" class="badge" :class="row[col.badgeKey] || 'bg-secondary'">
+                            @{{ row[col.key] ?? '—' }}
+                        </span>
                         <span v-else-if="col.type === 'currency'">@{{ formatMoney(row[col.key]) }}</span>
                         <span v-else-if="col.type === 'weight'">@{{ formatWeight(row[col.key]) }}</span>
                         <span v-else>@{{ row[col.key] ?? '—' }}</span>
@@ -97,12 +145,12 @@
                             <ul class="mb-0"><li v-for="(e,i) in formErrors" :key="i">@{{ e }}</li></ul>
                         </div>
                         <div class="row g-3">
-                            <div v-for="field in config.fields" :key="field.name" class="form-group tc-field" :class="field.full ? 'col-12' : 'col-md-6'">
+                            <div v-for="field in config.fields" :key="field.name" v-show="fieldVisible(field)" class="form-group tc-field" :class="field.full ? 'col-12' : 'col-md-6'">
                                 <label v-if="field.type !== 'checkbox'" class="form-label tc-ps-field-label" :for="'ps-' + field.name">
                                     @{{ field.label }}<span v-if="field.required" class="text-danger"> *</span>
                                     <span v-if="field.tip" class="tc-tip" :data-tip="field.tip" data-placement="top" tabindex="0" role="button" :aria-label="field.tip"><i>i</i></span>
                                 </label>
-                                <select v-if="field.type === 'select'" class="form-control form-select" :id="'ps-' + field.name" :name="field.name" v-model="form[field.name]" :required="field.required" :data-tip="field.tip || null">
+                                <select v-if="field.type === 'select'" class="form-control form-select" :id="'ps-' + field.name" :name="field.name" v-model="form[field.name]" :required="fieldVisible(field) && field.required" :data-tip="field.tip || null">
                                     <option value="">--Select--</option>
                                     <option v-for="opt in optionsFor(field)" :key="opt.value" :value="opt.value">@{{ opt.label }}</option>
                                 </select>

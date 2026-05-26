@@ -6,9 +6,10 @@ use App\Exports\BulletinExport;
 use App\Imports\BulletinImport;
 use App\Models\Bulletin;
 use App\Support\BulletinAudience;
+use App\Support\BulletinVueConfig;
 use App\Support\MediaUpload;
 use App\Support\PublicUploadedFile;
-use App\Support\TenantListPaginator;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -19,53 +20,17 @@ class TenantBulletinController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = TenantListPaginator::perPage($request);
-        $search = TenantListPaginator::search($request);
-        $sort = (string) $request->input('sort', 'newest');
-        $audience = (string) $request->input('audience', '');
-
-        if (! array_key_exists($sort, BulletinAudience::adminSortOptions())) {
-            $sort = 'newest';
-        }
-
-        $query = Bulletin::query();
-
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('bulletin_title', 'like', '%'.$search.'%')
-                    ->orWhere('bulletin_description', 'like', '%'.$search.'%')
-                    ->orWhere('target_role', 'like', '%'.$search.'%');
-            });
-        }
-
-        if ($audience === 'every_one' || $audience === 'specific_user') {
-            $query->where('user_option', $audience);
-        }
-
-        match ($sort) {
-            'oldest' => $query->oldest('id'),
-            'title_asc' => $query->orderBy('bulletin_title')->orderByDesc('id'),
-            'title_desc' => $query->orderByDesc('bulletin_title')->orderByDesc('id'),
-            default => $query->latest('created_at')->latest('id'),
-        };
-
-        $bulletins = $query->paginate($perPage)->withQueryString();
-
         return view('tenants.Bulletins.index', [
-            'bulletins' => $bulletins,
-            'perPage' => $perPage,
-            'search' => $search,
-            'sort' => $sort,
-            'audience' => $audience,
+            'vueConfig' => BulletinVueConfig::get($request),
         ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): RedirectResponse
     {
-        return view('tenants.bulletins.create');
+        return redirect()->route('tenant_bulletin_index', ['create' => 1]);
     }
 
     /**
@@ -107,19 +72,17 @@ class TenantBulletinController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $id): RedirectResponse
     {
-        $bulletin = Bulletin::findOrFail($id);
-        return view('tenants.bulletins.show',compact('bulletin'));
+        return redirect()->route('tenant_bulletin_index', ['show' => $id]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(string $id): RedirectResponse
     {
-        $bulletin = Bulletin::findOrFail($id);
-       return view('tenants.bulletins.edit',compact('bulletin'));
+        return redirect()->route('tenant_bulletin_index', ['edit' => $id]);
     }
 
     /**

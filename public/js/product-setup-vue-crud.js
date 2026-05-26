@@ -38,16 +38,25 @@
                     formErrors: [],
                     showRecord: null,
                     flash: null,
+                    filters: {},
                 };
             },
             mounted() {
+                if (this.config.defaultFilters) {
+                    this.filters = Object.assign({}, this.config.defaultFilters);
+                }
                 this.loadMeta();
-                this.loadRows();
+                this.loadRows().then(() => this.handleAutoOpen());
             },
             watch: {
                 'form.catalog_id'(catalogId) {
                     if (this.config.type === 'products') {
                         this.syncDoorStyleForCatalog(catalogId);
+                    }
+                },
+                'form.user_option'(value) {
+                    if (this.config.type === 'bulletins' && value !== 'specific_user') {
+                        this.form.target_role = '';
                     }
                 },
             },
@@ -116,17 +125,70 @@
                     this.loading = true;
                     const p = page || this.pagination.current_page || 1;
                     try {
-                        const res = await fetch(this.config.api.index + '?page=' + p, { headers: this.headers() });
+                        const params = new URLSearchParams({ page: String(p) });
+                        if (this.config.type === 'bulletins' && this.filters) {
+                            Object.keys(this.filters).forEach((key) => {
+                                const val = this.filters[key];
+                                if (val !== null && val !== undefined && val !== '') {
+                                    params.set(key, String(val));
+                                }
+                            });
+                        }
+                        const res = await fetch(this.config.api.index + '?' + params.toString(), { headers: this.headers() });
                         const json = await res.json();
                         if (!res.ok) {
                             throw new Error(json.message || 'Could not load list.');
                         }
                         this.rows = json.data || [];
-                        this.pagination = Object.assign(this.pagination, json.meta || {});
+                        this.pagination = Object.assign(
+                            { current_page: 1, last_page: 1, per_page: 15, total: 0, from: null, to: null },
+                            json.meta || {}
+                        );
                     } catch (e) {
                         this.flash = { ok: false, text: e.message || 'Load failed.' };
                     } finally {
                         this.loading = false;
+                    }
+                },
+                applyFilters() {
+                    this.loadRows(1);
+                },
+                clearSearch() {
+                    this.filters.search = '';
+                    this.applyFilters();
+                },
+                fieldVisible(field) {
+                    if (!field.showWhen) {
+                        return true;
+                    }
+
+                    return this.form[field.showWhen.field] === field.showWhen.value;
+                },
+                handleAutoOpen() {
+                    const open = this.config.autoOpen;
+                    if (!open) {
+                        return;
+                    }
+                    setTimeout(() => {
+                        if (open === 'create') {
+                            this.openCreate();
+                        } else if (open.edit) {
+                            this.openEdit(open.edit);
+                        } else if (open.show) {
+                            this.openShow(open.show);
+                        }
+                        this.cleanAutoOpenQuery();
+                    }, 300);
+                },
+                cleanAutoOpenQuery() {
+                    try {
+                        const url = new URL(window.location.href);
+                        url.searchParams.delete('create');
+                        url.searchParams.delete('edit');
+                        url.searchParams.delete('show');
+                        window.history.replaceState({}, '', url.toString());
+                    } catch (e) {
+                        /* ignore */
                     }
                 },
                 goPage(page) {
@@ -185,11 +247,13 @@
                             } else if (f.name === 'door_color_id') {
                                 this.form[f.name] = row.door_color_id || '';
                             } else if (f.type === 'media') {
-                                this.form[f.name + '_url'] = row[f.name + '_link'] || '';
+                                this.form[f.name + '_url'] = row[f.name + '_link'] || row.image_link || '';
                                 if (f.mediaType === 'image' && row.image_url) {
                                     this.formPreview[f.name] = row.image_url;
                                 } else if (f.mediaType === 'pdf' && (row.pdf_url || row.pdf_view_url)) {
                                     this.formPreview[f.name] = row.pdf_url || row.pdf_view_url;
+                                } else if (row.image_url && row.is_image_attachment) {
+                                    this.formPreview[f.name] = row.image_url;
                                 }
                             } else if (f.type !== 'file') {
                                 this.form[f.name] = row[f.name] ?? '';

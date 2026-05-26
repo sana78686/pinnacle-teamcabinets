@@ -241,6 +241,9 @@ class StockCheckAdminViewService
             $attrs['completion_date'] = now();
         }
         if ($attrs !== []) {
+            if (Schema::hasColumn($record->getTable(), 'user_viewed_at')) {
+                $attrs['user_viewed_at'] = null;
+            }
             $record->update($attrs);
             $record = $record->fresh(['user.country', 'user.state']);
         }

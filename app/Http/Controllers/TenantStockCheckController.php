@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\StockCheckRequest;
 use App\Services\AdminRecordViewService;
+use App\Services\UserRecordViewService;
 use App\Services\OrderWorkspaceNotificationService;
 use App\Services\OrderWorkspaceService;
 use App\Services\QuoteWorkspaceService;
@@ -62,7 +63,7 @@ class TenantStockCheckController extends Controller
         return view('tenants.representative_modals.stock_check.index', $data);
     }
 
-    public function show(Request $request, string $id, AdminRecordViewService $adminView): View
+    public function show(Request $request, string $id, AdminRecordViewService $adminView, UserRecordViewService $userViews): View
     {
         $stockCheck = StockCheckRequest::query()->with('user')->findOrFail($id);
 
@@ -77,6 +78,8 @@ class TenantStockCheckController extends Controller
 
         if (Auth::user()->isAdmin()) {
             $adminView->markViewed($stockCheck, Auth::user());
+        } else {
+            $userViews->markUserViewed($stockCheck, Auth::user());
         }
 
         $data = $this->stockAdminView->viewData($stockCheck, $rooms, $viewingOrgData);

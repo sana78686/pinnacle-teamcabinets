@@ -122,6 +122,7 @@ class RepWorkspaceListApiController extends Controller
     return [
       'id' => $row->id,
       'job_name' => $row->job_name ?? '—',
+      'quote_name' => filled($row->quote_name ?? null) ? $row->quote_name : '—',
       'customer_name' => $row->user?->name ?? $row->user_email ?? '—',
       'grand_total_cost' => number_format((float) ($row->grand_total_cost ?? 0), 2),
       'sub_total_weight' => ($row->sub_total_weight ?? '0').' lbs',

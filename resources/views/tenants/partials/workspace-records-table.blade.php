@@ -24,6 +24,7 @@
             <tr>
                 <th scope="col">#</th>
                 <th scope="col">Job name</th>
+                <th scope="col">Quote name</th>
                 <th scope="col">Customer</th>
                 <th scope="col">Total</th>
                 <th scope="col">Weight</th>
@@ -38,6 +39,7 @@
                 <tr class="{{ tenant_admin_unviewed_row_class($record) }}">
                     <td>{{ $records->firstItem() + $loop->index }}</td>
                     <td>{{ $record->job_name }}</td>
+                    <td>{{ filled($record->quote_name ?? null) ? $record->quote_name : '—' }}</td>
                     <td>{{ $record->user?->name ?? $record->user_email ?? '—' }}</td>
                     <td>${{ number_format((float) ($record->grand_total_cost ?? 0), 2) }}</td>
                     <td>{{ $record->sub_total_weight ?? '0' }} lbs</td>
@@ -69,7 +71,7 @@
                 </tr>
             @empty
                 @include('partials.tc-admin-datatable-empty', [
-                    'colspan' => 9,
+                    'colspan' => 10,
                     'icon' => 'icofont-file-document',
                     'message' => 'No ' . strtolower($rowLabel) . 's yet.',
                     'hint' => 'Use the order workspace to create one.',

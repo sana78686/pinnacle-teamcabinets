@@ -147,7 +147,7 @@
                         <td></td>
                     </tr>
                 @endif
-                @if ($isShippingQuote ?? false)
+                @if (($isShippingQuote ?? false) && ($showShippingCharges ?? false))
                     <tr class="table-secondary">
                         <th colspan="{{ $colSpan }}" class="text-start">Shipping Charges</th>
                     </tr>
@@ -213,7 +213,7 @@
                     @csrf
                     <button type="submit" class="btn btn-primary btn-lg">Proceed To Checkout</button>
                 </form>
-            @elseif (($isShippingQuote ?? false) && empty($showAdminForm) && (float) ($shipping_cost ?? 0) <= 0)
+            @elseif (($isShippingQuote ?? false) && empty($showAdminForm) && empty($showShippingCharges))
                 <span class="text-muted small me-2">Shipping charges pending — checkout available after admin completes quote.</span>
             @endif
         </div>

@@ -176,6 +176,19 @@ class TenantNotificationService
         );
     }
 
+    public static function shippingQuoteRespondedForUser(Model $record, User $user): void
+    {
+        $label = $record->job_name ?? ('Request #'.$record->id);
+        self::notifyUserPanel(
+            $user,
+            'Shipping quote updated',
+            sprintf('An administrator has updated shipping charges for "%s". Review and proceed when ready.', $label),
+            route('tenant_shipping_quotes_show', $record->id, false),
+            'success',
+            'shipping',
+        );
+    }
+
     public static function stockCheckSubmittedForUser(Model $record, User $user, bool $withShipping): void
     {
         $label = $record->job_name ?? ('Request #'.$record->id);

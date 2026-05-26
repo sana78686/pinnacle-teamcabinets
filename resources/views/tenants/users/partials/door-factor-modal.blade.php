@@ -34,7 +34,7 @@
                                             class="form-check-input product-catalog-checkbox"
                                             data-catalog-id="{{ $product_catalog->id }}"
                                             value="{{ $product_catalog->id }}"
-                                            @checked(in_array($product_catalog->id, $selectedCatalogs))>
+                                            @checked(in_array((int) $product_catalog->id, array_map('intval', $selectedCatalogs), true))>
                                         <label class="form-check-label" for="checkbox-primary-{{ $product_catalog->id }}">
                                             {{ $product_catalog->name }}
                                         </label>
@@ -45,7 +45,7 @@
                                 <h6 class="tc-form-section-title">Door point factors</h6>
                                 <hr class="mt-1 mb-2">
                                 @foreach ($product_catalogs as $product_catalog)
-                                    @php $isVisible = in_array($product_catalog->id, $selectedCatalogs); @endphp
+                                    @php $isVisible = in_array((int) $product_catalog->id, array_map('intval', $selectedCatalogs), true); @endphp
                                     <div class="door-colors-container mb-3" data-catalog-id="{{ $product_catalog->id }}"
                                         style="{{ $isVisible ? '' : 'display:none;' }}">
                                         <div class="d-flex align-items-center justify-content-between mb-2">

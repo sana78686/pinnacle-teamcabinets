@@ -232,12 +232,26 @@
             input.addEventListener('input', updateDoorFactorStatus);
         });
 
+        function syncCatalogVisibilityOnLoad() {
+            document.querySelectorAll('.product-catalog-checkbox').forEach(function (checkbox) {
+                const catalogId = checkbox.dataset.catalogId;
+                const container = document.querySelector(
+                    '.door-colors-container[data-catalog-id="' + catalogId + '"]'
+                );
+                if (!container) {
+                    return;
+                }
+                container.style.display = checkbox.checked ? 'block' : 'none';
+            });
+        }
+
         bindCatalogCheckboxes();
         bindPerCatalogApply();
         bindModalSave();
         bindModalOpen();
         bindRoleChange();
         bindApplyAll();
+        syncCatalogVisibilityOnLoad();
         updateDoorFactorStatus();
 
         return { updateDoorFactorStatus: updateDoorFactorStatus };

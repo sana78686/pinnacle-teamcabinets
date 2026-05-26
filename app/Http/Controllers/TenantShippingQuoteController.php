@@ -8,6 +8,7 @@ use App\Services\OrderWorkspaceService;
 use App\Services\QuoteWorkspaceService;
 use App\Services\ShippingQuoteAdminViewService;
 use App\Services\TenantNavBadgeService;
+use App\Services\UserRecordViewService;
 use App\Support\TenantListPaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,7 +48,7 @@ class TenantShippingQuoteController extends Controller
         return view($view, compact('records', 'perPage', 'search'));
     }
 
-    public function show(string $id, AdminRecordViewService $adminView): View
+    public function show(string $id, AdminRecordViewService $adminView, UserRecordViewService $userViews): View
     {
         $record = ShippingQuote::query()->with('user')->findOrFail($id);
 
@@ -55,16 +56,20 @@ class TenantShippingQuoteController extends Controller
             abort(403);
         }
 
-        $adminView->markViewed($record, Auth::user());
+        if (Auth::user()->isAdmin()) {
+            $adminView->markViewed($record, Auth::user());
+        } else {
+            $userViews->markUserViewed($record, Auth::user());
+        }
 
         if (Auth::user()->isAdmin()) {
             return view('tenants.quotes.show_shipping_quotes', [
-                'adminView' => $this->shippingAdminView->viewData($record),
+                'adminView' => $this->shippingAdminView->viewData($record, forAdmin: true),
             ]);
         }
 
         return view('tenants.representative_modals.quotes.show_shipping_quotes', [
-            'userView' => $this->shippingAdminView->viewData($record),
+            'userView' => $this->shippingAdminView->viewData($record, forAdmin: false),
             'canProceedToCheckout' => $this->shippingAdminView->canProceedToCheckout($record),
             'proceedCheckoutRoute' => route('tenant_shipping_quotes_proceed_checkout', $record->id),
         ]);

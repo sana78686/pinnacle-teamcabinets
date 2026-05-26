@@ -18,6 +18,7 @@ class ShippingQuote extends Model
     protected $casts = [
         'rooms' => 'array',
         'admin_viewed_at' => 'datetime',
+        'user_viewed_at' => 'datetime',
     ];
 
     public function user()

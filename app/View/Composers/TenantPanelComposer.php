@@ -4,6 +4,7 @@ namespace App\View\Composers;
 
 use App\Models\SiteSetting;
 use App\Services\TenantAdminNavService;
+use App\Services\TenantHeaderAlertService;
 use App\Services\TenantNavBadgeService;
 use App\Services\TenantSubscriptionService;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +18,7 @@ class TenantPanelComposer
         protected TenantSubscriptionService $subscriptions,
         protected TenantNavBadgeService $navBadges,
         protected TenantAdminNavService $adminNav,
+        protected TenantHeaderAlertService $headerAlerts,
     ) {}
 
     public function compose(View $view): void
@@ -32,9 +34,11 @@ class TenantPanelComposer
 
         $tcNavBadges = [];
         $tcAdminNavItems = [];
+        $tcHeaderAlerts = [];
         if (Auth::check()) {
             $user = Auth::user();
             $tcNavBadges = $this->navBadges->countsForUser($user);
+            $tcHeaderAlerts = $this->headerAlerts->alertsFor($user);
             if (tenant_user_is_panel_admin($user)) {
                 $tcAdminNavItems = $this->adminNav->itemsForUser($user);
             }
@@ -51,6 +55,7 @@ class TenantPanelComposer
             'tcLayout' => tenant_layout_flags(),
             'tcNavBadges' => $tcNavBadges,
             'tcAdminNavItems' => $tcAdminNavItems,
+            'tcHeaderAlerts' => $tcHeaderAlerts,
         ]);
     }
 }

@@ -18,6 +18,7 @@ class StockCheckRequest extends Model
         'rooms' => 'array',
         'original_rooms' => 'array',
         'admin_viewed_at' => 'datetime',
+        'user_viewed_at' => 'datetime',
         'completion_date' => 'datetime',
         'is_approved' => 'boolean',
     ];

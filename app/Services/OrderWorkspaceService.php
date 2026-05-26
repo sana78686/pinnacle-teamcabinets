@@ -292,8 +292,14 @@ class OrderWorkspaceService
             if (Schema::hasColumn($table, 'total_pallets')) {
                 $shippingAttrs['total_pallets'] = $costs['total_pallets'] ?? 1;
             }
+            if ($modelClass === \App\Models\ShippingQuote::class && Schema::hasColumn($table, 'is_shipping_updated')) {
+                $shippingAttrs['is_shipping_updated'] = false;
+            }
             $attrs = array_merge($attrs, $shippingAttrs);
-            $attrs['grand_total_cost'] = ($payload['totals']['grand_total_cost'] ?? 0) + ($costs['shipping_cost'] ?? 0);
+            $cabinetGrandTotal = (float) ($payload['totals']['grand_total_cost'] ?? 0);
+            $attrs['grand_total_cost'] = $modelClass === \App\Models\ShippingQuote::class
+                ? (string) $cabinetGrandTotal
+                : (string) ($cabinetGrandTotal + ($costs['shipping_cost'] ?? 0));
         }
 
         if (in_array($modelClass, [\App\Models\Quote::class, \App\Models\ShippingQuote::class, \App\Models\StockCheckRequest::class], true)) {

@@ -333,45 +333,50 @@ class TenantUserController extends Controller
         $adminView->markViewed($edit_user, Auth::user());
         $data['user'] = User::with(['catalogVisibilities', 'manageCommission'])->find($id);
         $data['gross_sales'] = $this->commissions->grossSalesForUser($data['user']);
-        $data['product_catalogs'] = ProductCatalog::where('status', 1)->get();
-            $data['countries'] = Country::where('id', 233)->pluck('name', 'id');
+        $data['countries'] = Country::where('id', 233)->pluck('name', 'id');
         $data['states'] = State::where('country_id', 233)->pluck('name', 'id');
         $data['cities'] = City::forCountry(233)->orderBy('name')->pluck('name', 'id');
 
         $data['counties'] = County::pluck('name', 'name')->all();
-        $data['door_colors'] = DoorColors::with('productCatalog')->get();
         $data['roles'] = Role::get();
         // dd($data['cities']);
 
           // ✅ Get the user's first role ID via Spatie
         $data['user_role_id'] = $data['user']->roles()->pluck('id')->first();
         // Get selected catalogs for the user
-        $data['selected_catalogs'] = UsersCatalogVisibility::where('user_id', $id)
-                                                                ->pluck('catalog_id')
-                                                                ->toArray();
-
-        // Get all door colors & factor values for the selected catalogs
-        $existing_factors = [];
-        $data['door_factors'] = $door_factors = UsersCatalogDoorPointFactor::where('user_id', $id)->get();
-
-        // Get existing factors for the selected catalogs
-        $data['existing_factors'] = UsersCatalogDoorPointFactor::where('user_id', $id)
-                            ->get()
-                            ->groupBy('catalog_id');
-        $data['point_factor_defaults'] = PointFactorDefault::query()
-            ->pluck('point_factor_percentage', 'user_type')
-            ->map(fn ($v) => (string) $v)
-            ->all();
-        $data['has_point_factor_defaults'] = count($data['point_factor_defaults']) > 0;
-        $data['has_product_catalogs'] = $data['product_catalogs']->isNotEmpty();
-        $data['has_door_styles'] = $data['door_colors']->isNotEmpty();
-
-        foreach ($door_factors as $factor) {
-        $existing_factors[$factor->catalog_id][$factor->door_style] = $factor->factor;
+        $doorFactors = UsersCatalogDoorPointFactor::query()->where('user_id', $id)->get();
+        $existingFactorsMap = [];
+        foreach ($doorFactors as $factor) {
+            $existingFactorsMap[(int) $factor->catalog_id][(int) $factor->door_style] = $factor->factor;
         }
 
-        // dd($data);
-        return view('tenants.users.edit', $data);
+        $doorFactorValue = function (int $catalogId, int $doorColorId) use ($existingFactorsMap): string {
+            $value = $existingFactorsMap[$catalogId][$doorColorId] ?? '';
+
+            return $value !== null && $value !== '' ? (string) $value : '';
+        };
+
+        return view('tenants.users.edit', array_merge(
+            $this->doorFactorBootstrapData(),
+            [
+                'user' => $data['user'],
+                'gross_sales' => $data['gross_sales'],
+                'countries' => $data['countries'],
+                'states' => $data['states'],
+                'cities' => $data['cities'],
+                'counties' => $data['counties'],
+                'roles' => $data['roles'],
+                'user_role_id' => $data['user_role_id'],
+                'selected_catalogs' => UsersCatalogVisibility::query()
+                    ->where('user_id', $id)
+                    ->pluck('catalog_id')
+                    ->map(fn ($catalogId) => (int) $catalogId)
+                    ->values()
+                    ->all(),
+                'doorFactorValue' => $doorFactorValue,
+                'modalTitle' => 'Edit Product Catalog Visibility & Point Factors',
+            ]
+        ));
     }
 
     /**

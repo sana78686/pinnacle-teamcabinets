@@ -18,6 +18,18 @@ class RepWorkspaceVueConfig
             ['key' => 'created_at', 'label' => 'Date'],
         ];
 
+        $quoteColumns = [
+            ['key' => 'id', 'label' => '#'],
+            ['key' => 'job_name', 'label' => 'Job name'],
+            ['key' => 'quote_name', 'label' => 'Quote name'],
+            ['key' => 'customer_name', 'label' => 'Customer'],
+            ['key' => 'grand_total_cost', 'label' => 'Total', 'type' => 'money'],
+            ['key' => 'sub_total_weight', 'label' => 'Weight'],
+            ['key' => 'assemble_cabinets_check', 'label' => 'Assemble'],
+            ['key' => 'shipping_status', 'label' => 'Shipping'],
+            ['key' => 'created_at', 'label' => 'Date'],
+        ];
+
         return [
             'orders' => [
                 'type' => 'orders',
@@ -39,7 +51,7 @@ class RepWorkspaceVueConfig
                 'restoreUrl' => route('tenant_deleted_quotes_list'),
                 'restoreLabel' => 'Restore Quotes',
                 'emptyMessage' => 'No quotes yet.',
-                'columns' => $workspaceColumns,
+                'columns' => $quoteColumns,
                 'showUrl' => route('tenant_quotes_show', ['id' => '__ID__']),
                 'editUrl' => route('tenant_quotes_edit', ['id' => '__ID__']),
                 'canDelete' => true,
@@ -51,7 +63,7 @@ class RepWorkspaceVueConfig
                 'restoreUrl' => route('tenant_deleted_shipping_quotes_list'),
                 'restoreLabel' => 'Restore Shipping Quotes',
                 'emptyMessage' => 'No shipping quotes yet.',
-                'columns' => $workspaceColumns,
+                'columns' => $quoteColumns,
                 'showUrl' => route('tenant_shipping_quotes_show', ['id' => '__ID__']),
                 'canDelete' => true,
             ],

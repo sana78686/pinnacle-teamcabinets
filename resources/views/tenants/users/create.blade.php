@@ -441,7 +441,7 @@
         });
     </script>
     @if (! ($door_factor_setup_incomplete ?? false))
-        <script src="{{ tenant_panel_asset('js/tenant-user-door-factors.js') }}?v=3"></script>
+        <script src="{{ tenant_panel_asset('js/tenant-user-door-factors.js') }}?v=4"></script>
         @push('after_sweetalert')
             <script src="{{ tenant_panel_asset('js/tenant-user-form.js') }}?v=2"></script>
         @endpush

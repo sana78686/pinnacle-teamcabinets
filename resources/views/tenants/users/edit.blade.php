@@ -37,15 +37,6 @@
 @endsection
 
 @section('content')
-@php
-    $doorFactorValue = function ($catalogId, $doorColorId) use ($existing_factors) {
-        $group = $existing_factors[$catalogId] ?? collect();
-        $row = $group->first(fn ($f) => (string) $f->door_style === (string) $doorColorId);
-
-        return $row->factor ?? '';
-    };
-@endphp
-
     <div class="m-2 card-body tc-form-page">
         @include('partial.message')
 
@@ -543,7 +534,7 @@
             });
         });
     </script>
-    <script src="{{ tenant_panel_asset('js/tenant-user-door-factors.js') }}?v=3"></script>
+    <script src="{{ tenant_panel_asset('js/tenant-user-door-factors.js') }}?v=4"></script>
     @push('after_sweetalert')
         <script src="{{ tenant_panel_asset('js/tenant-user-form.js') }}?v=2"></script>
     @endpush

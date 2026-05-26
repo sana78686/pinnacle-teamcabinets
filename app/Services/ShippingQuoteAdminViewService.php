@@ -7,6 +7,7 @@ use App\Models\ProductCatalog;
 use App\Models\ShippingQuote;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class ShippingQuoteAdminViewService
 {
@@ -17,13 +18,15 @@ class ShippingQuoteAdminViewService
     /**
      * @return array<string, mixed>
      */
-    public function viewData(ShippingQuote $record): array
+    public function viewData(ShippingQuote $record, bool $forAdmin = false): array
     {
         $record->loadMissing(['user.country', 'user.state']);
         $user = $record->user;
         $addresses = $user ? $this->checkout->billShipAddresses($user) : $this->emptyAddresses();
         $lines = $this->buildLineItems($record->rooms ?? []);
-        $totals = $this->totalsFromRecord($record);
+        $shippingUpdated = $this->isShippingUpdated($record);
+        $showShippingCharges = $forAdmin || $shippingUpdated;
+        $totals = $this->totalsFromRecord($record, $showShippingCharges);
         $palletUnit = app(TaxValuesService::class)->getFloat('pallet_cost', OrderWorkspaceShippingService::PALLET_COST);
 
         $assembleYes = in_array($record->assemble_cabinets_check ?? '', ['yes', '1', 1], true);
@@ -40,13 +43,25 @@ class ShippingQuoteAdminViewService
             'unloadLabel' => $this->unloadLabel($record),
             'listRoute' => 'tenant_shipping_quotes_index',
             'updateRoute' => route('tenant_shipping_quotes_update_costs', $record->id),
-            'showAdminForm' => true,
+            'showAdminForm' => $forAdmin,
+            'showShippingCharges' => $showShippingCharges,
+            'isShippingUpdated' => $shippingUpdated,
         ]);
+    }
+
+    public function isShippingUpdated(ShippingQuote $record): bool
+    {
+        if (Schema::hasColumn($record->getTable(), 'is_shipping_updated')) {
+            return (bool) $record->is_shipping_updated;
+        }
+
+        return (float) ($record->shipping_cost ?? 0) > 0;
     }
 
     public function canProceedToCheckout(ShippingQuote $record): bool
     {
         return $record->shipping_status === 'yes'
+            && $this->isShippingUpdated($record)
             && (float) ($record->shipping_cost ?? 0) > 0
             && (float) ($record->grand_total_cost ?? 0) > 0;
     }
@@ -191,13 +206,31 @@ class ShippingQuoteAdminViewService
             'shipping_status' => 'yes',
         ];
 
-        if (\Illuminate\Support\Facades\Schema::hasColumn($record->getTable(), 'total_pallets')) {
+        if (Schema::hasColumn($record->getTable(), 'total_pallets')) {
             $attrs['total_pallets'] = $totalPallets;
+        }
+
+        if (Schema::hasColumn($record->getTable(), 'is_shipping_updated')) {
+            $attrs['is_shipping_updated'] = true;
+        }
+
+        if (Schema::hasColumn($record->getTable(), 'user_viewed_at')) {
+            $attrs['user_viewed_at'] = null;
         }
 
         $record->update($attrs);
 
-        return $record->fresh();
+        $record = $record->fresh();
+        $user = $record->user;
+        if ($user) {
+            try {
+                TenantNotificationService::shippingQuoteRespondedForUser($record, $user);
+            } catch (\Throwable) {
+                // Panel notification is optional; header alert still applies.
+            }
+        }
+
+        return $record;
     }
 
     /**
@@ -268,12 +301,12 @@ class ShippingQuoteAdminViewService
     /**
      * @return array<string, float|int|string>
      */
-    protected function totalsFromRecord(ShippingQuote $record): array
+    protected function totalsFromRecord(ShippingQuote $record, bool $includeShipping = true): array
     {
         $palletUnit = app(TaxValuesService::class)->getFloat('pallet_cost', OrderWorkspaceShippingService::PALLET_COST);
         $palletsCost = (float) ($record->pallets_cost ?? 0);
         $storedPallets = 0;
-        if (\Illuminate\Support\Facades\Schema::hasColumn($record->getTable(), 'total_pallets')) {
+        if (Schema::hasColumn($record->getTable(), 'total_pallets')) {
             $storedPallets = (int) ($record->total_pallets ?? 0);
         }
         $totalPallets = $storedPallets > 0
@@ -291,7 +324,17 @@ class ShippingQuoteAdminViewService
         if ($shippingCost <= 0) {
             $shippingCost = $deliveryCost + $liftgateCost + $unloadCost + $palletsCost + $miscCost;
         }
-        $grandTotal = (float) ($record->grand_total_cost ?? ($subTotalPrice + $subTotalAssemble + $shippingCost));
+
+        if (! $includeShipping) {
+            $shippingCost = 0.0;
+            $palletsCost = 0.0;
+            $deliveryCost = 0.0;
+            $liftgateCost = 0.0;
+            $unloadCost = 0.0;
+            $miscCost = 0.0;
+        }
+
+        $grandTotal = round($subTotalPrice + $subTotalAssemble + ($includeShipping ? $shippingCost : 0.0), 2);
 
         return [
             'sub_total_weight' => $subTotalWeight,
@@ -332,7 +375,18 @@ class ShippingQuoteAdminViewService
 
     protected function unloadLabel(ShippingQuote $record): string
     {
-        return (float) ($record->unload_cost ?? 0) > 0 ? 'By Forklift' : 'By Hand';
+        if (Schema::hasColumn($record->getTable(), 'unload_type')) {
+            return (int) $record->unload_type === 1 ? 'By Hand' : 'By Forklift';
+        }
+
+        $unload = (float) ($record->unload_cost ?? 0);
+        if ($unload <= 0) {
+            return 'By Hand';
+        }
+
+        // CI: residential + by_hand => $0; residential + forklift => $150;
+        // commercial + either unload method => $150 (by_hand still billed on commercial).
+        return (float) ($record->delivery_cost ?? 0) > 0 ? 'By Hand' : 'By Forklift';
     }
 
     /**

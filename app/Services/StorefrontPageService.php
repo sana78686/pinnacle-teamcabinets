@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Page;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 class StorefrontPageService
 {
@@ -79,22 +80,71 @@ class StorefrontPageService
     {
         $tenantId = tenant('id');
 
-        $page = Page::firstOrCreate(
-            ['tenant_id' => $tenantId, 'slug' => $slug],
-            array_merge([
+        $page = $this->findPageBySlug($slug);
+
+        if ($page) {
+            return $this->touchEnsuredPage($page, $tenantId, $title, $content, $extra);
+        }
+
+        try {
+            return Page::create(array_merge([
+                'tenant_id' => $tenantId,
+                'slug' => $slug,
                 'title' => $title,
                 'content' => $content,
                 'status' => 'published',
                 'parent_id' => null,
                 'show_in_menu' => false,
                 'order_no' => 0,
-            ], $extra)
-        );
+            ], $extra));
+        } catch (UniqueConstraintViolationException $e) {
+            $page = $this->findPageBySlug($slug);
 
-        if (trim((string) $page->content) === '' && trim($content) !== '') {
-            $page->update(['content' => $content]);
+            if ($page) {
+                return $this->touchEnsuredPage($page, $tenantId, $title, $content, $extra);
+            }
+
+            throw $e;
+        }
+    }
+
+    protected function findPageBySlug(string $slug): ?Page
+    {
+        return Page::withoutTenancy()->where('slug', $slug)->first();
+    }
+
+    /**
+     * @param  array<string, mixed>  $extra
+     */
+    protected function touchEnsuredPage(Page $page, ?string $tenantId, string $title, string $content, array $extra): Page
+    {
+        $updates = [];
+
+        if ($tenantId && ! $page->tenant_id) {
+            $updates['tenant_id'] = $tenantId;
         }
 
-        return $page;
+        if (trim((string) $page->title) === '' && trim($title) !== '') {
+            $updates['title'] = $title;
+        }
+
+        if (trim((string) $page->content) === '' && trim($content) !== '') {
+            $updates['content'] = $content;
+        }
+
+        foreach ($extra as $key => $value) {
+            if ($value === null) {
+                continue;
+            }
+            if ($page->{$key} === null || $page->{$key} === '' || $page->{$key} === 0) {
+                $updates[$key] = $value;
+            }
+        }
+
+        if ($updates !== []) {
+            $page->update($updates);
+        }
+
+        return $page->fresh();
     }
 }

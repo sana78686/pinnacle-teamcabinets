@@ -107,18 +107,19 @@ class TenantNavBadgeService
             return true;
         }
 
+        $suffix = '(/|$|\?|#)';
         $patterns = match ($record::class) {
             StockCheckRequest::class => [
-                '#stock_check[/\-]'.preg_quote($recordId, '#').'(/|$|\?|#)#i',
+                '~stock_check[/\-]'.preg_quote($recordId, '~').$suffix.'~i',
             ],
             Quote::class => [
-                '#quotes?[/\-]'.preg_quote($recordId, '#').'(/|$|\?|#)#i',
+                '~quotes?[/\-]'.preg_quote($recordId, '~').$suffix.'~i',
             ],
             ShippingQuote::class => [
-                '#shipping[_\-]?quotes?[/\-]'.preg_quote($recordId, '#').'(/|$|\?|#)#i',
+                '~shipping[_\-]?quotes?[/\-]'.preg_quote($recordId, '~').$suffix.'~i',
             ],
             Order::class => [
-                '#orders?[/\-]'.preg_quote($recordId, '#').'(/|$|\?|#)#i',
+                '~orders?[/\-]'.preg_quote($recordId, '~').$suffix.'~i',
             ],
             default => [],
         };

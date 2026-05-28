@@ -86,10 +86,6 @@
                             ])
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="profile_role">Role</label>
-                            <input type="text" class="form-control" id="profile_role" value="{{ $roleLabel }}" disabled>
-                        </div>
-                        <div class="col-md-6">
                             <label class="form-label" for="profile_username">Username <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('username') is-invalid @enderror" id="profile_username" name="username"
                                 value="{{ old('username', $user->username) }}" required>

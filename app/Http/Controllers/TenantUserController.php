@@ -233,6 +233,10 @@ class TenantUserController extends Controller
      */
     public function store(StoreUserRequest $request): RedirectResponse|JsonResponse
     {
+        if (! Auth::user()?->isAdmin()) {
+            return $this->userFormErrorResponse($request, 'Only administrators can create users from the Users module.');
+        }
+
         try {
             $role = Role::where('id', $request->role_id)->orWhere('name', $request->role)->first();
             if (! $role) {
@@ -360,6 +364,8 @@ class TenantUserController extends Controller
             $this->doorFactorBootstrapData(),
             [
                 'user' => $data['user'],
+                'canChangeRole' => $this->canChangeUserRole($data['user']),
+                'userRoleName' => $data['user']->getRoleNames()->first() ?? 'User',
                 'gross_sales' => $data['gross_sales'],
                 'countries' => $data['countries'],
                 'states' => $data['states'],
@@ -389,7 +395,6 @@ class TenantUserController extends Controller
     public function update(UpdateUserRequest $request, $id): RedirectResponse|JsonResponse
     {
         $user = User::find($id);
-        $role = Role::where('id', $request->role_id)->orWhere('name', $request->role)->first();
 
         if (! $user) {
             return $this->userFormErrorResponse($request, 'User not found.', route('tenant_user_index'));
@@ -404,10 +409,6 @@ class TenantUserController extends Controller
         }
 
         $request->validated();
-
-        if (! $role) {
-            return $this->userFormErrorResponse($request, 'Selected role does not exist.');
-        }
 
         $user->fill([
             'username' => $request->username,
@@ -432,7 +433,13 @@ class TenantUserController extends Controller
 
         $user->save();
 
-        $user->assignCiRole($role->name);
+        if ($this->canChangeUserRole($user)) {
+            $role = Role::where('id', $request->role_id)->orWhere('name', $request->role)->first();
+            if (! $role) {
+                return $this->userFormErrorResponse($request, 'Selected role does not exist.');
+            }
+            $user->assignCiRole($role->name);
+        }
 
         try {
             $this->doorFactors->persistForUser($user, $request);
@@ -668,6 +675,21 @@ public function updateStatus(Request $request, $id)
         return redirect()
             ->route('tenant_user_index')
             ->with('error', 'Admin users cannot be edited or deleted here. Update your account from Settings → Profile.');
+    }
+
+    /** Only tenant admins may change another user's role (not their own). */
+    protected function canChangeUserRole(?User $target): bool
+    {
+        $actor = Auth::user();
+        if (! $actor instanceof User || ! $actor->isAdmin()) {
+            return false;
+        }
+
+        if (! $target) {
+            return true;
+        }
+
+        return (int) $actor->id !== (int) $target->id;
     }
 
     protected function sendUserRegisteredByAdminEmail(User $user, string $plainPassword): void

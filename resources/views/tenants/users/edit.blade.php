@@ -63,33 +63,22 @@
                         </a>
                     </div>
                 </div>
-                <!-- User Role -->
-                {{-- <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
-                    <div class="form-group">
-                        <strong>User Type:<span class="txt-danger">*</span></strong>
-                        <select class="js-example-basic-single col-sm-12 form-control b-r-0" id="search_role" name="role_id"
-                            required data-toggle="tooltip" title="Select the role of the user">
-                            @foreach ($roles as $role)
-                                <option value="{{ $role->id }}" {{ $role->id == $user->role_id ? 'selected' : '' }}>
-                                    {{ $role->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div> --}}
-
-                <!-- User Role -->
+                <!-- User Role (admin editing another user only) -->
                 <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
                     <div class="form-group">
-                        <strong>User Type:<span class="txt-danger">*</span></strong>
-                        <select class="js-example-basic-single col-sm-12 form-control b-r-0" id="search_role" name="role_id"
-                            required data-toggle="tooltip" title="Select the role of the user">
-                            @foreach ($roles as $role)
-                                <option value="{{ $role->id }}" {{ $role->id == $user_role_id ? 'selected' : '' }}>
-                                    {{ $role->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <strong>User Type:@if ($canChangeRole ?? false)<span class="txt-danger">*</span>@endif</strong>
+                        @if ($canChangeRole ?? false)
+                            <select class="js-example-basic-single col-sm-12 form-control b-r-0" id="search_role" name="role_id"
+                                required data-toggle="tooltip" title="Select the role of the user">
+                                @foreach ($roles as $role)
+                                    <option value="{{ $role->id }}" {{ $role->id == $user_role_id ? 'selected' : '' }}>
+                                        {{ $role->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        @else
+                            <input type="text" class="form-control" value="{{ $userRoleName ?? ($user->getRoleNames()->first() ?? '—') }}" disabled readonly>
+                        @endif
                     </div>
                 </div>
 

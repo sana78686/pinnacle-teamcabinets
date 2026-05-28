@@ -143,18 +143,11 @@
                         </a>
                     </div>
                 </div>
-                <!-- User Role -->
+                <!-- User Role (read-only; only admins change roles in Users module) -->
                 <div class="p-2 col-xs-6 col-sm-6 col-md-6 col-lg-4">
                     <div class="form-group">
-                        <strong>User Type:<span class="txt-danger">*</span></strong>
-                        <select class="js-example-basic-single col-sm-12 form-control b-r-0" id="search_role" name="role_id"
-                            required data-toggle="tooltip" title="Select the role of the user">
-                            @foreach ($roles as $role)
-                                <option value="{{ $role->id }}" {{ $role->id == $user->role_id ? 'selected' : '' }}>
-                                    {{ $role->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <strong>User Type:</strong>
+                        <input type="text" class="form-control" value="{{ $user->getRoleNames()->first() ?? '—' }}" disabled readonly>
                     </div>
                 </div>
 
